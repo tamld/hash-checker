@@ -65,9 +65,22 @@ The generated executable appears under `dist/`. Repeat on Windows, macOS, and Li
 python -m unittest discover tests
 ```
 
+## Building (Rust MVP)
+The new Rust core lives under `rust/hash-checker`. Build and run locally (requires
+Rust and Cargo):
+```bash
+cd rust/hash-checker
+cargo build --release
+./target/release/hash-checker <FILE> <EXPECTED_HASH>
+```
+Run the test suite:
+```bash
+cargo test
+```
+
 ## Project Documents
-- `PLAN.md` – development roadmap.
-- `TASKS.md` – granular work items.
-- `BACKLOG.md` – future enhancements.
-- `GOALS.md` – project objectives.
+- `docs/PLAN.md` – development roadmap.
+- `docs/TASKS.md` – granular work items.
+- `docs/BACKLOG.md` – future enhancements.
+- `docs/GOALS.md` – project objectives.
 - `.agent/AGENTS.md` – operational guidelines for assistants.

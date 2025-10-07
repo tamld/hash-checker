@@ -40,3 +40,20 @@ htmlcov/
 *.swp
 .env
 .env.*
+
+# Rust build artifacts
+target/
+**/target/
+
+# Vagrant
+.vagrant/
+
+# VMware Fusion
+*.vmx
+*.vmxf
+*.vmsd
+*.vmdk
+*.nvram
+*.vmss
+*.vmem
+*.lck/
