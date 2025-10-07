@@ -32,18 +32,13 @@ struct StatusMessage {
     kind: StatusKind,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 enum StatusKind {
+    #[default]
     Info,
     Success,
     Warning,
     Error,
-}
-
-impl Default for StatusKind {
-    fn default() -> Self {
-        StatusKind::Info
-    }
 }
 
 impl HashCheckerApp {

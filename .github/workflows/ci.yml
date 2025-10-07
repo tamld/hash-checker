@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          components: clippy, rustfmt
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libgtk-3-dev
+      - name: Cargo fmt (hash-checker)
+        run: cargo fmt --manifest-path rust/hash-checker/Cargo.toml --check
+      - name: Cargo fmt (hash-checker-gui)
+        run: cargo fmt --manifest-path rust/hash-checker-gui/Cargo.toml --check
+      - name: Cargo clippy (hash-checker)
+        run: cargo clippy --manifest-path rust/hash-checker/Cargo.toml --all-targets -- -D warnings
+      - name: Cargo clippy (hash-checker-gui)
+        run: cargo clippy --manifest-path rust/hash-checker-gui/Cargo.toml --all-targets -- -D warnings
+      - name: Cargo test (hash-checker)
+        run: cargo test --manifest-path rust/hash-checker/Cargo.toml --all
+      - name: Legacy Python tests (Docker)
+        run: make python-test
+      - name: Rust tests (Docker)
+        run: make rust-test
+      - name: Build Rust GUI in Docker
+        run: make rust-gui-build
+      - name: GUI smoke test (host)
+        run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
+
+  macos:
+    needs: linux
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          components: clippy, rustfmt
+      - name: Install GTK dependencies
+        run: |
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install gtk+3 pkg-config
+      - name: Cargo fmt
+        run: |
+          cargo fmt --manifest-path rust/hash-checker/Cargo.toml --check
+          cargo fmt --manifest-path rust/hash-checker-gui/Cargo.toml --check
+      - name: Cargo clippy
+        run: |
+          cargo clippy --manifest-path rust/hash-checker/Cargo.toml --all-targets -- -D warnings
+          cargo clippy --manifest-path rust/hash-checker-gui/Cargo.toml --all-targets -- -D warnings
+      - name: Cargo test
+        run: cargo test --manifest-path rust/hash-checker/Cargo.toml --all
+      - name: Build CLI & GUI
+        run: |
+          cargo build --release --manifest-path rust/hash-checker/Cargo.toml
+          cargo build --release --manifest-path rust/hash-checker-gui/Cargo.toml
+      - name: GUI smoke test
+        run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
+
+  windows:
+    needs: macos
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable-x86_64-pc-windows-msvc
+          profile: minimal
+          components: clippy, rustfmt
+      - name: Cargo fmt
+        run: |
+          cargo fmt --manifest-path rust/hash-checker/Cargo.toml --check
+          cargo fmt --manifest-path rust/hash-checker-gui/Cargo.toml --check
+      - name: Cargo clippy
+        run: |
+          cargo clippy --manifest-path rust/hash-checker/Cargo.toml --all-targets -- -D warnings
+          cargo clippy --manifest-path rust/hash-checker-gui/Cargo.toml --all-targets -- -D warnings
+      - name: Cargo test
+        run: cargo test --manifest-path rust/hash-checker/Cargo.toml --all
+      - name: Build CLI & GUI
+        run: |
+          cargo build --release --manifest-path rust/hash-checker/Cargo.toml
+          cargo build --release --manifest-path rust/hash-checker-gui/Cargo.toml
+      - name: GUI smoke test
+        run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
