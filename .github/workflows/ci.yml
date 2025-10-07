@@ -54,7 +54,6 @@ jobs:
           path: dist/hash-checker-linux.tar.gz
 
   macos:
-    needs: linux
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
@@ -99,7 +98,6 @@ jobs:
           path: dist/hash-checker-macos.tar.gz
 
   windows:
-    needs: macos
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4

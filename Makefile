@@ -50,3 +50,6 @@ rust-gui-build-host: ## Build Rust GUI on host (requires gtk deps)
 
 rust-gui-smoke-host: ## Run GUI smoke test on host
 	cargo run --release --manifest-path rust/hash-checker-gui/Cargo.toml -- --smoke-test
+
+sample-verify: ## Verify sample fixture against built CLI
+	cargo run --manifest-path rust/hash-checker/Cargo.toml -- test-fixtures/sample.txt 260948c8a3f06f47c92b8fe2db23d696705bc5801d7af840141de0466a94e52e

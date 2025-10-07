@@ -21,7 +21,7 @@
 - [ ] Automate GUI smoke test (e.g., Playwright) beyond current headless smoke hook.
 
 ## Phase 3: Tooling & Distribution
-- [ ] Set up GitHub Actions matrix (Linux/macOS/Windows) running `cargo fmt`, `cargo clippy`, `cargo test`, `make rust-gui-build`.
+- [x] Set up GitHub Actions matrix (Linux/macOS/Windows) running `cargo fmt`, `cargo clippy`, `cargo test`, `make rust-gui-build`.
 - [ ] Automate release packaging (cargo-dist) + attach artefacts to GitHub Release.
 - [ ] Publish binary release instructions and package manifests.
 
