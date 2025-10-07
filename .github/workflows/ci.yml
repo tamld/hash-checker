@@ -39,6 +39,19 @@ jobs:
         run: make rust-gui-build
       - name: GUI smoke test (host)
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
+      - name: Package artefacts
+        run: |
+          rm -rf dist
+          mkdir -p dist/linux
+          cp rust/hash-checker/target/release/hash-checker dist/linux/
+          cp rust/hash-checker-gui/target/release/hash-checker-gui dist/linux/
+          sha256sum dist/linux/* > dist/linux/SHA256SUMS
+          tar -czf dist/hash-checker-linux.tar.gz -C dist/linux .
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: dist/hash-checker-linux.tar.gz
 
   macos:
     needs: linux
@@ -53,7 +66,8 @@ jobs:
           components: clippy, rustfmt
       - name: Install GTK dependencies
         run: |
-          HOMEBREW_NO_AUTO_UPDATE=1 brew install gtk+3 pkg-config
+          brew update
+          brew install gtk+3 pkg-config
       - name: Cargo fmt
         run: |
           cargo fmt --manifest-path rust/hash-checker/Cargo.toml --check
@@ -70,6 +84,19 @@ jobs:
           cargo build --release --manifest-path rust/hash-checker-gui/Cargo.toml
       - name: GUI smoke test
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
+      - name: Package artefacts
+        run: |
+          rm -rf dist
+          mkdir -p dist/macos
+          cp rust/hash-checker/target/release/hash-checker dist/macos/
+          cp rust/hash-checker-gui/target/release/hash-checker-gui dist/macos/
+          shasum -a 256 dist/macos/* > dist/macos/SHA256SUMS
+          tar -czf dist/hash-checker-macos.tar.gz -C dist/macos .
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifacts
+          path: dist/hash-checker-macos.tar.gz
 
   windows:
     needs: macos
@@ -97,4 +124,20 @@ jobs:
           cargo build --release --manifest-path rust/hash-checker/Cargo.toml
           cargo build --release --manifest-path rust/hash-checker-gui/Cargo.toml
       - name: GUI smoke test
+        shell: pwsh
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
+      - name: Package artefacts
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path dist\win | Out-Null
+          Copy-Item "rust/hash-checker/target/release/hash-checker.exe" dist/win/
+          Copy-Item "rust/hash-checker-gui/target/release/hash-checker-gui.exe" dist/win/
+          Get-FileHash dist\win\hash-checker.exe -Algorithm SHA256 | ForEach-Object { $_.Hash + "  hash-checker.exe" } > dist/win/SHA256SUMS
+          Get-FileHash dist\win\hash-checker-gui.exe -Algorithm SHA256 | ForEach-Object { $_.Hash + "  hash-checker-gui.exe" } >> dist/win/SHA256SUMS
+          Compress-Archive -Path dist\win\* -DestinationPath dist\hash-checker-windows.zip -Force
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: dist/hash-checker-windows.zip

@@ -41,3 +41,12 @@ rust-build-temp: ## Build Rust binaries into /tmp/hash-checker-build (clean)
 		cp rust/hash-checker/target/release/hash-checker $$TMP/ && \
 		cp rust/hash-checker-gui/target/release/hash-checker-gui $$TMP/ && \
 		shasum -a 256 $$TMP/hash-checker $$TMP/hash-checker-gui > $$TMP/SHA256SUMS
+
+rust-build-host: ## Build Rust CLI on host (requires Rust toolchain)
+	cargo build --release --manifest-path rust/hash-checker/Cargo.toml
+
+rust-gui-build-host: ## Build Rust GUI on host (requires gtk deps)
+	cargo build --release --manifest-path rust/hash-checker-gui/Cargo.toml
+
+rust-gui-smoke-host: ## Run GUI smoke test on host
+	cargo run --release --manifest-path rust/hash-checker-gui/Cargo.toml -- --smoke-test
