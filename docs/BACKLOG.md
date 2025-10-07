@@ -18,3 +18,13 @@
 - Binary signing + notarization (macOS, Windows).
 - Secure update channel (auto-update with checksum validation).
 - Threat modeling review and penetration testing after MVP.
+
+## CI & Release Automation
+- GitHub Actions matrix for lint/test/build per platform.
+- Automated GUI smoke test (Playwright or headless).
+- Release workflow with artifact packaging and optional signing.
+
+## Release & QA
+- Automated changelog generation and release notes.
+- Signed artefacts (codesign/notarize, signtool).
+- Beta feedback loop & manual QA checklist.
