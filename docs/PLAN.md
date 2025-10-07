@@ -15,7 +15,7 @@
 - [x] Provide build instructions for Windows/macOS/Linux using `cargo build --release`.
 
 ## Phase 2: GUI MVP (Post-Core)
-- [ ] Evaluate UI frameworks (Tauri vs egui) and select for MVP.
+- [x] Evaluate UI frameworks (Tauri vs egui) and select for MVP (see docs/GUI_DECISION.md).
 - [ ] Implement minimal GUI flow: select file → select algorithm/auto → display digest + compare state.
 - [ ] Add accessibility essentials (keyboard navigation, high-contrast theme toggle).
 - [ ] Create automated GUI smoke test (Playwright or Specta).

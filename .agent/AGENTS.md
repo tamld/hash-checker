@@ -5,7 +5,7 @@
 
 ## Sources of Truth
 - Global MCP (core laws, guardrails, templates): refer to the secured MCP workspace configured via the `GLOBAL_MCP` environment variable.
-- Repository documents: `README.md`, `docs/PLAN.md`, `docs/BACKLOG.md`, `docs/GOALS.md`, `docs/TASKS.md`, `docs/SECURITY_ROADMAP.md`, `docs/MIGRATION_CHECKLIST.md`, `legacy/python/tests/test_cases.md`.
+- Repository documents: `README.md`, `docs/PLAN.md`, `docs/BACKLOG.md`, `docs/GOALS.md`, `docs/TASKS.md`, `docs/SECURITY_ROADMAP.md`, `docs/MIGRATION_CHECKLIST.md`, `docs/GUI_DECISION.md`, `docs/GUI_MVP_DESIGN.md`, `legacy/python/tests/test_cases.md`.
 
 ## Startup Checklist
 1. Run the Global bootstrap summary to refresh shared policies:

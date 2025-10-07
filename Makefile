@@ -11,6 +11,9 @@ rust-test: ## Run Rust tests in Docker (cached target)
 rust-build: ## Build Rust release binary in Docker
 	./scripts/docker-rust-build.sh
 
+rust-gui-build: ## Build Rust GUI binary in Docker
+	./scripts/docker-rust-gui-build.sh
+
 python-build: ## Build legacy Python PyInstaller artifact in Docker
 	docker run --rm \
 		--user "$(shell id -u):$(shell id -g)" \

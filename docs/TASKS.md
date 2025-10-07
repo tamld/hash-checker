@@ -18,7 +18,13 @@
 - [ ] Implement Rust GUI and update Vagrant smoke test to launch it.
 
 ## Phase 2 – GUI MVP
-- [ ] Decide UI stack (Tauri vs egui) and spike prototypes.
+- [x] Scaffold `hash-checker-gui` crate with egui/eframe.
+- [ ] Wire GUI to hash core library for calculations.
+- [ ] Implement file picker + algorithm dropdown + result panel.
+- [ ] Add accessibility toggles (theme contrast, keyboard hints).
+- [ ] Integrate GUI smoke test into Vagrant pipeline.
+
+- [x] Decide UI stack (egui/eframe) and document rationale (docs/GUI_DECISION.md).
 - [ ] Build minimal GUI shell calling Rust core.
 - [ ] Add drag-and-drop support + clipboard copy.
 - [ ] Write Playwright (or equivalent) smoke tests.
