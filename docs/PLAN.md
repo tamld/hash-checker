@@ -16,8 +16,8 @@
 
 ## Phase 2: GUI MVP (Post-Core)
 - [x] Evaluate UI frameworks (Tauri vs egui) and select for MVP (see docs/GUI_DECISION.md).
-- [ ] Implement minimal GUI flow: select file → select algorithm/auto → display digest + compare state.
-- [ ] Add accessibility essentials (keyboard navigation, high-contrast theme toggle).
+- [x] Implement minimal GUI flow: select file → select algorithm/auto → display digest + compare state.
+- [x] Add accessibility essentials (keyboard navigation, high-contrast theme toggle).
 - [ ] Create automated GUI smoke test (Playwright or Specta).
 
 ## Phase 3: Tooling & Distribution

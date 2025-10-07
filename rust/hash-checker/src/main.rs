@@ -4,7 +4,11 @@ use clap::Parser;
 use hash_checker::{supported_algorithms, verify_hash};
 
 #[derive(Parser, Debug)]
-#[command(name = "hash-checker", version, about = "Verify file integrity using cryptographic hashes.")]
+#[command(
+    name = "hash-checker",
+    version,
+    about = "Verify file integrity using cryptographic hashes."
+)]
 struct Cli {
     #[arg(value_name = "FILE")]
     file: Option<PathBuf>,
@@ -18,7 +22,10 @@ struct Cli {
     #[arg(long = "list-algorithms", help = "List supported algorithms and exit")]
     list_algorithms: bool,
 
-    #[arg(long = "gui", help = "Launch the graphical interface (not yet available in Rust MVP)")]
+    #[arg(
+        long = "gui",
+        help = "Launch the graphical interface (not yet available in Rust MVP)"
+    )]
     gui: bool,
 
     #[arg(long = "no-cli", help = "Force GUI mode even if CLI args are provided")]

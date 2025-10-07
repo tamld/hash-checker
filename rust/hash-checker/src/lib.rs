@@ -1,10 +1,14 @@
-use std::{fs::File, io::{BufReader, Read}, path::Path};
+use std::{
+    fs::File,
+    io::{BufReader, Read},
+    path::Path,
+};
 
+use blake2::{Blake2b512, Blake2s256};
 use digest::Digest;
 use md5::Md5;
 use sha1::Sha1;
 use sha2::{Sha224, Sha256, Sha384, Sha512};
-use blake2::{Blake2b512, Blake2s256};
 
 const CHUNK_SIZE: usize = 1024 * 1024;
 
@@ -26,14 +30,7 @@ pub type HashResult<T> = std::result::Result<T, HashError>;
 
 pub fn supported_algorithms() -> &'static [&'static str] {
     &[
-        "md5",
-        "sha1",
-        "sha224",
-        "sha256",
-        "sha384",
-        "sha512",
-        "blake2s",
-        "blake2b",
+        "md5", "sha1", "sha224", "sha256", "sha384", "sha512", "blake2s", "blake2b",
     ]
 }
 
@@ -90,7 +87,11 @@ fn is_hex(s: &str) -> bool {
     !s.is_empty() && s.chars().all(|c| c.is_ascii_hexdigit())
 }
 
-pub fn verify_hash(path: &Path, expected_hash: &str, algorithm: Option<&str>) -> HashResult<(bool, String)> {
+pub fn verify_hash(
+    path: &Path,
+    expected_hash: &str,
+    algorithm: Option<&str>,
+) -> HashResult<(bool, String)> {
     let digest = expected_hash.trim().to_lowercase();
     if digest.is_empty() {
         return Err(HashError::EmptyExpectedHash);

@@ -23,7 +23,7 @@
 - Follow Global guardrails (MAIN-PROTECT-001, CI-PATH-001, SECRET-SHIELD-001, GLOBAL-MEM-PR-001).
 
 ## Testing & Build Expectations
-- Unit tests: `make python-test` (legacy prototype via Docker) and `make rust-test` (Rust).
+- Unit tests: `make python-test` (legacy) and `make rust-test` (Rust). Use `make rust-gui-build` for GUI build validation when required.
 - GUI smoke test: run `make rust-gui-smoke` (headless Vagrant VM). Currently executes the legacy Python GUI until the Rust GUI is implemented.
 - Packaging guidance lives in the project README; prefer PyInstaller builds executed inside disposable VMs/containers per project policy.
 

@@ -19,14 +19,14 @@
 
 ## Phase 2 – GUI MVP
 - [x] Scaffold `hash-checker-gui` crate with egui/eframe.
-- [ ] Wire GUI to hash core library for calculations.
-- [ ] Implement file picker + algorithm dropdown + result panel.
-- [ ] Add accessibility toggles (theme contrast, keyboard hints).
-- [ ] Integrate GUI smoke test into Vagrant pipeline.
+- [x] Wire GUI to hash core library for calculations.
+- [x] Implement file picker + algorithm dropdown + result panel.
+- [x] Add accessibility toggles (theme contrast, keyboard hints).
+- [x] Integrate GUI smoke test into Vagrant pipeline.
 
 - [x] Decide UI stack (egui/eframe) and document rationale (docs/GUI_DECISION.md).
-- [ ] Build minimal GUI shell calling Rust core.
-- [ ] Add drag-and-drop support + clipboard copy.
+- [x] Build minimal GUI shell calling Rust core.
+- [x] Add drag-and-drop support + clipboard copy.
 - [ ] Write Playwright (or equivalent) smoke tests.
 
 ## Phase 3 – Tooling & Security

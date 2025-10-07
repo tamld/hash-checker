@@ -1,7 +1,12 @@
-use std::path::PathBuf;
+use std::{
+    env,
+    fs::{remove_file, File},
+    io::Write,
+    path::PathBuf,
+};
 
 use eframe::{egui, App, Frame};
-use egui::{Color32, RichText};
+use egui::{Color32, Key, RichText};
 use hash_checker::{compute_hash, supported_algorithms, verify_hash};
 use rfd::FileDialog;
 
@@ -81,7 +86,10 @@ impl HashCheckerApp {
     fn calculate(&mut self) {
         let path = PathBuf::from(self.file_path.trim());
         if self.file_path.trim().is_empty() {
-            self.set_status("Please choose a file before calculating.", StatusKind::Warning);
+            self.set_status(
+                "Please choose a file before calculating.",
+                StatusKind::Warning,
+            );
             return;
         }
         if !path.exists() {
@@ -90,7 +98,6 @@ impl HashCheckerApp {
         }
 
         let expected = self.expected_hash.trim();
-        let algorithm = self.selected_algorithm();
         if expected.is_empty() {
             let algorithm = self.selected_algorithm().unwrap_or("sha256");
             match compute_hash(&path, algorithm) {
@@ -104,7 +111,7 @@ impl HashCheckerApp {
                 }
             }
         } else {
-            match verify_hash(&path, expected, algorithm) {
+            match verify_hash(&path, expected, self.selected_algorithm()) {
                 Ok((matches, digest)) => {
                     self.computed_hash = Some(digest.clone());
                     if matches {
@@ -131,10 +138,23 @@ impl HashCheckerApp {
     fn toggle_contrast(&mut self, ui: &mut egui::Ui) {
         ui.checkbox(&mut self.high_contrast, "High contrast theme");
     }
+
+    fn process_input(&mut self, ctx: &egui::Context) {
+        let dropped = ctx.input(|i| i.raw.dropped_files.clone());
+        if let Some(path) = dropped.iter().find_map(|file| file.path.as_ref()) {
+            self.file_path = path.to_string_lossy().into();
+            self.set_status("File selected from drag-and-drop.", StatusKind::Info);
+        }
+
+        if ctx.input(|i| i.key_pressed(Key::Enter)) {
+            self.calculate();
+        }
+    }
 }
 
 impl App for HashCheckerApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut Frame) {
+        self.process_input(ctx);
         if self.high_contrast {
             ctx.set_visuals(egui::Visuals::dark());
         } else {
@@ -167,12 +187,15 @@ impl App for HashCheckerApp {
 
             ui.add_space(8.0);
             ui.label("Expected hash (optional):");
-            ui.add(egui::TextEdit::singleline(&mut self.expected_hash).desired_width(f32::INFINITY));
+            ui.add(
+                egui::TextEdit::singleline(&mut self.expected_hash).desired_width(f32::INFINITY),
+            );
 
             ui.add_space(8.0);
             if ui.button("Calculate").clicked() {
                 self.calculate();
             }
+            ui.small("Press Enter to calculate or toggle contrast below.");
             ui.add_space(4.0);
             self.toggle_contrast(ui);
 
@@ -191,7 +214,10 @@ impl App for HashCheckerApp {
             ui.label("Computed hash:");
             ui.horizontal(|ui| {
                 let mut display_hash = self.computed_hash.clone().unwrap_or_default();
-                ui.add_enabled(false, egui::TextEdit::singleline(&mut display_hash).desired_width(f32::INFINITY));
+                ui.add_enabled(
+                    false,
+                    egui::TextEdit::singleline(&mut display_hash).desired_width(f32::INFINITY),
+                );
                 if ui.button("Copy").clicked() {
                     let value = self.computed_hash.clone().unwrap_or_default();
                     ctx.output_mut(|o| o.copied_text = value);
@@ -202,7 +228,36 @@ impl App for HashCheckerApp {
     }
 }
 
+fn run_smoke_test() -> Result<(), String> {
+    let path = env::temp_dir().join("hash_checker_gui_smoke.txt");
+    {
+        let mut file = File::create(&path).map_err(|e| e.to_string())?;
+        writeln!(file, "hash-checker gui smoke test").map_err(|e| e.to_string())?;
+    }
+    let digest = compute_hash(&path, "sha256").map_err(|e| e.to_string())?;
+    let (matches, _) = verify_hash(&path, &digest, Some("sha256")).map_err(|e| e.to_string())?;
+    let _ = remove_file(&path);
+    if matches {
+        Ok(())
+    } else {
+        Err("verification mismatch".to_owned())
+    }
+}
+
 fn main() -> eframe::Result<()> {
+    if env::args().any(|arg| arg == "--smoke-test") {
+        match run_smoke_test() {
+            Ok(_) => {
+                println!("GUI smoke test passed");
+                return Ok(());
+            }
+            Err(err) => {
+                eprintln!("GUI smoke test failed: {err}");
+                std::process::exit(1);
+            }
+        }
+    }
+
     let options = eframe::NativeOptions::default();
     eframe::run_native(
         "Hash Checker",
