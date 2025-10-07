@@ -1,86 +1,60 @@
 # Hash Checker
 
-Cross-platform utility for verifying file integrity via cryptographic hashes. The
-project ships both a command-line interface and a Tkinter-based GUI with drag-and-drop support.
+Cross-platform utility for verifying file integrity via cryptographic hashes.
+The project is migrating from a legacy Python prototype to a Rust-based
+implementation for easier cross-platform distribution.
 
-## Features
-- Supports common hashing algorithms (MD5, SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, BLAKE2b, BLAKE2s).
-- Detects the correct algorithm automatically from digest length when possible.
-- Provides both CLI and GUI flows in a single package.
-- Works on Windows, macOS, and Linux.
+## Status
+- **Rust core** lives in `rust/hash-checker` and is the active codebase.
+- **Legacy Python** remains available in `legacy/python` for reference and will only
+  receive critical fixes.
 
-## Requirements
-- Python 3.8+
-- Optional GUI dependency: [`tkinterdnd2`](https://pypi.org/project/tkinterdnd2/) (install automatically on most platforms via pip).
-- Tk/Tcl support for the GUI (preinstalled on macOS/Windows; on Linux install `python3-tk`).
+## Features (Rust MVP)
+- SHA-2 family, MD5, SHA-1, and BLAKE2 hashing with streaming IO.
+- Automatic algorithm detection based on digest length.
+- CLI parity with the original Python tool (`--algorithm`, `--list-algorithms`, exit codes).
+- Containerized and VM-based workflows to avoid modifying the host machine.
 
-## Installation
-```bash
-pip install .
-```
-For development installs, use `pip install -e .` to enable editable mode.
-
-## Usage
-### CLI
-Compute and verify a file hash:
-```bash
-python -m hash_checker /path/to/file.ext 19fe5f3e518ba46537ddf4bcd098d66e2873fda2dccf58e66f6ab1f932c6d811
-```
-
-Specify an exact algorithm:
-```bash
-hash-checker /path/to/file.ext 109788a70f52a60437d3c8867124ca72 --algorithm md5
-```
-
-List available algorithms:
-```bash
-hash-checker --list-algorithms
-```
-
-Exit codes follow this convention:
-- `0`: Hashes match / informational output.
-- `1`: Verification failed due to runtime error.
-- `2`: Missing CLI arguments.
-- `3`: Hash mismatch.
-- `5`: GUI launch unavailable (Tk missing).
-
-### GUI
-Launch the graphical interface:
-```bash
-hash-checker --gui
-```
-
-Inside the window you can drag-and-drop a file, choose an algorithm (or keep `auto` for detection), provide an expected hash, and verify the result.
-
-## Packaging (PyInstaller)
-Run inside the project root on the target operating system:
-```bash
-pip install -r requirements-build.txt
-pyinstaller --name HashChecker --onefile src/hash_checker/__main__.py
-```
-The generated executable appears under `dist/`. Repeat on Windows, macOS, and Linux to ship native binaries. For reliable builds, execute PyInstaller inside disposable virtual machines or containers to avoid polluting the host system.
-
-## Testing
-```bash
-python -m unittest discover tests
-```
-
-## Building (Rust MVP)
-The new Rust core lives under `rust/hash-checker`. Build and run locally (requires
-Rust and Cargo):
+## Rust Usage
 ```bash
 cd rust/hash-checker
-cargo build --release
+cargo build --release        # or run `make rust-build`
 ./target/release/hash-checker <FILE> <EXPECTED_HASH>
 ```
-Run the test suite:
+List supported algorithms:
+```bash
+./target/release/hash-checker --list-algorithms
+```
+Run the Rust tests (or `make rust-test`):
 ```bash
 cargo test
 ```
 
+## Legacy Python Prototype
+The Python version now resides in `legacy/python`.
+```bash
+cd legacy/python
+python -m hash_checker <FILE> <EXPECTED_HASH>
+```
+Run the old unit tests inside Docker to keep the host clean:
+```bash
+make python-test
+```
+To build a PyInstaller artifact for regression purposes:
+```bash
+make python-build
+```
+
+## Containerized Workflow
+- `make python-test`: run legacy Python tests in Docker (read-only).
+- `make rust-test`: run Rust tests in Docker.
+- `make rust-build`: compile Rust release binary in Docker.
+- `make rust-gui-smoke`: spin up the headless Vagrant VM (placeholder until the Rust GUI exists).
+
 ## Project Documents
-- `docs/PLAN.md` – development roadmap.
-- `docs/TASKS.md` – granular work items.
-- `docs/BACKLOG.md` – future enhancements.
-- `docs/GOALS.md` – project objectives.
+- `docs/PLAN.md` – development roadmap (Rust migration phases).
+- `docs/TASKS.md` – actionable task list for each phase.
+- `docs/BACKLOG.md` – backlog for post-MVP features.
+- `docs/GOALS.md` – project objectives in the Rust era.
+- `docs/SECURITY_ROADMAP.md` – staged security improvements.
 - `.agent/AGENTS.md` – operational guidelines for assistants.

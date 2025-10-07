@@ -5,8 +5,7 @@ IMAGE="python:3.11-slim"
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
 exec docker run --rm \
-    --user "$(id -u):$(id -g)" \
     -v "${PROJECT_ROOT}:/workspace:ro" \
-    -w /workspace \
+    -w /workspace/legacy/python \
     ${IMAGE} \
-    bash -lc "pip install -r requirements-build.txt && python -m unittest discover tests"
+    bash -lc "pip install --no-cache-dir -r requirements-build.txt && python -m unittest discover tests"

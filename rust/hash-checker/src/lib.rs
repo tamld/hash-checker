@@ -1,6 +1,5 @@
 use std::{fs::File, io::{BufReader, Read}, path::Path};
 
-use anyhow::Result;
 use digest::Digest;
 use md5::Md5;
 use sha1::Sha1;

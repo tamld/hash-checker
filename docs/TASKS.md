@@ -1,8 +1,8 @@
 # Tasks (Rust Migration)
 
 ## Phase 0
-- [ ] Freeze Python codebase (read-only except hotfixes) and tag last Python release.
-- [ ] Create migration checklist and share with stakeholders.
+- [x] Freeze Python codebase (read-only except hotfixes) and tag last Python release (pending actual tag).
+- [x] Create migration checklist and share with stakeholders.
 
 ## Phase 1 – Rust Core MVP
 - [x] Scaffold Rust crate (`cargo new hash-checker`).

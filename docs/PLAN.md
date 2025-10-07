@@ -3,7 +3,7 @@
 ## Phase 0: Preparation (In Progress)
 - [x] Consolidate documentation under `docs/` and sanitize internal paths.
 - [x] Finalize technology decision (Rust) and communicate scope to stakeholders.
-- [ ] Freeze Python implementation except for critical fixes (code freeze for migration).
+- [x] Freeze Python implementation except for critical fixes (code freeze for migration).
 
 ## Phase 1: Rust Core MVP
 - [x] Integrate Docker-based testing pipeline (Python & Rust).

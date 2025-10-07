@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE="rust:1.80-slim"
+IMAGE="rust:1.80"
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
 exec docker run --rm \
-    --user "$(id -u):$(id -g)" \
     -v "${PROJECT_ROOT}:/workspace" \
     -w /workspace/rust/hash-checker \
     ${IMAGE} \
-    bash -lc "cargo build --release"
+    bash -lc 'export PATH="/usr/local/cargo/bin:$PATH"; cargo build --release'
