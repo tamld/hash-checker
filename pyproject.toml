@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hash-checker"
+version = "0.1.0"
+description = "Cross-platform hash verification utility with CLI and GUI."
+readme = "README.md"
+authors = [{name = "tamld"}]
+license = {text = "MIT"}
+requires-python = ">=3.8"
+dependencies = []
+keywords = ["hash", "checksum", "cli", "gui", "integrity"]
+
+[project.optional-dependencies]
+gui = ["tkinterdnd2>=0.3.0"]
+build = ["pyinstaller>=6.6", "tkinterdnd2>=0.3.0"]
+
+[project.scripts]
+hash-checker = "hash_checker.cli.main:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
