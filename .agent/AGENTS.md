@@ -17,6 +17,7 @@
 ## Workflow & Communication
 - `workflow.mode`: `light` (solo project; direct commits acceptable after local verification).
 - Migration note: Python prototype is frozen; new work targets the Rust codebase per `docs/PLAN.md`.
+- Commit to GitHub when tasks or milestones are completed to avoid large divergence; for major changes prefer opening a PR and merge it for clear tracking.
 - Language: discuss in Vietnamese; write code, comments, commit messages in English.
 - Default approach: minimal, reversible changes; keep plans short; add a short preamble before shell/tool calls.
 - Follow Global guardrails (MAIN-PROTECT-001, CI-PATH-001, SECRET-SHIELD-001, GLOBAL-MEM-PR-001).
