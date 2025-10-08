@@ -20,6 +20,8 @@
 - Commit to GitHub when tasks or milestones are completed to avoid large divergence; for major changes prefer opening a PR and merge it for clear tracking.
 - Language: discuss in Vietnamese; write code, comments, commit messages in English.
 - Default approach: minimal, reversible changes; keep plans short; add a short preamble before shell/tool calls.
+- Workspace scope: restrict file edits and artefacts to `/Users/tamld/Library/CloudStorage/OneDrive-MSFT/Documents/Github/local-scripts/hash-checker`; do not introduce files elsewhere.
+- Build rule: when builds are required, invoke `make` targets that stage outputs under `/tmp` and avoid creating additional files or directories outside the project workspace.
 - Follow Global guardrails (MAIN-PROTECT-001, CI-PATH-001, SECRET-SHIELD-001, GLOBAL-MEM-PR-001).
 
 ## Testing & Build Expectations
