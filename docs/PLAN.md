@@ -54,3 +54,10 @@
 - Keep README and public docs polished (badges, ToC, installer instructions) so contributors immediately understand project health and release expectations.
 
 Progress is tracked via `docs/TASKS.md`, with backlog items in `docs/BACKLOG.md`.
+## Release Readiness Checklist
+- Implement GUI regression automation and include it in CI.
+- Add installer smoke jobs to validate `.dmg`, `.deb`, and Windows portable packages.
+- Provide end-user checksum verification instructions alongside releases.
+- Run supply-chain scanning (`cargo audit`, `cargo deny`) as part of the gating process.
+- Capture GUI screenshots/fixtures for documentation and QA reference.
+
