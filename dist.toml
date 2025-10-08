@@ -1,9 +1,3 @@
-[workspace]
-members = [
-  "cargo:rust/hash-checker",
-  "cargo:rust/hash-checker-gui"
-]
-
 [package.hash-checker]
 binaries = ["hash-checker"]
 
