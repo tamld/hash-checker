@@ -72,6 +72,14 @@ ls /tmp/hash-checker-build
 ```
 Produces `hash-checker`, `hash-checker-gui`, and `SHA256SUMS` in `/tmp/hash-checker-build`.
 
+Platform-specific packages can also be generated into temp directories:
+
+```bash
+make rust-gui-dmg-temp        # -> /tmp/hash-checker-gui/*.dmg (macOS)
+make rust-linux-deb-temp      # -> /tmp/hash-checker-deb/*.deb (Linux build from mac host via cargo-packager)
+make rust-windows-zip-temp    # -> /tmp/hash-checker-win/hash-checker-windows-portable.zip
+```
+
 ## Continuous Integration
 - `.github/workflows/ci.yml` runs sequentially: Linux → macOS → Windows.
 - Each job performs formatting, linting, tests, release builds, and GUI smoke tests, then publishes installers with checksums.

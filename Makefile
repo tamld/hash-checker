@@ -19,6 +19,30 @@ clean: ## Remove build artifacts and Docker volumes
 	rm -rf dist build
 	docker volume prune -f
 
+rust-gui-dmg-temp: ## Build macOS .dmg into /tmp/hash-checker-gui
+	cargo install cargo-packager@0.11.7 --locked >/dev/null 2>&1 || true
+	cargo packager --release --formats dmg --manifest-path rust/hash-checker-gui/Cargo.toml
+	mkdir -p /tmp/hash-checker-gui
+	cp rust/hash-checker-gui/target/packager/*.dmg /tmp/hash-checker-gui/
+	cp rust/hash-checker-gui/target/packager/SHA256SUMS /tmp/hash-checker-gui/
+	rm -rf rust/hash-checker-gui/target/packager
+
+rust-linux-deb-temp: ## Build Linux .deb into /tmp/hash-checker-deb
+	cargo install cargo-packager@0.11.7 --locked >/dev/null 2>&1 || true
+	cargo packager --release --formats deb --manifest-path rust/hash-checker-gui/Cargo.toml
+	mkdir -p /tmp/hash-checker-deb
+	cp rust/hash-checker-gui/target/packager/*.deb /tmp/hash-checker-deb/
+	cp rust/hash-checker-gui/target/packager/SHA256SUMS /tmp/hash-checker-deb/
+	rm -rf rust/hash-checker-gui/target/packager
+
+rust-windows-zip-temp: ## Build Windows portable .zip into platform temp directory
+	cargo build --release --manifest-path rust/hash-checker/Cargo.toml
+	cargo build --release --manifest-path rust/hash-checker-gui/Cargo.toml
+	mkdir -p /tmp/hash-checker-win
+	cp rust/hash-checker/target/release/hash-checker /tmp/hash-checker-win/ 2>/dev/null || true
+	cp rust/hash-checker-gui/target/release/hash-checker-gui /tmp/hash-checker-win/ 2>/dev/null || true
+	(cd /tmp/hash-checker-win && zip -qr hash-checker-windows-portable.zip hash-checker hash-checker-gui)
+
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?##";} {printf "%-20s %s\n", $$1, $$2}'
 
