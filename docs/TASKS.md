@@ -18,7 +18,7 @@
 ## Phase 3 – Distribution & Releases
 - [x] Run fmt/clippy/test in the GitHub Actions matrix (Linux/macOS/Windows).
 - [x] Generate `.dmg`/`.deb` installers via `cargo-packager` and keep the Windows portable ZIP.
-- [ ] Automate GitHub Release publication with installers, portable artefacts, checksums, and templated notes.
+- [x] Automate GitHub Release publication with installers, portable artefacts, checksums, and templated notes (release workflow).
 - [ ] Document offline installation steps and update the installer guidance.
 - [ ] Add smoke verification for produced installers (CLI + GUI launch).
 
