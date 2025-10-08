@@ -2,6 +2,16 @@
 set -euo pipefail
 
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+TMP_ROOT="${TMPDIR:-${TEMP:-${TMP:-}}}"
+
+canonical_path() {
+  local raw="$1"
+  if [[ "$raw" =~ ^[A-Za-z]:\\ ]] && command -v cygpath >/dev/null 2>&1; then
+    cygpath "$raw"
+  else
+    printf '%s\n' "$raw"
+  fi
+}
 
 # Re-use packaging cleanup (respects KEEP_PACKAGING flag)
 KEEP_PACKAGING="${KEEP_PACKAGING:-0}" "${PROJECT_ROOT}/scripts/cleanup-packaging.sh"
@@ -24,6 +34,15 @@ for temp_path in /tmp/hash-checker-build \
     rm -rf "${temp_path}"
   fi
 done
+
+if [[ -n "${TMP_ROOT}" ]]; then
+  for suffix in hash-checker-build hash-checker-gui hash-checker-deb hash-checker-win; do
+    target_path="$(canonical_path "${TMP_ROOT%/}/${suffix}")"
+    if [[ -e "${target_path}" ]]; then
+      rm -rf "${target_path}"
+    fi
+  done
+fi
 
 # Remove Windows build artefacts that might linger under project root
 find "${PROJECT_ROOT}" -maxdepth 1 -type f \( -name '*.exe' -o -name '*.zip' -o -name '*.msi' \) -print0 | xargs -0 -r rm -f

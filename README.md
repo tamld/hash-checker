@@ -84,7 +84,7 @@ Platform-specific packages can also be generated into temp directories:
 ```bash
 make rust-gui-dmg-temp        # -> /tmp/hash-checker-gui/*.dmg (macOS)
 make rust-linux-deb-temp      # -> /tmp/hash-checker-deb/*.deb (Linux build from mac host via cargo-packager)
-make rust-windows-zip-temp    # -> /tmp/hash-checker-win/hash-checker-windows-portable.zip
+make rust-windows-zip-temp    # -> ${TMPDIR:-/tmp}/hash-checker-win/hash-checker-windows-portable.zip (use %TEMP%\hash-checker-win on native Windows)
 ```
 
 ## Continuous Integration

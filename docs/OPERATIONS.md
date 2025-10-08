@@ -32,4 +32,8 @@ Keep this document with the repo to standardise release expectations.
 - Packaging targets run `scripts/cleanup-packaging.sh` by default, removing staging artefacts (`dist/linux`, `rust/hash-checker-gui/target/packager`, `/tmp/hash-checker-*`) once validation completes.
 - To retain artefacts for debugging, set `KEEP_PACKAGING=1` before invoking `make dist-linux` or `make cleanup-packaging`.
 - Manual cleanup is available via `make cleanup-packaging`.
-- `make clean` now calls `scripts/clean.sh`, which handles cross-platform deletion (Rust `target/`, `dist/`, `/tmp/hash-checker-*`) and prunes Docker volumes unless `CLEAN_DOCKER=0`.
+- `make clean` now calls `scripts/clean.sh`, which handles cross-platform deletion (Rust `target/`, `dist/`, `/tmp/hash-checker-*` plus `${TMPDIR}`/`%TEMP%` mirrors) and prunes Docker volumes unless `CLEAN_DOCKER=0`.
+
+### CI warning mitigation (2025-10-08)
+- Thay `actions-rs/toolchain@v1` bang `dtolnay/rust-toolchain@stable` trong toan bo workflow de tranh canh bao `set-output` bi deprecate.
+- Bo sung kiem tra `brew list` truoc khi cai `gtk+3`/`pkg-config` trong job macOS de Homebrew khong spam thong bao "pkgconf ... already installed".

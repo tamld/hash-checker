@@ -27,11 +27,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          profile: minimal
-          components: clippy, rustfmt
+          components: clippy,rustfmt
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -86,15 +84,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          profile: minimal
-          components: clippy, rustfmt
+          components: clippy,rustfmt
       - name: Install GTK dependencies
         run: |
           brew update
-          brew install gtk+3 pkg-config
+          brew list gtk+3 >/dev/null 2>&1 || brew install gtk+3
+          brew list pkg-config >/dev/null 2>&1 || brew install pkg-config
       - name: Cargo fmt
         run: |
           cargo fmt --manifest-path rust/hash-checker/Cargo.toml --check
@@ -134,11 +131,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable-x86_64-pc-windows-msvc
-          profile: minimal
-          components: clippy, rustfmt
+          target: x86_64-pc-windows-msvc
+          components: clippy,rustfmt
       - name: Cargo fmt
         run: |
           cargo fmt --manifest-path rust/hash-checker/Cargo.toml --check

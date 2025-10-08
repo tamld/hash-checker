@@ -42,10 +42,16 @@ rust-linux-deb-temp: ## Build Linux .deb into /tmp/hash-checker-deb
 rust-windows-zip-temp: ## Build Windows portable .zip into platform temp directory
 	cargo build --release --manifest-path rust/hash-checker/Cargo.toml
 	cargo build --release --manifest-path rust/hash-checker-gui/Cargo.toml
-	mkdir -p /tmp/hash-checker-win
-	cp rust/hash-checker/target/release/hash-checker /tmp/hash-checker-win/ 2>/dev/null || true
-	cp rust/hash-checker-gui/target/release/hash-checker-gui /tmp/hash-checker-win/ 2>/dev/null || true
-	(cd /tmp/hash-checker-win && zip -qr hash-checker-windows-portable.zip hash-checker hash-checker-gui)
+	TMP_ROOT=$${TMPDIR:-$${TEMP:-$${TMP:-/tmp}}}; \
+	if command -v cygpath >/dev/null 2>&1; then \
+	  TMP_POSIX=$$(cygpath "$$TMP_ROOT"); \
+	else \
+	  TMP_POSIX="$$TMP_ROOT"; \
+	fi; \
+	mkdir -p "$$TMP_POSIX/hash-checker-win"; \
+	cp rust/hash-checker/target/release/hash-checker* "$$TMP_POSIX/hash-checker-win/" 2>/dev/null || true; \
+	cp rust/hash-checker-gui/target/release/hash-checker-gui* "$$TMP_POSIX/hash-checker-win/" 2>/dev/null || true; \
+	(cd "$$TMP_POSIX/hash-checker-win" && zip -qr hash-checker-windows-portable.zip hash-checker*)
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?##";} {printf "%-20s %s\n", $$1, $$2}'

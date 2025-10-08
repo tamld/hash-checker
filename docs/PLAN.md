@@ -41,7 +41,7 @@
 1. Stabilise Linux packaging in CI by retaining the regenerated PNG icons under `docs/assets` and adding a nightly `cargo packager --formats deb` check.
 2. Wire Playwright (or the existing smoke harness) into GitHub Actions so the GUI automation checkbox can be flipped to done, then gate merges on the new job.
 3. Prototype release-note generation via `cargo dist init` on a feature branch and capture the delta in `docs/OPERATIONS.md` before enabling it in CI.
-4. Replace deprecated GitHub Actions usage (e.g. `actions-rs/toolchain@v1`) with supported alternatives that rely on Environment Files to silence `set-output` warnings.
+4. (Completed 2025-10-08) Replaced deprecated GitHub Actions usage (e.g. `actions-rs/toolchain@v1`) with `dtolnay/rust-toolchain@stable` to silence `set-output` warnings.
 5. Draft the signing/notarisation runbook (macOS Developer ID, Windows signtool/EV cert) and record external credential requirements ahead of Phase 4, capturing present macOS/Windows signing limitations so mitigation tasks can be prioritised.
 6. Schedule dependency migration PRs to move away from unmaintained GTK3 bindings (`atk/gdk/gtk-sys`) and `instant`; each PR must include packaging smoke tests and is abandoned if regression blocks appear.
 7. (Completed 2025-10-08) Introduced automated cleanup targets (`make cleanup-packaging` / `scripts/cleanup-packaging.sh`) to purge staging artefacts with `KEEP_PACKAGING=1` opt-out, and documented the rule in the operations guide.
