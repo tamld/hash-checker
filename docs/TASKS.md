@@ -13,14 +13,15 @@
 - [x] Add accessibility toggles (contrast theme, keyboard hints, clipboard copy).
 - [x] Integrate GUI smoke test into the Vagrant pipeline.
 - [x] Automate GUI regression via headless harness (`cargo test` launches `hash-checker-gui --smoke-test`).
-- [ ] Capture fresh UI screenshots and short clip for README/docs.
+- [x] Capture refreshed UI screenshots for README/docs (`docs/assets/gui-*.png`).
 
 ## Phase 3 – Distribution & Releases
 - [x] Run fmt/clippy/test in the GitHub Actions matrix (Linux/macOS/Windows).
 - [x] Generate `.dmg`/`.deb` installers via `cargo-packager` and keep the Windows portable ZIP.
 - [x] Automate GitHub Release publication with installers, portable artefacts, checksums, and templated notes (release workflow).
-- [ ] Document offline installation steps and update the installer guidance.
+- [x] Include application icon assets (PNG 1024/512/256) in packaging configuration.
 - [x] Add smoke verification for produced installers (CLI + GUI launch in release workflow).
+- [ ] Add `cargo-dist` release notes automation (optional backlog).
 
 ## Phase 4 – Security & Compliance
 - [ ] Script checksum/codesigning workflow (macOS notarisation, Windows codesign, Linux package signing) once credentials are available.

@@ -22,6 +22,13 @@ identifier = "com.hashchecker.gui"
 description = "Cross-platform hash verification GUI."
 before-packaging-command = "cargo build --release"
 out-dir = "target/packager"
+icons = ["../../docs/assets/icon-hash-checker-512.png"]
+
+[package.metadata.packager.macos]
+icons = ["../../docs/assets/icon-hash-checker-1024.png"]
+
+[package.metadata.packager.windows]
+icon-path = "../../docs/assets/icon-hash-checker-256.png"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["windef", "winuser"] }
