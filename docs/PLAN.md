@@ -1,48 +1,56 @@
 # Development Plan
 
 ## Table of Contents
-- [Phase 0: Foundations (Complete)](#phase-0-foundations-complete)
-- [Phase 1: Core CLI (Complete)](#phase-1-core-cli-complete)
-- [Phase 2: GUI Experience (In Progress)](#phase-2-gui-experience-in-progress)
-- [Phase 3: Distribution & Releases (In Progress)](#phase-3-distribution--releases-in-progress)
-- [Phase 4: Security & Compliance (Planned)](#phase-4-security--compliance-planned)
-- [Phase 5: Stretch Improvements (Future)](#phase-5-stretch-improvements-future)
-- [Phase 6: Ecosystem Enhancements (Future)](#phase-6-ecosystem-enhancements-future)
+- [Phase 0 – Preparation](#phase-0--preparation)
+- [Phase 1 – Rust Core MVP](#phase-1--rust-core-mvp)
+- [Phase 2 – GUI MVP](#phase-2--gui-mvp)
+- [Phase 3 – Tooling & Distribution](#phase-3--tooling--distribution)
+- [Phase 4 – Security Hardening](#phase-4--security-hardening)
+- [Phase 5 – Stretch Improvements](#phase-5--stretch-improvements)
+- [Lessons Learned & Guardrails](#lessons-learned--guardrails)
 
-## Phase 0: Foundations (Complete)
-- [x] Consolidate documentation under `docs/` and align project guardrails.
-- [x] Establish Rust as the single implementation language and retire legacy components.
-- [x] Set up reproducible tooling (Docker, Vagrant) for cross-platform work.
+## Phase 0 – Preparation
+- [x] Consolidate documentation under `docs/` and sanitise internal paths.
+- [x] Finalise Rust migration decision and communicate scope.
+- [x] Freeze Python implementation except for critical fixes.
 
-## Phase 1: Core CLI (Complete)
-- [x] Scaffold the Rust workspace (`hash-checker`, `hash-checker-gui`).
-- [x] Implement hashing primitives (SHA2 family, MD5, BLAKE2) with auto-detect support.
-- [x] Deliver CLI UX parity with robust exit codes and logging.
-- [x] Cover core functionality with unit/integration tests (`assert_cmd`, fixture hashing).
+## Phase 1 – Rust Core MVP
+- [x] Integrate Docker-based testing pipeline (Python & Rust).
+- [x] Configure Vagrant headless VM for GUI smoke tests.
+- [x] Scaffold Rust workspace (`cargo new hash-checker`).
+- [x] Port hashing primitives with auto-detect support.
+- [x] Implement CLI with arg parity + exit codes.
+- [x] Add unit/integration tests (`assert_cmd`).
+- [x] Provide build instructions for all platforms.
 
-## Phase 2: GUI Experience (In Progress)
-- [x] Select egui/eframe for the desktop interface and wire it to the Rust core.
-- [x] Provide accessibility features (keyboard navigation, high-contrast toggle, clipboard copy).
-- [ ] Automate GUI smoke validation (Playwright or similar) beyond the current manual/Vagrant flow.
-- [ ] Capture refreshed UI assets (screenshots, short demo) for documentation and release notes.
+## Phase 2 – GUI MVP
+- [x] Select egui/eframe (see `docs/GUI_DECISION.md`).
+- [x] Implement minimal GUI flow (file select, algorithm, result panel).
+- [x] Add accessibility essentials (high contrast, keyboard shortcut).
+- [x] Expose `--smoke-test` mode for automation.
+- [ ] Add automated GUI regression tests (Playwright or similar).
+- [ ] Capture screenshots / fixture hashes for documentation.
 
-## Phase 3: Distribution & Releases (In Progress)
-- [x] Run fmt/clippy/test across Linux/macOS/Windows in GitHub Actions.
-- [x] Produce `.dmg` and `.deb` installers via `cargo-packager` and keep Windows portable archives in CI.
-- [ ] Publish release automation that bundles installers + portable artefacts to GitHub Releases with changelog notes.
-- [ ] Document offline install paths and update the README/installer guide accordingly.
+## Phase 3 – Tooling & Distribution
+- [x] Set up GitHub Actions matrix (Linux/macOS/Windows) running fmt, clippy, tests, Docker builds and packaging.
+- [ ] Integrate GUI automation into CI.
+- [ ] Add `cargo-dist` (or equivalent) release pipeline and generate release notes.
+- [ ] Design binary signing/notarisation workflow (macOS, Windows).
 
-## Phase 4: Security & Compliance (Planned)
-- [ ] Integrate supply-chain scanning (`cargo audit`, `cargo deny`) into CI gating.
-- [ ] Define checksum signing/notarisation strategy (macOS notarisation, Windows codesign) and document manual bypass instructions until keys are provisioned.
-- [ ] Draft a threat model covering file-handling, checksum validation, and update channels.
+## Phase 4 – Security Hardening
+- [ ] Perform security review of hash verification pipeline (path handling, canonicalisation).
+- [ ] Integrate supply-chain scanning (`cargo audit`, `cargo deny`).
+- [ ] Add checksum/signature verification instructions for end users.
 
-## Phase 5: Stretch Improvements (Future)
-- [ ] Directory hashing with manifest export/import for large batch jobs.
-- [ ] Rich comparison reports (JSON/CSV) for automation pipelines.
-- [ ] Extensibility hooks to allow plug-in hashing algorithms or remote storage integrations.
+## Phase 5 – Stretch Improvements
+- [ ] Directory hashing & manifest export/import.
+- [ ] Batch comparison reports (JSON/CSV).
+- [ ] Plugin interface for custom algorithms / SDK bindings.
 
-## Phase 6: Ecosystem Enhancements (Future)
-- [ ] SDK/binding strategy for other runtimes (e.g. Node, WASI) built on the Rust core library.
-- [ ] Optional telemetry/diagnostics with explicit opt-in and privacy guardrails.
-- [ ] Community templates (CI snippets, packaging recipes) to accelerate downstream adoption.
+## Lessons Learned & Guardrails
+- Allocate large IO buffers on the heap (e.g. `Vec<u8>`) to avoid Windows stack overflows such as error `0xC00000FD` observed in October 2025.
+- Manage temp resources via `TempDir`/`TempPath` in CLI tests to remain portable across Windows path semantics and file-handle behaviour.
+- After a CI failure, record the root cause in PLAN/TASKS and pivot remediation instead of repeating the same fix attempt.
+- Keep README and public docs polished (badges, ToC, installer instructions) so contributors immediately understand project health and release expectations.
+
+Progress is tracked via `docs/TASKS.md`, with backlog items in `docs/BACKLOG.md`.
