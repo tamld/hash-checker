@@ -27,6 +27,7 @@ icons = [
     "../../docs/assets/icon-hash-checker-512.png",
     "../../docs/assets/icon-hash-checker-1024.png",
     "../../docs/assets/icon-hash-checker.icns",
+    "../../docs/assets/icon-hash-checker.ico",
 ]
 
 [target.'cfg(windows)'.dependencies]

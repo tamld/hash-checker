@@ -1,7 +1,9 @@
-.PHONY: rust-test rust-build rust-gui-build rust-gui-smoke clean help dist-linux
+.PHONY: rust-test rust-build rust-gui-build rust-gui-smoke clean help dist-linux cleanup-packaging
 
 PROJECT_ROOT := $(shell pwd)
 DIST_DIR := dist
+KEEP_PACKAGING ?= 0
+CLEAN_DOCKER ?= 1
 
 rust-test: ## Run Rust tests in Docker (cached target)
 	./scripts/docker-rust-test.sh
@@ -15,9 +17,11 @@ rust-gui-build: ## Build Rust GUI binary in Docker
 rust-gui-smoke: ## Headless GUI smoke test via Vagrant (placeholder)
 	./scripts/vagrant-gui-smoke.sh
 
-clean: ## Remove build artifacts and Docker volumes
-	rm -rf dist build
-	docker volume prune -f
+cleanup-packaging: ## Remove packaging artefacts (dist staging, packager dirs, tmp exports)
+	KEEP_PACKAGING=$(KEEP_PACKAGING) ./scripts/cleanup-packaging.sh
+
+clean: ## Remove build artifacts across platforms (respects KEEP_PACKAGING, CLEAN_DOCKER vars)
+	KEEP_PACKAGING=$(KEEP_PACKAGING) CLEAN_DOCKER=$(CLEAN_DOCKER) ./scripts/clean.sh
 
 rust-gui-dmg-temp: ## Build macOS .dmg into /tmp/hash-checker-gui
 	cargo install cargo-packager@0.11.7 --locked >/dev/null 2>&1 || true
@@ -54,6 +58,7 @@ dist-linux: rust-build rust-gui-build ## Build and package Linux artifacts via D
 	cp rust/hash-checker-gui/target/release/hash-checker-gui $(DIST_DIR)/linux/
 	(cd $(DIST_DIR)/linux && sha256sum hash-checker hash-checker-gui > SHA256SUMS)
 	tar -czf $(DIST_DIR)/hash-checker-linux.tar.gz -C $(DIST_DIR)/linux .
+	KEEP_PACKAGING=$(KEEP_PACKAGING) ./scripts/cleanup-packaging.sh
 
 
 rust-build-temp: ## Build Rust binaries into /tmp/hash-checker-build (clean)

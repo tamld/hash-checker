@@ -20,11 +20,16 @@
 ## Overview
 Hash Checker delivers reproducible, container-friendly workflows for validating file hashes across Windows, macOS, and Linux. The project is fully Rust-based and uses Docker/Vagrant helpers to keep host systems clean.
 
+## GUI Preview
+![Hash Checker main view](docs/assets/gui-main.png)
+*High-contrast mode with result panel and clipboard actions.*
+
 ## Feature Highlights
 - Multiple algorithms: SHA-2 family, SHA-1, MD5, BLAKE2.
 - Automatic algorithm detection based on digest length.
 - Command-line and egui desktop interfaces sharing the same Rust core.
 - Container-first workflows (Docker/Vagrant) to avoid host pollution.
+- Built-in clipboard workflow (copy computed hashes) and accessibility toggles for the GUI.
 
 ## Quick Start (Containerised)
 Prerequisites: Docker (build/test) and Vagrant + VMware Fusion (optional, for headless GUI smoke tests).
@@ -37,6 +42,7 @@ Prerequisites: Docker (build/test) and Vagrant + VMware Fusion (optional, for he
 | `make rust-gui-smoke` | Launch Vagrant VM and run `cargo run -- --smoke-test` |
 | `make rust-build-temp` | Build CLI+GUI in Docker and copy artefacts to `/tmp/hash-checker-build` |
 | `make clean` | Remove build artefacts and prune Docker volumes |
+| `make cleanup-packaging` | Remove packaging staging directories (`dist/linux`, `target/packager`, `/tmp/hash-checker-*`) |
 
 ## Manual Host Build
 Prefer building locally? With Rust installed:
@@ -61,6 +67,7 @@ make rust-gui-smoke-host
 - Install the packager once per machine: `cargo install cargo-packager@0.11.7 --locked`.
 - From `rust/hash-checker-gui/`, run `cargo packager --release --formats dmg` (macOS) or `cargo packager --release --formats deb` (Linux) to produce native installers.
 - Windows CI publishes a portable `hash-checker-windows-portable.zip` archive.
+- Windows packaging consumes the multi-resolution icon at `docs/assets/icon-hash-checker.ico` so the executable/installer display the Hash Checker branding.
 - macOS artefacts are currently unsigned; users can Control-click → **Open** or clear quarantine with `xattr -d com.apple.quarantine "/Applications/Hash Checker.app"`.
 
 ## Temporary Artefacts
@@ -81,7 +88,7 @@ make rust-windows-zip-temp    # -> /tmp/hash-checker-win/hash-checker-windows-po
 ```
 
 ## Continuous Integration
-- `.github/workflows/ci.yml` runs sequentially: Linux → macOS → Windows.
+- `.github/workflows/ci.yml` fans out Linux, macOS, and Windows jobs in parallel.
 - Each job performs formatting, linting, tests, release builds, and GUI smoke tests, then publishes installers with checksums.
 - Docker helpers ensure build outputs remain accessible between steps.
 
@@ -90,5 +97,6 @@ make rust-windows-zip-temp    # -> /tmp/hash-checker-win/hash-checker-windows-po
 - `docs/TASKS.md` – actionable task list per phase.
 - `docs/BACKLOG.md` – backlog and long-term improvements.
 - `docs/SECURITY_ROADMAP.md` – staged security work.
+- `docs/OPERATIONS.md` – release checklist, build diagnostics, and cleanup rules (including `KEEP_PACKAGING` / `CLEAN_DOCKER` overrides).
 - `docs/GUI_DECISION.md` / `docs/GUI_MVP_DESIGN.md` – GUI architecture notes.
 - `.agent/AGENTS.md` – operational guidelines for assistants.
