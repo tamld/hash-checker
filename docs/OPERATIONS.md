@@ -58,3 +58,15 @@ Keep this document with the repo to standardise release expectations.
 ### CI warning mitigation (2025-10-08)
 - Replaced `actions-rs/toolchain@v1` with `dtolnay/rust-toolchain@stable` across workflows to remove the deprecated `set-output` warning.
 - Added `brew list` guards before installing `gtk+3`/`pkg-config` so macOS logs no longer emit “pkgconf already installed” noise.
+
+### CI run modes
+- **Debug runs (job-specific):** When a matrix job fails, re-run only the affected job via `workflow_dispatch` or GitHub CLI, for example:
+  ```bash
+  gh workflow run CI \
+    --field run_linux=true \
+    --field run_macos=false \
+    --field run_windows=false
+  ```
+  Use these targeted runs to iterate quickly; they are not considered valid for releases or merges.
+- **Canonical runs (merge/release):** Pushes and pull requests must execute the full matrix (Linux, macOS, Windows). Branch protection and release workflows depend on all three jobs passing before artefacts are published or tags are created.
+- **Release gating:** The publish workflow remains blocked unless the preceding CI run (with every platform enabled) completes successfully. Never release artefacts produced exclusively by debug-only runs.
