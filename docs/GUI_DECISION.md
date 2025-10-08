@@ -19,13 +19,13 @@
 - **Cons:** Custom look-and-feel (not native); packaging requires extra tooling (e.g., winit + `cargo-bundle`).
 
 ### Fyne (Go) / Flutter
-- Discarded: different language + heavier dependencies; does not align with Rust migration goals.
+- Discarded: different language + heavier dependencies; diverges from the Rust-only strategy.
 
 ## Decision
 Proceed with **egui/eframe** for the MVP GUI.
 
 ### Rationale
-- Keeps the stack purely Rust, aligning with the migration strategy.
+- Keeps the stack purely Rust, aligning with the current architecture strategy.
 - Simplifies CI/CD in sandboxed environments (only Rust toolchain required).
 - Facilitates rapid prototyping and accessible UI components.
 - Later packaging can use `cargo-bundle` or integrate with `cargo-dist`.

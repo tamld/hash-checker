@@ -56,10 +56,10 @@ where
     let file = File::open(path)?;
     let mut reader = BufReader::new(file);
     let mut digest = D::new();
-    let mut buffer = [0u8; CHUNK_SIZE];
+    let mut buffer = vec![0u8; CHUNK_SIZE];
 
     loop {
-        let read = reader.read(&mut buffer)?;
+        let read = reader.read(&mut buffer[..])?;
         if read == 0 {
             break;
         }

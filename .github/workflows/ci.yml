@@ -31,27 +31,26 @@ jobs:
         run: cargo clippy --manifest-path rust/hash-checker-gui/Cargo.toml --all-targets -- -D warnings
       - name: Cargo test (hash-checker)
         run: cargo test --manifest-path rust/hash-checker/Cargo.toml --all
-      - name: Legacy Python tests (Docker)
-        run: make python-test
       - name: Rust tests (Docker)
         run: make rust-test
-      - name: Build Rust GUI in Docker
-        run: make rust-gui-build
       - name: GUI smoke test (host)
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
-      - name: Package artefacts
+      - name: Install cargo-packager
+        run: cargo install cargo-packager@0.11.7 --locked
+      - name: Build Linux installer (.deb)
+        run: cargo packager --release --formats deb
+        working-directory: rust/hash-checker-gui
+      - name: Collect Linux installer artefacts
         run: |
-          rm -rf dist
+          rm -rf dist/linux
           mkdir -p dist/linux
-          cp rust/hash-checker/target/release/hash-checker dist/linux/
-          cp rust/hash-checker-gui/target/release/hash-checker-gui dist/linux/
-          sha256sum dist/linux/* > dist/linux/SHA256SUMS
-          tar -czf dist/hash-checker-linux.tar.gz -C dist/linux .
+          cp rust/hash-checker-gui/target/packager/*.deb dist/linux/
+          sha256sum dist/linux/*.deb > dist/linux/SHA256SUMS
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: linux-artifacts
-          path: dist/hash-checker-linux.tar.gz
+          name: linux-installer
+          path: dist/linux
 
   macos:
     runs-on: macos-14
@@ -83,19 +82,22 @@ jobs:
           cargo build --release --manifest-path rust/hash-checker-gui/Cargo.toml
       - name: GUI smoke test
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
-      - name: Package artefacts
+      - name: Install cargo-packager
+        run: cargo install cargo-packager@0.11.7 --locked
+      - name: Build macOS installer (.dmg)
+        run: cargo packager --release --formats dmg
+        working-directory: rust/hash-checker-gui
+      - name: Collect macOS installer artefacts
         run: |
-          rm -rf dist
+          rm -rf dist/macos
           mkdir -p dist/macos
-          cp rust/hash-checker/target/release/hash-checker dist/macos/
-          cp rust/hash-checker-gui/target/release/hash-checker-gui dist/macos/
-          shasum -a 256 dist/macos/* > dist/macos/SHA256SUMS
-          tar -czf dist/hash-checker-macos.tar.gz -C dist/macos .
+          cp rust/hash-checker-gui/target/packager/*.dmg dist/macos/
+          shasum -a 256 dist/macos/*.dmg > dist/macos/SHA256SUMS
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: macos-artifacts
-          path: dist/hash-checker-macos.tar.gz
+          name: macos-installer
+          path: dist/macos
 
   windows:
     runs-on: windows-latest
@@ -129,13 +131,13 @@ jobs:
         run: |
           Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Path dist\win | Out-Null
-          Copy-Item "rust/hash-checker/target/release/hash-checker.exe" dist/win/
-          Copy-Item "rust/hash-checker-gui/target/release/hash-checker-gui.exe" dist/win/
-          Get-FileHash dist\win\hash-checker.exe -Algorithm SHA256 | ForEach-Object { $_.Hash + "  hash-checker.exe" } > dist/win/SHA256SUMS
-          Get-FileHash dist\win\hash-checker-gui.exe -Algorithm SHA256 | ForEach-Object { $_.Hash + "  hash-checker-gui.exe" } >> dist/win/SHA256SUMS
-          Compress-Archive -Path dist\win\* -DestinationPath dist\hash-checker-windows.zip -Force
+          Copy-Item 'rust\hash-checker\target\release\hash-checker.exe' -Destination 'dist\win\hash-checker.exe'
+          Copy-Item 'rust\hash-checker-gui\target\release\hash-checker-gui.exe' -Destination 'dist\win\hash-checker-gui.exe'
+          (Get-FileHash dist\win\hash-checker.exe -Algorithm SHA256).Hash + "  hash-checker.exe" | Set-Content -Encoding ASCII dist\win\SHA256SUMS
+          (Get-FileHash dist\win\hash-checker-gui.exe -Algorithm SHA256).Hash + "  hash-checker-gui.exe" | Add-Content -Encoding ASCII dist\win\SHA256SUMS
+          Compress-Archive -Path dist\win\* -DestinationPath dist\hash-checker-windows-portable.zip -Force
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-artifacts
-          path: dist/hash-checker-windows.zip
+          name: windows-portable
+          path: dist/hash-checker-windows-portable.zip

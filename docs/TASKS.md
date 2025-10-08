@@ -1,42 +1,27 @@
-# Tasks (Rust Migration)
+# Task Tracker
 
-## Phase 0
-- [x] Freeze Python codebase (read-only except hotfixes) and tag last Python release (pending actual tag).
-- [x] Create migration checklist and share with stakeholders.
-
-## Phase 1 – Rust Core MVP
-- [x] Scaffold Rust crate (`cargo new hash-checker`).
-- [x] Implement `compute_hash` and `detect_algorithm` in Rust with streaming IO.
-- [x] Implement CLI using `clap` with parity to Python flags.
-- [x] Add unit tests for hashing functions (SHA256, MD5, Blake2).
-- [x] Add integration tests for CLI using `assert_cmd` & temp files.
-- [x] Document build/run instructions in README.
-
-
-- [x] Create Docker scripts for Python/Rust tests and builds.
-- [x] Add Vagrantfile + smoke script for headless GUI testing.
-- [ ] Implement Rust GUI and update Vagrant smoke test to launch it.
-
-## Phase 2 – GUI MVP
+## Phase 2 – GUI Experience
 - [x] Scaffold `hash-checker-gui` crate with egui/eframe.
-- [x] Wire GUI to hash core library for calculations.
-- [x] Implement file picker + algorithm dropdown + result panel.
-- [x] Add accessibility toggles (theme contrast, keyboard hints).
-- [x] Integrate GUI smoke test into Vagrant pipeline.
-- [ ] Add Playwright-based (or similar) GUI automation tests.
-- [ ] Create sample hash fixtures for quick manual QA.
-- [ ] Capture UI screenshot for README/docs.
+- [x] Wire GUI to the shared Rust core.
+- [x] Implement file picker, algorithm dropdown, and comparison messaging.
+- [x] Add accessibility toggles (contrast theme, keyboard hints, clipboard copy).
+- [x] Integrate GUI smoke test into the Vagrant pipeline.
+- [ ] Automate GUI regression via Playwright (or equivalent headless harness).
+- [ ] Capture fresh UI screenshots and short clip for README/docs.
 
-- [x] Decide UI stack (egui/eframe) and document rationale (docs/GUI_DECISION.md).
-- [x] Build minimal GUI shell calling Rust core.
-- [x] Add drag-and-drop support + clipboard copy.
-- [ ] Write Playwright (or equivalent) smoke tests.
+## Phase 3 – Distribution & Releases
+- [x] Run fmt/clippy/test in the GitHub Actions matrix (Linux/macOS/Windows).
+- [x] Generate `.dmg`/`.deb` installers via `cargo-packager` and keep the Windows portable ZIP.
+- [ ] Automate GitHub Release publication with installers, portable artefacts, checksums, and templated notes.
+- [ ] Document offline installation steps and update the installer guidance.
+- [ ] Add smoke verification for produced installers (CLI + GUI launch).
 
-## Phase 3 – Tooling & Security
-- [ ] Add GitHub Actions workflow (fmt, clippy, test, build, artefact upload).
-- [ ] Add cargo-dist configuration for release bundles.
-- [ ] Script checksum/signing workflow.
-- [ ] Set up GitHub Actions matrix running `cargo fmt`, `cargo clippy`, `cargo test`.
-- [ ] Configure `cargo audit` in CI.
-- [ ] Draft security hardening roadmap document.
-- [ ] Plan artifact signing workflow.
+## Phase 4 – Security & Compliance
+- [ ] Script checksum/codesigning workflow (macOS notarisation, Windows codesign, Linux package signing) once credentials are available.
+- [ ] Integrate `cargo audit`/`cargo deny` into CI and gate merges on critical advisories.
+- [ ] Draft the security hardening roadmap and threat model deliverables.
+
+## Phase 5 – Stretch & Ecosystem
+- [ ] Create richer sample fixtures for manual QA and documentation.
+- [ ] Design directory hashing + manifest export/import.
+- [ ] Plan SDK/binding story for other runtimes (e.g. Node, WASI) on top of the Rust core.

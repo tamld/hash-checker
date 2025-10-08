@@ -57,7 +57,3 @@ target/
 *.vmss
 *.vmem
 *.lck/
-
-# Legacy Python build artifacts
-legacy/python/build/
-legacy/python/dist/

@@ -1,37 +1,39 @@
-# Development Plan (Rust Migration)
+# Development Plan
 
-## Phase 0: Preparation (In Progress)
-- [x] Consolidate documentation under `docs/` and sanitize internal paths.
-- [x] Finalize technology decision (Rust) and communicate scope to stakeholders.
-- [x] Freeze Python implementation except for critical fixes (code freeze for migration).
+## Phase 0: Foundations (Complete)
+- [x] Consolidate documentation under `docs/` and align project guardrails.
+- [x] Establish Rust as the single implementation language and retire legacy components.
+- [x] Set up reproducible tooling (Docker, Vagrant) for cross-platform work.
 
-## Phase 1: Rust Core MVP
-- [x] Integrate Docker-based testing pipeline (Python & Rust).
-- [x] Configure Vagrant headless VM for GUI smoke tests on macOS host.
-- [x] Scaffold Rust workspace (`cargo new hash-checker`).
-- [x] Port hashing primitives (SHA-2 family, MD5, BLAKE2) with auto-detect support.
-- [x] Implement CLI with argument parity (`clap`), exit codes, and basic logging.
-- [x] Write unit tests for hashing functions and integration tests for CLI (`assert_cmd`).
-- [x] Provide build instructions for Windows/macOS/Linux using `cargo build --release`.
+## Phase 1: Core CLI (Complete)
+- [x] Scaffold the Rust workspace (`hash-checker`, `hash-checker-gui`).
+- [x] Implement hashing primitives (SHA2 family, MD5, BLAKE2) with auto-detect support.
+- [x] Deliver CLI UX parity with robust exit codes and logging.
+- [x] Cover core functionality with unit/integration tests (`assert_cmd`, fixture hashing).
 
-## Phase 2: GUI MVP (Post-Core)
-- [x] Evaluate UI frameworks (Tauri vs egui) and select for MVP (see docs/GUI_DECISION.md).
-- [x] Implement minimal GUI flow: select file → select algorithm/auto → display digest + compare state.
-- [x] Add accessibility essentials (keyboard navigation, high-contrast theme toggle).
-- [ ] Automate GUI smoke test (e.g., Playwright) beyond current headless smoke hook.
+## Phase 2: GUI Experience (In Progress)
+- [x] Select egui/eframe for the desktop interface and wire it to the Rust core.
+- [x] Provide accessibility features (keyboard navigation, high-contrast toggle, clipboard copy).
+- [ ] Automate GUI smoke validation (Playwright or similar) beyond the current manual/Vagrant flow.
+- [ ] Capture refreshed UI assets (screenshots, short demo) for documentation and release notes.
 
-## Phase 3: Tooling & Distribution
-- [x] Set up GitHub Actions matrix (Linux/macOS/Windows) running `cargo fmt`, `cargo clippy`, `cargo test`, `make rust-gui-build`.
-- [ ] Automate release packaging (cargo-dist) + attach artefacts to GitHub Release.
-- [ ] Publish binary release instructions and package manifests.
+## Phase 3: Distribution & Releases (In Progress)
+- [x] Run fmt/clippy/test across Linux/macOS/Windows in GitHub Actions.
+- [x] Produce `.dmg` and `.deb` installers via `cargo-packager` and keep Windows portable archives in CI.
+- [ ] Publish release automation that bundles installers + portable artefacts to GitHub Releases with changelog notes.
+- [ ] Document offline install paths and update the README/installer guide accordingly.
 
-## Phase 4: Security Hardening Roadmap
-- [ ] Perform security review on hash verification pipeline (inputs, canonicalization, error handling).
-- [ ] Integrate supply-chain scanning (`cargo audit`, `cargo deny`).
-- [ ] Add checksum signing for release artifacts.
-- [ ] Draft threat model and response playbook.
+## Phase 4: Security & Compliance (Planned)
+- [ ] Integrate supply-chain scanning (`cargo audit`, `cargo deny`) into CI gating.
+- [ ] Define checksum signing/notarisation strategy (macOS notarisation, Windows codesign) and document manual bypass instructions until keys are provisioned.
+- [ ] Draft a threat model covering file-handling, checksum validation, and update channels.
 
-## Phase 5: Stretch Improvements
-- [ ] Directory hashing with manifest export/import.
-- [ ] Multi-file comparison report (JSON/CSV).
-- [ ] Plugin interface for custom algorithms.
+## Phase 5: Stretch Improvements (Future)
+- [ ] Directory hashing with manifest export/import for large batch jobs.
+- [ ] Rich comparison reports (JSON/CSV) for automation pipelines.
+- [ ] Extensibility hooks to allow plug-in hashing algorithms or remote storage integrations.
+
+## Phase 6: Ecosystem Enhancements (Future)
+- [ ] SDK/binding strategy for other runtimes (e.g. Node, WASI) built on the Rust core library.
+- [ ] Optional telemetry/diagnostics with explicit opt-in and privacy guardrails.
+- [ ] Community templates (CI snippets, packaging recipes) to accelerate downstream adoption.

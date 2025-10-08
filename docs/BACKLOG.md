@@ -1,30 +1,29 @@
-# Backlog (Post-Rust MVP)
+# Backlog
 
 ## Features
-- Rust GUI enhancements: history panel, multi-file queue, theming support.
-- Directory verification with manifest export/import (JSON, CSV).
-- Cloud source integration (OneDrive, Google Drive) via plugin architecture.
-- Batch comparison reports with diff-friendly output.
-- API/SDK binding (Python/Node) consuming Rust core as library.
+- History panel for recent hashes and validation results.
+- Batch and multi-file queue support with progress reporting.
+- Directory hashing with manifest export/import (JSON/CSV).
+- Cloud integration (OneDrive, Google Drive) through the plugin architecture.
+- SDK bindings (Node/other runtimes) consuming the Rust core library.
 
 ## Improvements
 - Performance tuning for large files (async IO, multi-thread hashing).
-- Configurable logging/telemetry options (structured logs, opt-in metrics).
-- Internationalization support for GUI text.
-- Accessibility enhancements (screen-reader labels, focus management).
-
-## Security Hardening
-- Supply chain monitoring (`cargo audit` automated, SBOM generation).
-- Binary signing + notarization (macOS, Windows).
-- Secure update channel (auto-update with checksum validation).
-- Threat modeling review and penetration testing after MVP.
+- Structured logging/telemetry (opt-in) for troubleshooting.
+- Internationalisation support for GUI text.
+- Enhanced accessibility (screen reader labels, focus management).
+- Export results as JSON/CSV reports.
 
 ## CI & Release Automation
-- GitHub Actions matrix for lint/test/build per platform.
-- Automated GUI smoke test (Playwright or headless).
-- Release workflow with artifact packaging and optional signing.
+- Extend CI to include GUI regression tests.
+- Automated GitHub Release publishing with installers and changelog generation.
+- Binary signing/notarisation workflow once credentials are provisioned.
+- Periodic smoke verification of packaged installers.
 
-## Release & QA
-- Automated changelog generation and release notes.
-- Signed artefacts (codesign/notarize, signtool).
-- Beta feedback loop & manual QA checklist.
+## Security Hardening
+- Supply-chain monitoring (`cargo audit`, `cargo deny`).
+- Signed artefacts (codesign/notarise, signtool, package signing).
+- Secure update channel (auto-update with checksum validation).
+- Threat modelling review & periodic penetration testing.
+
+Items above feed into `docs/PLAN.md` and `docs/TASKS.md` as they are prioritised.
