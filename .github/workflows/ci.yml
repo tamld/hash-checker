@@ -55,7 +55,7 @@ jobs:
       - name: cargo-dist dry run
         run: |
           cargo install cargo-dist --locked
-          cargo dist manifest --no-build
+          dist manifest --no-build
       - name: Optional Vagrant GUI smoke
         if: env.VAGRANT_ENABLED == 'true'
         run: ./scripts/vagrant-gui-smoke.sh
