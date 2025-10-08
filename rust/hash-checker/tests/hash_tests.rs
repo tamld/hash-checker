@@ -59,6 +59,24 @@ fn verify_hash_matches_expected() {
 }
 
 #[test]
+fn verify_hash_infers_blake2s() {
+    let file = write_sample_file();
+    let blake2s = compute_hash(file.path(), "blake2s").expect("hash");
+    let (matches, computed) = verify_hash(file.path(), &blake2s, None).expect("verify");
+    assert!(matches);
+    assert_eq!(computed, blake2s);
+}
+
+#[test]
+fn verify_hash_infers_blake2b() {
+    let file = write_sample_file();
+    let blake2b = compute_hash(file.path(), "blake2b").expect("hash");
+    let (matches, computed) = verify_hash(file.path(), &blake2b, None).expect("verify");
+    assert!(matches);
+    assert_eq!(computed, blake2b);
+}
+
+#[test]
 fn supported_algorithms_contains_expected() {
     let algos = supported_algorithms();
     for name in ["md5", "sha1", "sha256", "blake2b"] {

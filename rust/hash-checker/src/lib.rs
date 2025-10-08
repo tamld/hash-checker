@@ -34,6 +34,26 @@ pub fn supported_algorithms() -> &'static [&'static str] {
     ]
 }
 
+const ALGO_MD5: [&str; 1] = ["md5"];
+const ALGO_SHA1: [&str; 1] = ["sha1"];
+const ALGO_SHA224: [&str; 1] = ["sha224"];
+const ALGO_SHA384: [&str; 1] = ["sha384"];
+const ALGO_SHA256_FAMILY: [&str; 2] = ["sha256", "blake2s"];
+const ALGO_SHA512_FAMILY: [&str; 2] = ["sha512", "blake2b"];
+const ALGO_EMPTY: [&str; 0] = [];
+
+fn candidate_algorithms_for_length(length: usize) -> &'static [&'static str] {
+    match length {
+        32 => &ALGO_MD5,
+        40 => &ALGO_SHA1,
+        56 => &ALGO_SHA224,
+        64 => &ALGO_SHA256_FAMILY,
+        96 => &ALGO_SHA384,
+        128 => &ALGO_SHA512_FAMILY,
+        _ => &ALGO_EMPTY,
+    }
+}
+
 pub fn compute_hash(path: &Path, algorithm: &str) -> HashResult<String> {
     let normalized = algorithm.to_lowercase();
     match normalized.as_str() {
@@ -70,17 +90,9 @@ where
 }
 
 pub fn detect_algorithm(expected_hash: &str) -> Option<&'static str> {
-    let digest = expected_hash.trim();
-    let length = digest.len();
-    match length {
-        32 => Some("md5"),
-        40 => Some("sha1"),
-        56 => Some("sha224"),
-        64 => Some("sha256"),
-        96 => Some("sha384"),
-        128 => Some("sha512"),
-        _ => None,
-    }
+    candidate_algorithms_for_length(expected_hash.trim().len())
+        .first()
+        .copied()
 }
 
 fn is_hex(s: &str) -> bool {
@@ -100,16 +112,36 @@ pub fn verify_hash(
         return Err(HashError::InvalidExpectedHash);
     }
 
-    let algo = match algorithm {
-        Some(name) => Some(name.to_string()),
-        None => detect_algorithm(&digest).map(|s| s.to_string()),
+    let provided_algorithm = algorithm.and_then(|name| {
+        let trimmed = name.trim();
+        if trimmed.is_empty() {
+            None
+        } else {
+            Some(trimmed.to_lowercase())
+        }
+    });
+
+    let candidates: Vec<String> = if let Some(name) = provided_algorithm {
+        vec![name]
+    } else {
+        let inferred = candidate_algorithms_for_length(digest.len());
+        if inferred.is_empty() {
+            return Err(HashError::InferenceFailed(digest.len()));
+        }
+        inferred.iter().map(|algo| (*algo).to_string()).collect()
     };
 
-    let algo = match algo {
-        Some(name) => name,
-        None => return Err(HashError::InferenceFailed(digest.len())),
-    };
+    let mut first_computed: Option<String> = None;
+    for candidate in &candidates {
+        let computed = compute_hash(path, candidate)?;
+        if computed == digest {
+            return Ok((true, computed));
+        }
+        if first_computed.is_none() {
+            first_computed = Some(computed);
+        }
+    }
 
-    let computed = compute_hash(path, &algo)?;
-    Ok((computed == digest, computed))
+    let computed = first_computed.unwrap_or_default();
+    Ok((false, computed))
 }

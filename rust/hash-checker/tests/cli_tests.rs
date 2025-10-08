@@ -1,4 +1,5 @@
 use assert_cmd::Command;
+use hash_checker::compute_hash;
 use predicates::str::contains;
 use std::path::PathBuf;
 use tempfile::TempDir;
@@ -50,4 +51,26 @@ fn list_algorithms_outputs_supported() {
     cmd.arg("--list-algorithms");
     cmd.env("RUST_BACKTRACE", "1");
     cmd.assert().success().stdout(contains("sha256"));
+}
+
+#[test]
+fn cli_infers_blake2s_without_algorithm_flag() {
+    let (temp_dir, path) = sample_file();
+    let digest = compute_hash(path.as_path(), "blake2s").expect("hash");
+    let mut cmd = Command::cargo_bin("hash-checker").expect("binary");
+    cmd.arg(&path).arg(digest);
+    cmd.env("RUST_BACKTRACE", "1");
+    cmd.assert().success().stdout(contains("Hashes match"));
+    drop(temp_dir);
+}
+
+#[test]
+fn cli_infers_blake2b_without_algorithm_flag() {
+    let (temp_dir, path) = sample_file();
+    let digest = compute_hash(path.as_path(), "blake2b").expect("hash");
+    let mut cmd = Command::cargo_bin("hash-checker").expect("binary");
+    cmd.arg(&path).arg(digest);
+    cmd.env("RUST_BACKTRACE", "1");
+    cmd.assert().success().stdout(contains("Hashes match"));
+    drop(temp_dir);
 }

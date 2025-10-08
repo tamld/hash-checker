@@ -14,3 +14,16 @@
 6. Update `docs/PLAN.md` / `docs/TASKS.md` if new follow-up work is identified.
 
 Keep this document with the repo to standardise release expectations.
+
+## Build Diagnostics (2025-10-08)
+
+### Successful checks
+- `cargo fmt --check` for CLI and GUI crates.
+- `cargo clippy --all-targets -- -D warnings` on both crates.
+- `cargo test` (CLI crate) and `make rust-test` inside Docker.
+- `cargo run --release -- --smoke-test` for the GUI crate.
+- `cargo packager --release --formats deb` inside `rust:1.83` Docker after icon fix.
+
+### Common failure modes
+- `cargo packager` rejects legacy keys such as `[package.metadata.packager.macos].icons` and `[package.metadata.packager.windows].icon-path`; consolidate under the root `icons` array.
+- Debian packaging fails with `Invalid PNG signature` if `docs/assets/icon-hash-checker-*.png` contains JPEG data—re-export icons as real PNGs (`sips -s format png …`).

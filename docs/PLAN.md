@@ -37,6 +37,12 @@
 - [ ] Add `cargo-dist` (or equivalent) release pipeline and generate release notes.
 - [ ] Design binary signing/notarisation workflow (macOS, Windows).
 
+### Closure roadmap (target: 2025-10-22)
+1. Stabilise Linux packaging in CI by retaining the regenerated PNG icons under `docs/assets` and adding a nightly `cargo packager --formats deb` check.
+2. Wire Playwright (or the existing smoke harness) into GitHub Actions so the GUI automation checkbox can be flipped to done, then gate merges on the new job.
+3. Prototype release-note generation via `cargo dist init` on a feature branch and capture the delta in `docs/OPERATIONS.md` before enabling it in CI.
+4. Draft the signing/notarisation runbook (macOS Developer ID, Windows signtool/EV cert) and record external credential requirements ahead of Phase 4.
+
 ## Phase 4 – Security Hardening
 - [ ] Perform security review of hash verification pipeline (path handling, canonicalisation).
 - [ ] Integrate supply-chain scanning (`cargo audit`, `cargo deny`).
