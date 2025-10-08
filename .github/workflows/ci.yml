@@ -35,6 +35,14 @@ jobs:
         run: make rust-test
       - name: GUI smoke test (host)
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
+      - name: Install security tooling
+        run: |
+          cargo install cargo-audit --locked
+          cargo install cargo-deny --locked
+      - name: Cargo audit
+        run: cargo audit
+      - name: Cargo deny (advisories)
+        run: cargo deny check advisories
       - name: Install cargo-packager
         run: cargo install cargo-packager@0.11.7 --locked
       - name: Build Linux installer (.deb)
