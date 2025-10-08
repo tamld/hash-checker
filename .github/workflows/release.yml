@@ -224,7 +224,7 @@ jobs:
       - name: Generate cargo-dist manifest
         run: |
           cargo install cargo-dist --locked
-          dist manifest --output release-artifacts/dist-manifest.json
+          ~/.cargo/bin/dist manifest --output-format json > release-artifacts/dist-manifest.json
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
