@@ -54,9 +54,14 @@ jobs:
         run: |
           cargo install cargo-audit --locked
           cargo install cargo-deny --locked
-      - name: Cargo audit
+      - name: Cargo audit (hash-checker)
+        working-directory: rust/hash-checker
+        run: cargo audit
+      - name: Cargo audit (hash-checker-gui)
+        working-directory: rust/hash-checker-gui
         run: cargo audit
       - name: Cargo deny (advisories)
+        working-directory: rust/hash-checker
         run: cargo deny check advisories
       - name: Install cargo-packager
         run: cargo install cargo-packager@0.11.7 --locked
