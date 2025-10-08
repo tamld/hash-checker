@@ -1,5 +1,11 @@
 # Task Tracker
 
+## Table of Contents
+- [Phase 2 – GUI Experience](#phase-2--gui-experience)
+- [Phase 3 – Distribution & Releases](#phase-3--distribution--releases)
+- [Phase 4 – Security & Compliance](#phase-4--security--compliance)
+- [Phase 5 – Stretch & Ecosystem](#phase-5--stretch--ecosystem)
+
 ## Phase 2 – GUI Experience
 - [x] Scaffold `hash-checker-gui` crate with egui/eframe.
 - [x] Wire GUI to the shared Rust core.

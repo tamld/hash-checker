@@ -1,5 +1,11 @@
 # Backlog
 
+## Table of Contents
+- [Features](#features)
+- [Improvements](#improvements)
+- [CI & Release Automation](#ci--release-automation)
+- [Security Hardening](#security-hardening)
+
 ## Features
 - History panel for recent hashes and validation results.
 - Batch and multi-file queue support with progress reporting.
