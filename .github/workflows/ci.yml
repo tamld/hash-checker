@@ -23,6 +23,8 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-latest
+    env:
+      VAGRANT_ENABLED: 'false'
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_linux == 'true' }}
     steps:
       - uses: actions/checkout@v4
@@ -44,10 +46,20 @@ jobs:
         run: cargo clippy --manifest-path rust/hash-checker-gui/Cargo.toml --all-targets -- -D warnings
       - name: Cargo test (hash-checker)
         run: cargo test --manifest-path rust/hash-checker/Cargo.toml --all
+      - name: GUI automation tests (hash-checker-gui)
+        run: cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --all
       - name: Rust tests (Docker)
         run: make rust-test
       - name: GUI smoke test (host)
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
+      - name: cargo-dist dry run
+        run: |
+          cargo install cargo-dist --locked
+          cargo dist manifest --no-build
+      - name: Optional Vagrant GUI smoke
+        if: env.VAGRANT_ENABLED == 'true'
+        run: ./scripts/vagrant-gui-smoke.sh
+
       - name: Install security tooling
         run: |
           cargo install cargo-audit --locked
@@ -66,16 +78,26 @@ jobs:
       - name: Build Linux installer (.deb)
         run: cargo packager --release --formats deb
         working-directory: rust/hash-checker-gui
+      - name: Build Linux AppImage
+        run: cargo packager --release --formats appimage
+        working-directory: rust/hash-checker-gui
+      - name: Build Arch package (pacman)
+        run: cargo packager --release --formats pacman
+        working-directory: rust/hash-checker-gui
       - name: Collect Linux installer artefacts
         run: |
           rm -rf dist/linux
           mkdir -p dist/linux
-          cp rust/hash-checker-gui/target/packager/*.deb dist/linux/
-          sha256sum dist/linux/*.deb > dist/linux/SHA256SUMS
+          cp rust/hash-checker-gui/target/packager/*.deb dist/linux/ 2>/dev/null || true
+          cp rust/hash-checker-gui/target/packager/*.AppImage dist/linux/ 2>/dev/null || true
+          cp rust/hash-checker-gui/target/packager/*.tar.gz dist/linux/ 2>/dev/null || true
+          if ls dist/linux/* >/dev/null 2>&1; then
+            sha256sum dist/linux/* > dist/linux/SHA256SUMS
+          fi
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: linux-installer
+          name: linux-installers
           path: dist/linux
 
   macos:

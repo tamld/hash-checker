@@ -33,14 +33,18 @@
 
 ## Phase 3 – Tooling & Distribution
 - [x] Set up GitHub Actions matrix (Linux/macOS/Windows) running fmt, clippy, tests, Docker builds and packaging.
-- [ ] Integrate GUI automation into CI.
-- [ ] Add `cargo-dist` (or equivalent) release pipeline and generate release notes.
-- [ ] Design binary signing/notarisation workflow (macOS, Windows) and document the current technical limitations blocking codesign/notarisation.
+- [x] Integrate GUI automation into CI.
+- [x] Deliver the Windows GA release (portable ZIP + NSIS installer) via CI and release workflows.
+- [x] Deliver the macOS GA release (universal DMG for Intel/ARM), keep it unsigned, and document Gatekeeper bypass steps.
+- [x] Deliver the Linux GA release (Debian `.deb`, AppImage, Arch `pacman`) alongside continuous smoke coverage.
+- [x] Document the build-from-source pathway and keep parity with packaged artefacts.
+- [x] Integrate optional Vagrant headless smoke tests for Windows and Linux packaging jobs.
+- [x] Add `cargo-dist` (or an equivalent tool) to automate release notes and distribution.
 
 ### Closure roadmap (target: 2025-10-22)
-1. Stabilise Linux packaging in CI by retaining the regenerated PNG icons under `docs/assets` and adding a nightly `cargo packager --formats deb` check.
-2. Wire Playwright (or the existing smoke harness) into GitHub Actions so the GUI automation checkbox can be flipped to done, then gate merges on the new job.
-3. Prototype release-note generation via `cargo dist init` on a feature branch and capture the delta in `docs/OPERATIONS.md` before enabling it in CI.
+1. (Completed 2025-10-08) Stabilised Linux packaging in CI and added a nightly `cargo packager --formats deb` schedule.
+2. (Completed 2025-10-08) Wired the existing smoke harness into GitHub Actions and gate merges on the GUI automation job.
+3. (Completed 2025-10-08) Added `cargo dist manifest` automation with documentation updates in `docs/OPERATIONS.md`.
 4. (Completed 2025-10-08) Replaced deprecated GitHub Actions usage (e.g. `actions-rs/toolchain@v1`) with `dtolnay/rust-toolchain@stable` to silence `set-output` warnings.
 5. Draft the signing/notarisation runbook (macOS Developer ID, Windows signtool/EV cert) and record external credential requirements ahead of Phase 4, capturing present macOS/Windows signing limitations so mitigation tasks can be prioritised.
 6. Schedule dependency migration PRs to move away from unmaintained GTK3 bindings (`atk/gdk/gtk-sys`) and `instant`; each PR must include packaging smoke tests and is abandoned if regression blocks appear.
@@ -50,6 +54,8 @@
 - [ ] Perform security review of hash verification pipeline (path handling, canonicalisation).
 - [x] Integrate supply-chain scanning (`cargo audit`, `cargo deny`).
 - [ ] Add checksum/signature verification instructions for end users.
+- [ ] Automate Windows signing via SignPath Foundation (see `docs/SIGNING.md`); macOS remains unsigned with documented Gatekeeper bypass instructions.
+- [ ] Record Vagrant-based release validation steps and traceability for signed artefacts.
 
 ## Phase 5 – Stretch Improvements
 - [ ] Directory hashing & manifest export/import.

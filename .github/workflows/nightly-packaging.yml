@@ -1,0 +1,30 @@
+name: Nightly Debian Packaging
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  debian-nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libgtk-3-dev
+      - name: Build Debian package
+        run: |
+          cargo install cargo-packager@0.11.7 --locked
+          cargo packager --release --formats deb
+        working-directory: rust/hash-checker-gui
+      - name: Archive artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-debian
+          path: rust/hash-checker-gui/target/packager
+      - name: Cleanup packaging artefacts
+        run: ./scripts/cleanup-packaging.sh

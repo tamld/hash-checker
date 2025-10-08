@@ -10,6 +10,7 @@
 ## Table of Contents
 - [Overview](#overview)
 - [Feature Highlights](#feature-highlights)
+- [Clone & Workspace Setup](#clone--workspace-setup)
 - [Quick Start (Containerised)](#quick-start-containerised)
 - [Manual Host Build](#manual-host-build)
 - [Installer Builds](#installer-builds)
@@ -30,6 +31,17 @@ Hash Checker delivers reproducible, container-friendly workflows for validating 
 - Command-line and egui desktop interfaces sharing the same Rust core.
 - Container-first workflows (Docker/Vagrant) to avoid host pollution.
 - Built-in clipboard workflow (copy computed hashes) and accessibility toggles for the GUI.
+
+## Clone & Workspace Setup
+```bash
+# Clone the public repository
+git clone https://github.com/tamld/hash-checker.git
+cd hash-checker
+
+# (Optional) work inside the assistant workspace layout
+cd local-scripts/hash-checker
+```
+> Note: all scripts/Make targets assume you are inside the repository folder (`hash-checker/` or `local-scripts/hash-checker/`). Update your own remote/fork if you are contributing from a fork.
 
 ## Quick Start (Containerised)
 Prerequisites: Docker (build/test) and Vagrant + VMware Fusion (optional, for headless GUI smoke tests).
@@ -65,8 +77,8 @@ make rust-gui-smoke-host
 
 ## Installer Builds
 - Install the packager once per machine: `cargo install cargo-packager@0.11.7 --locked`.
-- From `rust/hash-checker-gui/`, run `cargo packager --release --formats dmg` (macOS) or `cargo packager --release --formats deb` (Linux) to produce native installers.
-- Windows CI publishes a portable `hash-checker-windows-portable.zip` archive.
+- From `rust/hash-checker-gui/`, run `cargo packager --release --formats dmg` (macOS) or `cargo packager --release --formats deb appimage pacman` (Linux) to produce native installers.
+- Windows CI publishes both the portable `hash-checker-windows-portable.zip` archive and an NSIS installer executable.
 - Windows packaging consumes the multi-resolution icon at `docs/assets/icon-hash-checker.ico` so the executable/installer display the Hash Checker branding.
 - macOS artefacts are currently unsigned; users can Control-click → **Open** or clear quarantine with `xattr -d com.apple.quarantine "/Applications/Hash Checker.app"`.
 
@@ -98,5 +110,6 @@ make rust-windows-zip-temp    # -> ${TMPDIR:-/tmp}/hash-checker-win/hash-checker
 - `docs/BACKLOG.md` – backlog and long-term improvements.
 - `docs/SECURITY_ROADMAP.md` – staged security work.
 - `docs/OPERATIONS.md` – release checklist, build diagnostics, and cleanup rules (including `KEEP_PACKAGING` / `CLEAN_DOCKER` overrides).
+- `docs/SIGNING.md` – Windows signing plan (SignPath) and macOS unsigned policy.
 - `docs/GUI_DECISION.md` / `docs/GUI_MVP_DESIGN.md` – GUI architecture notes.
 - `.agent/AGENTS.md` – operational guidelines for assistants.

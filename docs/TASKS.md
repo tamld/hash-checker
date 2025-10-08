@@ -5,44 +5,52 @@
 - [Phase 3 – Distribution & Releases](#phase-3--distribution--releases)
 - [Phase 4 – Security & Compliance](#phase-4--security--compliance)
 - [Phase 5 – Stretch & Ecosystem](#phase-5--stretch--ecosystem)
+- [Maintenance & Ops](#maintenance--ops)
+- [Issue Planning Summary (2025-10-08)](#issue-planning-summary-2025-10-08)
 
 ## Phase 2 – GUI Experience
-- [x] Scaffold `hash-checker-gui` crate with egui/eframe.
-- [x] Wire GUI to the shared Rust core.
-- [x] Implement file picker, algorithm dropdown, and comparison messaging.
-- [x] Add accessibility toggles (contrast theme, keyboard hints, clipboard copy).
-- [x] Integrate GUI smoke test into the Vagrant pipeline.
-- [x] Automate GUI regression via headless harness (`cargo test` launches `hash-checker-gui --smoke-test`).
-- [x] Capture refreshed UI screenshots for README/docs (`docs/assets/gui-*.png`).
+- [x] Scaffold `hash-checker-gui` with egui/eframe and wire it to the Rust core.
+- [x] Complete core GUI flow (picker, algorithm dropdown, result panel).
+- [x] Add accessibility toggles (high contrast, keyboard hints, clipboard).
+- [x] Hook the `--smoke-test` mode into CI/Vagrant.
+- [x] Automate GUI regression via headless `cargo test`.
+- [ ] Capture refreshed screenshots/fixtures for README and docs.
 
 ## Phase 3 – Distribution & Releases
-- [x] Run fmt/clippy/test in the GitHub Actions matrix (Linux/macOS/Windows).
-- [x] Generate `.dmg`/`.deb` installers via `cargo-packager` and keep the Windows portable ZIP.
-- [x] Automate GitHub Release publication with installers, portable artefacts, checksums, and templated notes (release workflow).
-- [x] Include application icon assets (PNG 1024/512/256) in packaging configuration.
-- [x] Add smoke verification for produced installers (CLI + GUI launch in release workflow).
-- [ ] Add `cargo-dist` release notes automation (optional backlog).
-- [ ] Add nightly cron job that runs `cargo packager --release --formats deb` to catch regressions early.
-- [x] Replace deprecated GitHub Actions (e.g. `actions-rs/toolchain@v1`) with supported toolchain setup that uses environment files.
-- [ ] Prepare dependency migration PRs to drop GTK3 bindings and `instant` once upstream replacements are validated; abandon PRs if tests fail.
-- [x] Add Make/script cleanup targets to purge `dist/`, `rust/*/target/packager`, and `/tmp/hash-checker-*` artefacts after successful packaging runs (with opt-out switch) and log the rule in docs/OPERATIONS.md.
+- [x] Integrate a GUI automation job (headless GUI tests) into CI and gate merges on it.
+- [x] Ship the Windows GA release: portable ZIP + NSIS installer, validated in CI and release workflows.
+- [x] Ship the macOS GA release: universal, unsigned DMG with documented Gatekeeper bypass steps.
+- [x] Ship the Linux GA release: produce Debian `.deb`, AppImage, and Arch `pacman` packages in CI/release workflows.
+- [x] Embed branded icon assets across all installers.
+- [x] Add `cargo-dist` automation for release manifests.
+- [x] Schedule a nightly Debian packaging cron job.
+- [x] Integrate optional Vagrant headless smoke tests (guarded by `VAGRANT_ENABLED`) for Windows/Linux packaging scripts.
 
 ## Phase 4 – Security & Compliance
-- [ ] Script checksum/codesigning workflow (macOS notarisation, Windows codesign, Linux package signing) once credentials are available, capturing current macOS/Windows technical constraints as part of the implementation notes.
-- [x] Integrate `cargo audit`/`cargo deny` into CI and gate merges on critical advisories.
-- [ ] Draft the security hardening roadmap and threat model deliverables.
+- [ ] Perform threat modelling and review path/canonicalisation handling.
+- [x] Integrate `cargo audit` and `cargo deny` into CI (gating).
+- [ ] Publish checksum/signature verification guidance for end users.
+- [ ] Automate Windows signing with SignPath Foundation (GitHub integration) and record the pipeline configuration.
+- [ ] Keep macOS unsigned; maintain Gatekeeper bypass documentation and verify smoke coverage for every release.
+- [ ] Maintain a runbook for credential management (rotation, recovery, revocation).
+- [ ] Record the Vagrant validation path for signed artefacts and map checksums to releases.
 
 ## Phase 5 – Stretch & Ecosystem
-- [ ] Create richer sample fixtures for manual QA and documentation.
-- [ ] Design directory hashing + manifest export/import.
-- [ ] Plan SDK/binding story for other runtimes (e.g. Node, WASI) on top of the Rust core.
+- [ ] Directory hashing & manifest export/import.
+- [ ] Batch comparison reports (JSON/CSV).
+- [ ] Plugin interface for additional runtimes (Node, WASI, ...).
+
+## Maintenance & Ops
+- [ ] Keep README/docs free of personal machine paths; prefer relative paths or environment variables.
+- [ ] Maintain fixture/hash samples for regression QA.
+- [ ] Retire the legacy Python implementation once the Rust release is production ready.
+- [ ] Plan dependency migrations away from GTK3 bindings and `instant` when replacements stabilise.
 
 ## Issue Planning Summary (2025-10-08)
-- GUI automation in CI - se su dung Playwright/headless harness trong GitHub Actions, muc tieu hoan thanh truoc 2025-10-22 theo roadmap tai `docs/PLAN.md` muc 2.
-- `cargo-dist` release notes automation - thu nghiem `cargo dist init` tren nhanh rieng, cap nhat `docs/OPERATIONS.md`, muc tieu ngay sau khi GUI automation on dinh.
-- Nightly Debian packaging - tao cron workflow chay `cargo packager --formats deb`, phu thuoc vao viec on dinh icon va cleanup script, du kien sau 2025-10-22.
-- Thay the workflow `actions-rs/toolchain@v1` - DA HOAN THANH 2025-10-08: thay bang `dtolnay/rust-toolchain@stable` de loai bo canh bao `set-output`.
-- Di tru phu thuoc GTK3/`instant` - khao sat thay the, mo PR rieng kem smoke tests; bo neu gap hoi quy, len lich dau thang 11.
-- Script ky so da nen tang - thu thap chung chi/macOS notarisation truoc, ghi chu han che ky thuat hien tai va bo sung workflow khi credential san sang.
-- Bo sung security roadmap & threat model - mo phien lam viec bao mat sau khi ha tang ky so hoan tat, cap nhat `docs/SECURITY_ROADMAP.md`.
-- Mo rong fixture/thu vien - thu thap mau QA va thiet ke manifest/directory hashing sau khi stabilise phat hanh, se duoc uu tien trong sprint tiep theo.
+- GUI automation in CI: top priority, target completion by 2025-10-22.
+- `cargo-dist` + release notes: follow GUI automation; update `docs/OPERATIONS.md` once the flow is proven.
+- Nightly Debian packaging: enable after Windows/macOS releases stabilise; archive logs and artefacts.
+- RHEL/Arch packaging: develop on dedicated branches, merge only with green smoke and Vagrant runs.
+- Vagrant headless coverage: required for Windows and Linux in CI and release workflows; store smoke logs.
+- Signing automation: prepare SignPath Foundation integration for Windows; macOS remains unsigned with clear Gatekeeper bypass guidance.
+- Data hygiene: re-verify the repository for sensitive paths before every public release.
