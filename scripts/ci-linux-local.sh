@@ -16,6 +16,8 @@ run_in_container() {
     -e CARGO_TERM_COLOR=always \
     "$IMAGE" \
     bash -lc "set -euo pipefail; \
+      export PATH=\"/usr/local/cargo/bin:$PATH\"; \
+      source \"$HOME/.cargo/env\" 2>/dev/null || true; \
       rustup component add rustfmt clippy >/dev/null; \
       apt-get update >/dev/null && apt-get install -y --no-install-recommends pkg-config libgtk-3-dev >/dev/null; \
       cargo fmt --manifest-path rust/hash-checker/Cargo.toml --check; \
