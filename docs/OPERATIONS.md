@@ -43,6 +43,7 @@ Keep this document with the repo to standardise release expectations.
 ### Release automation
 - Generate a `cargo dist manifest` in CI/release pipelines to provide structured release metadata alongside artefacts.
 - Store the resulting manifest under `release-artifacts/dist-manifest.json` for auditing and downstream tooling.
+- Routine CI jobs no longer build installers; packaging is confined to the release workflow to preserve runner minutes.
 
 ### Vagrant headless validation
 - Use `make rust-gui-smoke` (Vagrant) to launch Windows and Linux smoke environments headlessly; capture logs to `artifacts/vagrant-smoke-<os>.log`.
