@@ -1086,6 +1086,7 @@ dependencies = [
  "eframe",
  "egui",
  "hash-checker",
+ "image",
  "rfd",
  "tempfile",
  "winapi",

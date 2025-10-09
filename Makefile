@@ -1,4 +1,4 @@
-.PHONY: rust-test rust-build rust-gui-build rust-gui-smoke clean help dist-linux cleanup-packaging
+.PHONY: rust-test rust-build rust-gui-build rust-gui-smoke clean help dist-linux cleanup-packaging ci-linux-local
 
 PROJECT_ROOT := $(shell pwd)
 DIST_DIR := dist
@@ -16,6 +16,9 @@ rust-gui-build: ## Build Rust GUI binary in Docker
 
 rust-gui-smoke: ## Headless GUI smoke test via Vagrant (placeholder)
 	./scripts/vagrant-gui-smoke.sh
+
+ci-linux-local: ## Run Linux CI checks locally inside Docker (fmt, clippy, tests)
+	./scripts/ci-linux-local.sh
 
 cleanup-packaging: ## Remove packaging artefacts (dist staging, packager dirs, tmp exports)
 	KEEP_PACKAGING=$(KEEP_PACKAGING) ./scripts/cleanup-packaging.sh
