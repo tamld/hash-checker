@@ -11,6 +11,7 @@ hash-checker = { path = "../hash-checker" }
 eframe = { version = "0.24", default-features = false, features = ["glow"] }
 egui = "0.24"
 rfd = "0.11"
+image = { version = "0.24", default-features = false, features = ["png"] }
 
 [dev-dependencies]
 assert_cmd = "2"
