@@ -68,8 +68,13 @@ Keep this document with the repo to standardise release expectations.
     --field run_windows=false
   ```
   Use these targeted runs to iterate quickly; they are not considered valid for releases or merges.
-- **Canonical runs (merge/release):** Pushes and pull requests must execute the full matrix (Linux, macOS, Windows). Branch protection and release workflows depend on all three jobs passing before artefacts are published or tags are created.
+- **Canonical runs (merge/release):** Pushes and pull requests execute macOS and Windows by default. Linux is manual-only—dispatch the job above when cloud validation is required. Branch protection and release workflows depend on the platforms that remain enabled plus any manual Linux run you trigger.
 - **Release gating:** The publish workflow remains blocked unless the preceding CI run (with every platform enabled) completes successfully. Never release artefacts produced exclusively by debug-only runs.
+
+### Dependency hygiene
+- Treat yanked-crate warnings as blocking. If `cargo install` or local builds mention a yanked version, update immediately using `cargo update -p <crate>` or `cargo upgrade` and refresh `Cargo.lock`.
+- Run a dependency refresh at least once per month (`cargo update`, `cargo audit`, `cargo deny`) and capture the findings in the PR description.
+- Record major dependency upgrades (GTK, egui, packaging toolchains) in `docs/PLAN.md` and `docs/TASKS.md` so future releases track the migration status.
 
 ### Local Linux CI workflow
 - Run `make ci-linux-local` before committing or pushing. This command launches `scripts/ci-linux-local.sh`, which spins up a Docker container (`rust:1.83`) and executes `cargo fmt`, `cargo clippy`, and `cargo test` for both CLI and GUI crates.

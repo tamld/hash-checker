@@ -24,6 +24,7 @@
 - Build rule: when builds are required, invoke `make` targets that stage outputs under `/tmp` and avoid creating additional files or directories outside the project workspace.
 - Issue hygiene: when addressing bugs or tech debt, document the root cause, update relevant roadmap/backlog entries, keep commits focused, and only close issues/PRs after CI (including Vagrant smoke where applicable) is green.
 - Local verification gate: always run `make ci-linux-local` and ensure it passes before committing or pushing changes. Retain the generated log under `logs/`.
+- Dependency hygiene: respond to yank warnings immediately and schedule regular upgrades (at least monthly) via `cargo update` / `cargo upgrade`; keep both CLI and GUI `Cargo.lock` files free of yanked crates.
 - Follow Global guardrails (MAIN-PROTECT-001, CI-PATH-001, SECRET-SHIELD-001, GLOBAL-MEM-PR-001).
 
 ## Testing & Build Expectations

@@ -100,7 +100,7 @@ make rust-windows-zip-temp    # -> ${TMPDIR:-/tmp}/hash-checker-win/hash-checker
 ```
 
 ## Continuous Integration
-- `.github/workflows/ci.yml` fans out Linux, macOS, and Windows jobs in parallel.
+- `.github/workflows/ci.yml` runs macOS and Windows on every push/PR. Linux is opt-in and should be triggered manually via `gh workflow run` once the local gate passes.
 - Each job performs formatting, linting, tests, release builds, and GUI smoke tests, then publishes installers with checksums.
 - Docker helpers ensure build outputs remain accessible between steps.
 - Before pushing, run `make ci-linux-local` to execute fmt/clippy/tests inside a Docker container and store logs under `logs/`.

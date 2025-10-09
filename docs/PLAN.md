@@ -56,6 +56,7 @@
 - [ ] Add checksum/signature verification instructions for end users.
 - [ ] Automate Windows signing via SignPath Foundation (see `docs/SIGNING.md`); macOS remains unsigned with documented Gatekeeper bypass instructions.
 - [ ] Record Vagrant-based release validation steps and traceability for signed artefacts.
+- [ ] Establish a monthly dependency refresh cadence (resolve yanked crates immediately, update `Cargo.lock` regularly, document major upgrades).
 
 ## Phase 5 – Stretch Improvements
 - [ ] Directory hashing & manifest export/import.

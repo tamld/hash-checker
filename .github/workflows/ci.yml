@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VAGRANT_ENABLED: 'false'
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_linux == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_linux == 'true' }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust toolchain
