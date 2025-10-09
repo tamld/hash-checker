@@ -101,7 +101,7 @@ make rust-windows-zip-temp    # -> ${TMPDIR:-/tmp}/hash-checker-win/hash-checker
 
 ## Continuous Integration
 - `.github/workflows/ci.yml` runs macOS and Windows on every push/PR. Linux is opt-in and should be triggered manually via `gh workflow run` once the local gate passes.
-- Each job performs formatting, linting, tests, release builds, and GUI smoke tests, then publishes installers with checksums.
+- Each job now focuses on formatting, linting, unit/smoke tests. Packaging of installers happens only in the release workflow (tags or manual dispatch).
 - Docker helpers ensure build outputs remain accessible between steps.
 - Before pushing, run `make ci-linux-local` to execute fmt/clippy/tests inside a Docker container and store logs under `logs/`.
 
@@ -112,5 +112,6 @@ make rust-windows-zip-temp    # -> ${TMPDIR:-/tmp}/hash-checker-win/hash-checker
 - `docs/SECURITY_ROADMAP.md` – staged security work.
 - `docs/OPERATIONS.md` – release checklist, build diagnostics, and cleanup rules (including `KEEP_PACKAGING` / `CLEAN_DOCKER` overrides).
 - `docs/SIGNING.md` – Windows signing plan (SignPath) and macOS unsigned policy.
+- `docs/DEPENDENCY_MIGRATION.md` – roadmap for phasing out GTK3/`instant` and related dependency work.
 - `docs/GUI_DECISION.md` / `docs/GUI_MVP_DESIGN.md` – GUI architecture notes.
 - `.agent/AGENTS.md` – operational guidelines for assistants.

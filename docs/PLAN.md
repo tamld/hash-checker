@@ -46,8 +46,8 @@
 2. (Completed 2025-10-08) Wired the existing smoke harness into GitHub Actions and gate merges on the GUI automation job.
 3. (Completed 2025-10-08) Added `cargo dist manifest` automation with documentation updates in `docs/OPERATIONS.md`.
 4. (Completed 2025-10-08) Replaced deprecated GitHub Actions usage (e.g. `actions-rs/toolchain@v1`) with `dtolnay/rust-toolchain@stable` to silence `set-output` warnings.
-5. Draft the signing/notarisation runbook (macOS Developer ID, Windows signtool/EV cert) and record external credential requirements ahead of Phase 4, capturing present macOS/Windows signing limitations so mitigation tasks can be prioritised.
-6. Schedule dependency migration PRs to move away from unmaintained GTK3 bindings (`atk/gdk/gtk-sys`) and `instant`; each PR must include packaging smoke tests and is abandoned if regression blocks appear.
+5. (Completed 2025-10-09) Drafted the signing/notarisation runbook in `docs/SIGNING.md` (macOS Developer ID, Windows SignPath) including credential prerequisites.
+6. (Completed 2025-10-09) Logged the dependency migration roadmap in `docs/DEPENDENCY_MIGRATION.md`; future PRs will reference the schedule when dropping GTK3 bindings/`instant`.
 7. (Completed 2025-10-08) Introduced automated cleanup targets (`make cleanup-packaging` / `scripts/cleanup-packaging.sh`) to purge staging artefacts with `KEEP_PACKAGING=1` opt-out, and documented the rule in the operations guide.
 
 ## Phase 4 – Security Hardening

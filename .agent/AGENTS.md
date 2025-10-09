@@ -30,7 +30,7 @@
 ## Testing & Build Expectations
 - Unit tests: `make rust-test` (Dockerized). Use `make rust-gui-build` for GUI build validation when required.
 - GUI smoke test: run `make rust-gui-smoke` (headless Vagrant VM) to exercise the Rust GUI in isolation.
-- Packaging guidance lives in the project README; use the `cargo-packager` flow (`cargo packager --release --formats <fmt>`) for installers.
+- Packaging guidance lives in the project README; use the `cargo-packager` flow (`cargo packager --release --formats <fmt>`) for installers. Routine CI runs must not build installers—only the release workflow or manual local runs should do so.
 - Platform fallback policy: if GitHub Actions macOS or Windows jobs fail twice consecutively for the same change, stop rerunning in the cloud—switch to the documented local workflow for that platform (build, smoke tests, packaging) before attempting another push.
 
 ## Reporting Template
