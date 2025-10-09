@@ -5,8 +5,8 @@ use std::{
     path::PathBuf,
 };
 
-use eframe::{egui, App, Frame};
-use egui::{Color32, Key, RichText};
+use eframe::{egui, App, Frame, NativeOptions};
+use egui::{vec2, Color32, IconData, Key, RichText};
 use hash_checker::{compute_hash, supported_algorithms, verify_hash};
 use rfd::FileDialog;
 
@@ -208,12 +208,19 @@ impl App for HashCheckerApp {
             ui.add_space(12.0);
             ui.label("Computed hash:");
             ui.horizontal(|ui| {
+                let available = ui.available_width();
+                let button_width = 140.0;
+                let text_width =
+                    (available - ui.spacing().item_spacing.x - button_width).max(160.0);
                 let mut display_hash = self.computed_hash.clone().unwrap_or_default();
                 ui.add_enabled(
                     false,
-                    egui::TextEdit::singleline(&mut display_hash).desired_width(f32::INFINITY),
+                    egui::TextEdit::singleline(&mut display_hash).desired_width(text_width),
                 );
-                if ui.button("Copy").clicked() {
+                let copy_button = egui::Button::new("Copy hash")
+                    .min_size(vec2(button_width, ui.spacing().interact_size.y * 1.1));
+                let response = ui.add_enabled(self.computed_hash.is_some(), copy_button);
+                if response.clicked() {
                     let value = self.computed_hash.clone().unwrap_or_default();
                     ctx.output_mut(|o| o.copied_text = value);
                     self.set_status("Hash copied to clipboard.", StatusKind::Info);
@@ -253,10 +260,25 @@ fn main() -> eframe::Result<()> {
         }
     }
 
-    let options = eframe::NativeOptions::default();
+    let mut options = NativeOptions::default();
+    if let Some(icon) = load_app_icon() {
+        options.viewport = options.viewport.with_icon(icon);
+    }
     eframe::run_native(
         "Hash Checker",
         options,
         Box::new(|_| Box::new(HashCheckerApp::new())),
     )
+}
+
+fn load_app_icon() -> Option<IconData> {
+    const ICON_BYTES: &[u8] = include_bytes!("../../../docs/assets/icon-hash-checker-512.png");
+    let image = image::load_from_memory(ICON_BYTES).ok()?.into_rgba8();
+    let width = image.width();
+    let height = image.height();
+    Some(IconData {
+        rgba: image.into_raw(),
+        width,
+        height,
+    })
 }

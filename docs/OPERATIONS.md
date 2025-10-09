@@ -70,3 +70,19 @@ Keep this document with the repo to standardise release expectations.
   Use these targeted runs to iterate quickly; they are not considered valid for releases or merges.
 - **Canonical runs (merge/release):** Pushes and pull requests must execute the full matrix (Linux, macOS, Windows). Branch protection and release workflows depend on all three jobs passing before artefacts are published or tags are created.
 - **Release gating:** The publish workflow remains blocked unless the preceding CI run (with every platform enabled) completes successfully. Never release artefacts produced exclusively by debug-only runs.
+
+### Local Linux CI workflow
+- Run `make ci-linux-local` before committing or pushing. This command launches `scripts/ci-linux-local.sh`, which spins up a Docker container (`rust:1.83`) and executes `cargo fmt`, `cargo clippy`, and `cargo test` for both CLI and GUI crates.
+- Logs are written to `logs/ci-linux-<timestamp>.log`. Keep the most recent log until the change lands on `main` so troubleshooting has an audit trail.
+- Environment overrides:
+  - `CI_LINUX_IMAGE` – alternative container name/tag.
+  - `CI_LINUX_LOG_DIR` – custom directory for logs.
+
+### Platform fallback policy
+- macOS & Windows jobs on GitHub Actions may fail due to platform-specific tooling. If either platform fails **twice in a row** for the same change:
+  1. Stop rerunning the cloud job.
+  2. Switch to the local workflow:
+     - **macOS:** run `make rust-gui-build-host`, `make rust-gui-smoke-host`, and `make rust-gui-dmg-temp`. Capture the console log and attach it to the PR/issue.
+     - **Windows:** run the equivalent PowerShell sequence (`cargo fmt`, `cargo clippy`, `cargo test`, `cargo run -- --smoke-test`, packaging via `cargo packager`/NSIS). Save the transcript.
+  3. Push again only after the local run succeeds or the regression is resolved.
+- Document any fallback run in the PR description or commit message so reviewers know the cloud job was intentionally bypassed.

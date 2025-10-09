@@ -103,6 +103,7 @@ make rust-windows-zip-temp    # -> ${TMPDIR:-/tmp}/hash-checker-win/hash-checker
 - `.github/workflows/ci.yml` fans out Linux, macOS, and Windows jobs in parallel.
 - Each job performs formatting, linting, tests, release builds, and GUI smoke tests, then publishes installers with checksums.
 - Docker helpers ensure build outputs remain accessible between steps.
+- Before pushing, run `make ci-linux-local` to execute fmt/clippy/tests inside a Docker container and store logs under `logs/`.
 
 ## Project Documents
 - `docs/PLAN.md` – development roadmap.

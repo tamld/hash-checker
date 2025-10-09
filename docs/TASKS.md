@@ -45,6 +45,7 @@
 - [ ] Maintain fixture/hash samples for regression QA.
 - [ ] Retire the legacy Python implementation once the Rust release is production ready.
 - [ ] Plan dependency migrations away from GTK3 bindings and `instant` when replacements stabilise.
+- [ ] Monitor the local CI workflow (`make ci-linux-local`) and platform fallback logs; adjust scripts as tooling evolves.
 
 ## Issue Planning Summary (2025-10-08)
 - GUI automation in CI: top priority, target completion by 2025-10-22.

@@ -23,12 +23,14 @@
 - Workspace scope: restrict file edits and artefacts to the repository root (`local-scripts/hash-checker/`); do not introduce files elsewhere on the host.
 - Build rule: when builds are required, invoke `make` targets that stage outputs under `/tmp` and avoid creating additional files or directories outside the project workspace.
 - Issue hygiene: when addressing bugs or tech debt, document the root cause, update relevant roadmap/backlog entries, keep commits focused, and only close issues/PRs after CI (including Vagrant smoke where applicable) is green.
+- Local verification gate: always run `make ci-linux-local` and ensure it passes before committing or pushing changes. Retain the generated log under `logs/`.
 - Follow Global guardrails (MAIN-PROTECT-001, CI-PATH-001, SECRET-SHIELD-001, GLOBAL-MEM-PR-001).
 
 ## Testing & Build Expectations
 - Unit tests: `make rust-test` (Dockerized). Use `make rust-gui-build` for GUI build validation when required.
 - GUI smoke test: run `make rust-gui-smoke` (headless Vagrant VM) to exercise the Rust GUI in isolation.
 - Packaging guidance lives in the project README; use the `cargo-packager` flow (`cargo packager --release --formats <fmt>`) for installers.
+- Platform fallback policy: if GitHub Actions macOS or Windows jobs fail twice consecutively for the same change, stop rerunning in the cloud—switch to the documented local workflow for that platform (build, smoke tests, packaging) before attempting another push.
 
 ## Reporting Template
 When finishing a task, include at minimum:
