@@ -34,6 +34,9 @@
 - [ ] Keep macOS unsigned; maintain Gatekeeper bypass documentation and verify smoke coverage for every release.
 - [ ] Maintain a runbook for credential management (rotation, recovery, revocation).
 - [ ] Record the Vagrant validation path for signed artefacts and map checksums to releases.
+- [ ] Run the monthly dependency refresh checklist (`make deps-refresh`, `cargo audit`, `cargo deny`) and attach reports to the tracking issue/PR.
+- [ ] Update builder toolchains (Docker images, `cargo-packager`, `rustup` components) in sync with the dependency refresh.
+- [ ] Maintain the Vagrant validation playbook (document box versions, run cadence, log archive path) and execute it quarterly.
 
 ## Phase 5 – Stretch & Ecosystem
 - [ ] Directory hashing & manifest export/import.
