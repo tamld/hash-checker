@@ -49,6 +49,7 @@ Keep this document with the repo to standardise release expectations.
 - Use `make rust-gui-smoke` (Vagrant) to launch Windows and Linux smoke environments headlessly; capture logs to `artifacts/vagrant-smoke-<os>.log`.
 - Integrate the same target into CI/release workflows so that pre-release artefacts are validated in near-production environments.
 - Ensure Vagrant boxes remain up to date (document base box versions and update cadence here when they change).
+- Follow the quarterly playbook: refresh base boxes, run `make rust-gui-smoke`, and archive logs under `artifacts/vagrant/<year>-Q<quarter>/`; reference the results in the monthly dependency refresh ticket.
 
 ### Signing automation roadmap
 - Windows: integrate SignPath Foundation (public repository, GitHub Actions uploads `.zip`/`.exe`, retrieves signed artefacts before publishing).
@@ -76,6 +77,8 @@ Keep this document with the repo to standardise release expectations.
 - Treat yanked-crate warnings as blocking. If `cargo install` or local builds mention a yanked version, update immediately using `cargo update -p <crate>` or `cargo upgrade` and refresh `Cargo.lock`.
 - Run a dependency refresh at least once per month (`cargo update`, `cargo audit`, `cargo deny`) and capture the findings in the PR description.
 - Record major dependency upgrades (GTK, egui, packaging toolchains) in `docs/PLAN.md` and `docs/TASKS.md` so future releases track the migration status.
+- Execute `make deps-refresh` during the monthly cycle to automate these commands and capture log output under `logs/deps-refresh-<date>.log`.
+- Review Docker base images, `cargo-packager`, and other builder toolchains as part of the same cycle; update script definitions if newer versions are adopted.
 
 ### Local Linux CI workflow
 - Run `make ci-linux-local` before committing or pushing. This command launches `scripts/ci-linux-local.sh`, which spins up a Docker container (`rust:1.83`) and executes `cargo fmt`, `cargo clippy`, and `cargo test` for both CLI and GUI crates.

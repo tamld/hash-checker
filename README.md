@@ -104,6 +104,7 @@ make rust-windows-zip-temp    # -> ${TMPDIR:-/tmp}/hash-checker-win/hash-checker
 - Each job now focuses on formatting, linting, unit/smoke tests. Packaging of installers happens only in the release workflow (tags or manual dispatch).
 - Docker helpers ensure build outputs remain accessible between steps.
 - Before pushing, run `make ci-linux-local` to execute fmt/clippy/tests inside a Docker container and store logs under `logs/`.
+- Execute `make deps-refresh` during the monthly maintenance cadence to update dependencies and log security scans.
 
 ## Project Documents
 - `docs/PLAN.md` – development roadmap.

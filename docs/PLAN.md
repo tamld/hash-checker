@@ -57,6 +57,9 @@
 - [ ] Automate Windows signing via SignPath Foundation (see `docs/SIGNING.md`); macOS remains unsigned with documented Gatekeeper bypass instructions.
 - [ ] Record Vagrant-based release validation steps and traceability for signed artefacts.
 - [ ] Establish a monthly dependency refresh cadence (resolve yanked crates immediately, update `Cargo.lock` regularly, document major upgrades).
+- [ ] Maintain builder toolchain schedule (Docker base images, `cargo-packager`, `rustup` components) and update alongside the dependency refresh.
+- [ ] Document the fallback automation script (`make deps-refresh`) and link it to the monthly checklist.
+- [ ] Create and maintain a Vagrant validation playbook (box versions, log locations, quarterly run cadence).
 
 ## Phase 5 – Stretch Improvements
 - [ ] Directory hashing & manifest export/import.
