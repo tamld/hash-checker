@@ -14,7 +14,7 @@
 - [x] Add accessibility toggles (high contrast, keyboard hints, clipboard).
 - [x] Hook the `--smoke-test` mode into CI/Vagrant.
 - [x] Automate GUI regression via headless `cargo test`.
-- [ ] Capture refreshed screenshots/fixtures for README and docs.
+- [ ] Capture refreshed screenshots/fixtures for README and docs. (Checklist: `docs/GUI_SCREENSHOT.md`; pending môi trường GUI để chụp ảnh mới)
 
 ## Phase 3 – Distribution & Releases
 - [x] Integrate a GUI automation job (headless GUI tests) into CI and gate merges on it.
@@ -31,9 +31,9 @@
 - [x] Integrate `cargo audit` and `cargo deny` into CI (gating).
 - [x] Publish signature verification guidance for end users (checksum + signature instructions in `docs/security/VERIFICATION_GUIDE.md`).
 - [ ] Automate Windows signing with SignPath Foundation (GitHub integration) and document the pipeline configuration (CI job `windows_sign` plus `docs/security/CI_SIGNING.md` added 2025-10-13); awaiting secrets before enabling in production.
-- [ ] Keep macOS unsigned; maintain Gatekeeper bypass documentation and verify smoke coverage for every release.
-- [ ] Maintain a runbook for credential management (rotation, recovery, revocation).
-- [ ] Record the Vagrant validation path for signed artefacts and map checksums to releases (log roots documented in `docs/OPERATIONS.md`).
+- [x] Keep macOS unsigned; maintain Gatekeeper bypass documentation and verify smoke coverage for every release (README Gatekeeper section updated 2025-10-13).
+- [x] Maintain a runbook for credential management (rotation, recovery, revocation). See `docs/security/CREDENTIAL_RUNBOOK.md`.
+- [x] Record the Vagrant validation path for signed artefacts and map checksums to releases (log roots documented in `docs/vagrant/VALIDATION_PLAYBOOK.md`).
 - [ ] Run the monthly dependency refresh checklist (`make deps-refresh`, `cargo audit`, `cargo deny`) and attach reports to the tracking issue/PR.
 - [ ] Update builder toolchains (Docker images, `cargo-packager`, `rustup` components) in sync with the dependency refresh.
 - [ ] Maintain the Vagrant validation playbook (document box versions, run cadence, log archive path) and execute it quarterly.
@@ -47,10 +47,10 @@
   - [ ] Add optional structured logging with opt-in telemetry toggle.
   - [ ] Create regression benchmarks (criterion) covering large file hashing.
 - Distribution automation:
-  - [ ] Integrate reproducible build check (`cargo dist build --dry-run`) into CI.
+  - [x] Integrate reproducible build check (`cargo dist build --dry-run`) into CI (ci.yml linux job).
   - [ ] Produce macOS universal DMG (Intel + Apple Silicon) via multi-target build in CI.
 
-  - [ ] Scaffold winget/homebrew manifest generation with validation job.
+  - [x] Scaffold winget/homebrew manifest generation with validation job (see `scripts/generate_manifests.sh`).
 
 ## Maintenance & Ops
 - [ ] Keep README/docs free of personal machine paths; prefer relative paths or environment variables.

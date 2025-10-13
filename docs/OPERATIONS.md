@@ -10,13 +10,14 @@
    - Link to `docs/security/VERIFICATION_GUIDE.md` so end users can validate downloads.
    - Signing status: published GPG fingerprint and the outcome of the `windows_sign` (SignPath) job when enabled.
 4. Tag the commit (`git tag vX.Y.Z && git push origin vX.Y.Z`).
-5. After the automated workflow publishes artefacts:
+5. Nếu có thay đổi secret/chứng thư, cập nhật log theo `docs/security/CREDENTIAL_RUNBOOK.md` (onboarding, rotation, incident).
+6. After the automated workflow publishes artefacts:
    - Edit the GitHub Release description with the prepared notes.
-   - Verify `.dmg`, `.deb`, and Windows artefacts (portable/installer) execute successfully; when signed, confirm Authenticode/SmartScreen trust.
+   - Verify `.dmg`, `.deb`, và Windows artefacts (portable/installer) chạy thành công; tham chiếu `docs/vagrant/VALIDATION_PLAYBOOK.md` để thu log smoke test.
    - `release.yml` produces `SHA256SUMS` + `SHA256SUMS.sig`; validate the GPG signature and attach both files to the release.
    - Until SignPath is live, explicitly call out in the release notes that Windows artefacts are unsigned and link to `docs/security/VERIFICATION_GUIDE.md`.
    - When the workflow definition changes, run `gh workflow run release.yml --ref <branch-or-tag>` to verify the pipeline in GitHub Actions before tagging; record the dispatch run ID in the corresponding issue/PR for traceability.
-6. Update `docs/PLAN.md` / `docs/TASKS.md` if new follow-up work is identified.
+7. Update `docs/PLAN.md` / `docs/TASKS.md` if new follow-up work is identified.
 
 Keep this document with the repo to standardise release expectations.
 
@@ -116,3 +117,15 @@ Keep this document with the repo to standardise release expectations.
      - **Windows:** run the equivalent PowerShell sequence (`cargo fmt`, `cargo clippy`, `cargo test`, `cargo run -- --smoke-test`, packaging via `cargo packager`/NSIS). Save the transcript.
   3. Push again only after the local run succeeds or the regression is resolved.
 - Document any fallback run in the PR description or commit message so reviewers know the cloud job was intentionally bypassed.
+
+
+## Signing & Credential Notes
+- Windows signing: xem `docs/SIGNING.md` khi SignPath được bật.
+- Credential management: tuân theo `docs/security/CREDENTIAL_RUNBOOK.md`.
+- macOS chưa notarise; tham khảo mục Gatekeeper trong README.
+
+
+## Distribution Manifests
+- Dùng `scripts/generate_manifests.sh <version> <download-base-url>` để tạo template cho winget và Homebrew.
+- Điền checksum tương ứng (xem `logs/release-history/<tag>/SHA256SUMS`).
+- Gửi PR tới tap/mkpkg tương ứng sau khi kiểm tra thủ công.
