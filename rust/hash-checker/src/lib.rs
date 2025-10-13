@@ -1,5 +1,5 @@
 use std::{
-    fs::File,
+    fs::{self, File},
     io::{BufReader, Read},
     path::Path,
 };
@@ -22,6 +22,14 @@ pub enum HashError {
     InferenceFailed(usize),
     #[error("expected hash contains non-hex characters")]
     InvalidExpectedHash,
+    #[error("failed to canonicalize path '{path}': {source}")]
+    Canonicalize {
+        path: String,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("path '{0}' is not a regular file")]
+    NotAFile(String),
     #[error(transparent)]
     Io(#[from] std::io::Error),
 }
@@ -69,11 +77,25 @@ pub fn compute_hash(path: &Path, algorithm: &str) -> HashResult<String> {
     }
 }
 
+fn open_canonical_file(path: &Path) -> HashResult<File> {
+    let canonical = path
+        .canonicalize()
+        .map_err(|source| HashError::Canonicalize {
+            path: path.display().to_string(),
+            source,
+        })?;
+    let metadata = fs::metadata(&canonical)?;
+    if !metadata.is_file() {
+        return Err(HashError::NotAFile(canonical.display().to_string()));
+    }
+    Ok(File::open(&canonical)?)
+}
+
 fn compute_with<D>(path: &Path) -> HashResult<String>
 where
     D: Digest,
 {
-    let file = File::open(path)?;
+    let file = open_canonical_file(path)?;
     let mut reader = BufReader::new(file);
     let mut digest = D::new();
     let mut buffer = vec![0u8; CHUNK_SIZE];

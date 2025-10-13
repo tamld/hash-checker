@@ -42,3 +42,5 @@ Updated: 2025-10-13
 - Rotate the GPG key and passphrase periodically (at least every six months) and refresh the stored secrets.
 - Monitor the `windows_sign` job for each release; if it fails, communicate that the artefacts are unsigned in the release notes.
 - Document the GPG fingerprint in README and release notes so users can verify the signature.
+
+- macOS builds currently output an arm64 DMG. A universal (Intel + Apple Silicon) variant is planned and tracked in PLAN/TASKS.

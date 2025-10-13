@@ -48,6 +48,8 @@
   - [ ] Create regression benchmarks (criterion) covering large file hashing.
 - Distribution automation:
   - [ ] Integrate reproducible build check (`cargo dist build --dry-run`) into CI.
+  - [ ] Produce macOS universal DMG (Intel + Apple Silicon) via multi-target build in CI.
+
   - [ ] Scaffold winget/homebrew manifest generation with validation job.
 
 ## Maintenance & Ops
