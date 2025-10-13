@@ -30,6 +30,15 @@ jobs:
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_linux == 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-registry-${{ runner.os }}-${{ hashFiles('rust/**/Cargo.lock') }}
+          restore-keys: |
+            cargo-registry-${{ runner.os }}-
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -94,6 +103,15 @@ jobs:
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_macos == 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-registry-${{ runner.os }}-${{ hashFiles('rust/**/Cargo.lock') }}
+          restore-keys: |
+            cargo-registry-${{ runner.os }}-
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -153,6 +171,15 @@ jobs:
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_windows == 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-registry-${{ runner.os }}-${{ hashFiles('rust/**/Cargo.lock') }}
+          restore-keys: |
+            cargo-registry-${{ runner.os }}-
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
         with:
