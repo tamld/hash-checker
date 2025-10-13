@@ -58,3 +58,8 @@ target/
 *.vmem
 *.lck/
 logs/
+docs/private/
+plans/
+secrets/
+*.secret
+.ci-target/

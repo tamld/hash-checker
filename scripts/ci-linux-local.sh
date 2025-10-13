@@ -18,8 +18,14 @@ run_in_container() {
     bash -lc "set -euo pipefail; \
       export PATH=\"/usr/local/cargo/bin:$PATH\"; \
       source \"$HOME/.cargo/env\" 2>/dev/null || true; \
+      TARGET_DIR=\"/workspace/.ci-target\"; \
+      rm -rf \"\$TARGET_DIR\"; \
+      mkdir -p \"\$TARGET_DIR\"; \
+      export CARGO_TARGET_DIR=\"\$TARGET_DIR\"; \
       rustup component add rustfmt clippy >/dev/null; \
       apt-get update >/dev/null && apt-get install -y --no-install-recommends pkg-config libgtk-3-dev >/dev/null; \
+      cargo clean --manifest-path rust/hash-checker/Cargo.toml >/dev/null 2>&1 || true; \
+      cargo clean --manifest-path rust/hash-checker-gui/Cargo.toml >/dev/null 2>&1 || true; \
       cargo fmt --manifest-path rust/hash-checker/Cargo.toml --check; \
       cargo fmt --manifest-path rust/hash-checker-gui/Cargo.toml --check; \
       cargo clippy --manifest-path rust/hash-checker/Cargo.toml --all-targets -- -D warnings; \
