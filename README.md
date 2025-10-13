@@ -14,6 +14,7 @@
 - [Quick Start (Containerised)](#quick-start-containerised)
 - [Manual Host Build](#manual-host-build)
 - [Installer Builds](#installer-builds)
+- [Verify Downloads](#verify-downloads)
 - [Temporary Artefacts](#temporary-artefacts)
 - [Continuous Integration](#continuous-integration)
 - [Project Documents](#project-documents)
@@ -82,6 +83,12 @@ make rust-gui-smoke-host
 - Windows packaging consumes the multi-resolution icon at `docs/assets/icon-hash-checker.ico` so the executable/installer display the Hash Checker branding.
 - macOS artefacts are currently unsigned; users can Control-click → **Open** or clear quarantine with `xattr -d com.apple.quarantine "/Applications/Hash Checker.app"`.
 
+## Verify Downloads
+- Each release ships a `SHA256SUMS` file; download it alongside the installer/binary.
+- On macOS/Linux run `shasum -a 256 <artefact>` and compare with the recorded digest (`grep <artefact> SHA256SUMS`).
+- On Windows run `Get-FileHash <artefact> -Algorithm SHA256` or use the CLI binary and the recorded digest.
+- Full command examples for every platform (including upcoming signature validation) live in `docs/security/VERIFICATION_GUIDE.md`.
+
 ## Temporary Artefacts
 Need binaries quickly without touching the repo tree?
 
@@ -108,12 +115,15 @@ make rust-windows-zip-temp    # -> ${TMPDIR:-/tmp}/hash-checker-win/hash-checker
 - Store any sensitive planning docs under `docs/private/` (ignored by git) so the public repo remains clean.
 
 ## Project Documents
-- `docs/PLAN.md` – development roadmap.
-- `docs/TASKS.md` – actionable task list per phase.
-- `docs/BACKLOG.md` – backlog and long-term improvements.
-- `docs/SECURITY_ROADMAP.md` – staged security work.
-- `docs/OPERATIONS.md` – release checklist, build diagnostics, and cleanup rules (including `KEEP_PACKAGING` / `CLEAN_DOCKER` overrides).
-- `docs/SIGNING.md` – Windows signing plan (SignPath) and macOS unsigned policy.
-- `docs/DEPENDENCY_MIGRATION.md` – roadmap for phasing out GTK3/`instant` and related dependency work.
-- `docs/GUI_DECISION.md` / `docs/GUI_MVP_DESIGN.md` – GUI architecture notes.
-- `.agent/AGENTS.md` – operational guidelines for assistants.
+- Roadmap overview: `docs/PLAN.md`
+- Active task tracker: `docs/TASKS.md`
+- Backlog & long-term ideas: `docs/BACKLOG.md`
+- Security strategy: `docs/SECURITY_ROADMAP.md`
+- Threat model summary: `docs/security/THREAT_MODEL.md`
+- Download verification (checksum, GPG, Authenticode): `docs/security/VERIFICATION_GUIDE.md`
+- CI signing integration (SignPath + GPG): `docs/security/CI_SIGNING.md`
+- Release operations & runner strategy: `docs/OPERATIONS.md`
+- Windows signing playbook: `docs/SIGNING.md`
+- Dependency migration plan: `docs/DEPENDENCY_MIGRATION.md`
+- GUI architecture notes: `docs/GUI_DECISION.md`, `docs/GUI_MVP_DESIGN.md`
+- Repo guardrails: `.agent/AGENTS.md`

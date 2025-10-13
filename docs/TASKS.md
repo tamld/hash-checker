@@ -27,21 +27,28 @@
 - [x] Integrate optional Vagrant headless smoke tests (guarded by `VAGRANT_ENABLED`) for Windows/Linux packaging scripts.
 
 ## Phase 4 – Security & Compliance
-- [ ] Perform threat modelling and review path/canonicalisation handling.
+- [x] Perform threat modelling and review path/canonicalisation handling (see `docs/security/THREAT_MODEL.md`).
 - [x] Integrate `cargo audit` and `cargo deny` into CI (gating).
-- [ ] Publish checksum/signature verification guidance for end users.
-- [ ] Automate Windows signing with SignPath Foundation (GitHub integration) and record the pipeline configuration.
+- [x] Publish signature verification guidance for end users (checksum + signature instructions in `docs/security/VERIFICATION_GUIDE.md`).
+- [ ] Automate Windows signing with SignPath Foundation (GitHub integration) and document the pipeline configuration (CI job `windows_sign` plus `docs/security/CI_SIGNING.md` added 2025-10-13); awaiting secrets before enabling in production.
 - [ ] Keep macOS unsigned; maintain Gatekeeper bypass documentation and verify smoke coverage for every release.
 - [ ] Maintain a runbook for credential management (rotation, recovery, revocation).
-- [ ] Record the Vagrant validation path for signed artefacts and map checksums to releases.
+- [ ] Record the Vagrant validation path for signed artefacts and map checksums to releases (log roots documented in `docs/OPERATIONS.md`).
 - [ ] Run the monthly dependency refresh checklist (`make deps-refresh`, `cargo audit`, `cargo deny`) and attach reports to the tracking issue/PR.
 - [ ] Update builder toolchains (Docker images, `cargo-packager`, `rustup` components) in sync with the dependency refresh.
 - [ ] Maintain the Vagrant validation playbook (document box versions, run cadence, log archive path) and execute it quarterly.
 
 ## Phase 5 – Stretch & Ecosystem
-- [ ] Directory hashing & manifest export/import.
-- [ ] Batch comparison reports (JSON/CSV).
-- [ ] Plugin interface for additional runtimes (Node, WASI, ...).
+- Core features:
+  - [ ] Directory hashing & manifest export/import.
+  - [ ] Batch comparison reports (JSON/CSV).
+  - [ ] Plugin interface for additional runtimes (Node, WASI, ...).
+- Observability & performance:
+  - [ ] Add optional structured logging with opt-in telemetry toggle.
+  - [ ] Create regression benchmarks (criterion) covering large file hashing.
+- Distribution automation:
+  - [ ] Integrate reproducible build check (`cargo dist build --dry-run`) into CI.
+  - [ ] Scaffold winget/homebrew manifest generation with validation job.
 
 ## Maintenance & Ops
 - [ ] Keep README/docs free of personal machine paths; prefer relative paths or environment variables.
@@ -50,6 +57,13 @@
 - [ ] Plan dependency migrations away from GTK3 bindings and `instant` when replacements stabilise.
 - [ ] Monitor the local CI workflow (`make ci-linux-local`) and platform fallback logs; adjust scripts as tooling evolves.
 - [ ] Schedule monthly dependency updates (`cargo update`, review yanked crates) and capture results in PR notes.
+
+## Phase 6 – Governance & Automation
+- [ ] Roll out SignPath secrets/variables and confirm signed artefacts in release workflow.
+- [ ] Document credential lifecycle (issuance, rotation cadence, emergency revoke playbook).
+- [ ] Create scheduled workflows for `make deps-refresh` (monthly) and Vagrant smoke with signing verification (quarterly).
+- [ ] Archive release/signing logs under `logs/release-history/<tag>/`.
+- [ ] Update SECURITY.md, issue/PR templates, and CODEOWNERS to enforce reviews on release & security artefacts.
 
 ## Issue Planning Summary (2025-10-08)
 - GUI automation in CI: top priority, target completion by 2025-10-22.
