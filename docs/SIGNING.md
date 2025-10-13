@@ -14,42 +14,49 @@ This document captures the end-to-end plan for automating Windows code signing w
 3. Import the public GitHub repository and create a **Project Configuration** named `hash-checker`.
 4. Note the generated *Organisation ID* and *Project ID*. These will be used inside the CI pipeline.
 
-## 3. Configure GitHub Actions Secrets
-Add the following secrets to the repository (or organisation):
+## 3. Configure GitHub Actions Secrets & Variables
+Set the following **repository secrets**:
 
-| Secret name           | Description                                      |
-|-----------------------|--------------------------------------------------|
-| `SIGNPATH_ORG`        | Organisation ID from the SignPath dashboard.     |
-| `SIGNPATH_PROJECT`    | Project ID referencing the hash-checker project. |
-| `SIGNPATH_API_TOKEN`  | API token with permission to upload/download artefacts. |
+| Secret | Purpose |
+| --- | --- |
+| `SIGNPATH_API_TOKEN` | API token with permission to submit signing requests and download the signed artefacts. |
 
-Optional (recommended):
-- `SIGNPATH_ENVIRONMENT` if you use non-default release channels.
-- `SIGNPATH_STRICT` = `true` to fail the pipeline when signing is rejected.
+Set the following **repository variables** (`Settings → Secrets and variables → Actions → Variables`):
+
+| Variable | Example | Description |
+| --- | --- | --- |
+| `SIGNPATH_ORGANIZATION_ID` | `2b652b8d-2f29-4f5a-8fa0-...` | Organisation GUID from the SignPath dashboard. |
+| `SIGNPATH_PROJECT_SLUG` | `hash-checker` | Project slug configured in SignPath. |
+| `SIGNPATH_SIGNING_POLICY_SLUG` | `release-signing` | Signing policy that approves public releases. |
+| `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` | `windows-exe` | Artifact configuration covering `.exe` outputs (portable + installer). |
+
+Optional:
+- Additional configuration slugs if you maintain multiple release channels.
+- A dedicated environment (e.g. `staging`) with narrowed permissions if you gate manual approvals.
 
 ## 4. Build Workflow Integration
-1. Modify the Windows job in `.github/workflows/ci.yml` / `release.yml` to:
-   - Produce unsigned portable ZIP and NSIS installer artefacts.
-   - Upload those artefacts as workflow outputs.
-2. Insert a signing step **after build** and **before publish**:
+1. The Windows job in `.github/workflows/release.yml` already uploads unsigned binaries and the NSIS installer as artefacts.
+2. The `windows_sign` job consumes these artefacts and calls:
    ```yaml
-   - name: Submit artefact for signing
-     uses: signpath/signpath-github-action@v1
+   - uses: signpath/github-actions/actions/submit-signing-request@v0.1
      with:
-       organization-id: ${{ secrets.SIGNPATH_ORG }}
-       project-slug:    ${{ secrets.SIGNPATH_PROJECT }}
-       api-token:       ${{ secrets.SIGNPATH_API_TOKEN }}
-       artifact-path:   dist/hash-checker-windows-portable.zip
-       configuration:   Release
+       api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+       organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+       project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+       signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+       artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+       github-artifact-id: ${{ needs.windows.outputs.cli_artifact_id }}
        wait-for-completion: true
+       output-artifact-directory: signed/cli
    ```
-3. Repeat for the NSIS installer if produced (`dist/win/installer/*.exe`).
-4. Download the signed artefacts to replace the unsigned ones prior to the release step.
+3. The same step is repeated for the GUI binary and NSIS installer.
+4. The job repackages the portable ZIP with the signed executables and regenerates SHA256SUMS so downstream steps only see signed artefacts.
+5. Finally, the signed artefacts are uploaded (`windows-*-signed`) and consumed by the `publish` job.
 
 ## 5. Release Workflow
-- Keep the publish job gated on successful signing.
-- Attach only signed artefacts to GitHub Releases.
-- Retain SHA256SUMS generated **after** signing to ensure checksums reflect the signed files.
+- The `publish` job automatically prefers signed artefacts; if signing is skipped, it falls back to unsigned outputs and logs the decision.
+- Ensure `SHA256SUMS` is generated **after** the signing step so checksums match the signed files.
+- Release notes must include the SignPath signing status and the GPG fingerprint used to sign `SHA256SUMS`.
 
 ## 6. Monitoring & Maintenance
 - Review SignPath audit logs periodically.

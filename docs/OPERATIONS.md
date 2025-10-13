@@ -6,11 +6,14 @@
 3. Prepare release notes including:
    - Semantic version (e.g. `v0.4.0`).
    - Summary of changes / primary purpose for the release.
-   - Known issues or manual steps (Gatekeeper bypass, etc.).
+   - Known issues or manual steps (e.g. Gatekeeper bypass, unsigned artefacts when signing is unavailable).
+   - Link to `docs/security/VERIFICATION_GUIDE.md` so end users can validate downloads.
+   - Signing status: published GPG fingerprint and the outcome of the `windows_sign` (SignPath) job when enabled.
 4. Tag the commit (`git tag vX.Y.Z && git push origin vX.Y.Z`).
 5. After the automated workflow publishes artefacts:
    - Edit the GitHub Release description with the prepared notes.
-   - Verify `.dmg`, `.deb`, and Windows `.zip` artefacts download and launch successfully.
+   - Verify `.dmg`, `.deb`, and Windows artefacts (portable/installer) execute successfully; when signed, confirm Authenticode/SmartScreen trust.
+   - `release.yml` produces `SHA256SUMS` + `SHA256SUMS.sig`; validate the GPG signature and attach both files to the release.
 6. Update `docs/PLAN.md` / `docs/TASKS.md` if new follow-up work is identified.
 
 Keep this document with the repo to standardise release expectations.
@@ -45,11 +48,25 @@ Keep this document with the repo to standardise release expectations.
 - Store the resulting manifest under `release-artifacts/dist-manifest.json` for auditing and downstream tooling.
 - Routine CI jobs no longer build installers; packaging is confined to the release workflow to preserve runner minutes.
 
+### Signing pipeline (release.yml)
+- The optional `windows_sign` job submits executables/installers to SignPath and uploads the signed variants (`windows-*-signed`). If SignPath secrets/variables are absent, the workflow falls back to unsigned artefacts.
+- The `publish` job consolidates signed/unsigned artefacts, generates `release-final/SHA256SUMS`, and signs it when `GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` are available.
+- Configure secrets/variables as described in `docs/security/CI_SIGNING.md`. Run a `workflow_dispatch` test before shipping a real release.
+- Release notes should include the GPG fingerprint and clarify whether Windows artefacts were signed via SignPath or fell back to unsigned binaries.
+
+### Runner & environment strategy
+- **Linux runner**: primary automation host. Execute `make ci-linux-local` and other checks inside Docker images (e.g. `rust:1.83`) so the host OS stays clean and reproducible.
+- **macOS runner**: dedicated macOS environment (GitHub-hosted or self-managed). Install build deps via Homebrew inside each job; run GUI smoke tests natively.
+- **Windows runner**: required for native GUI smoke, NSIS packaging, and SignPath submissions. Cross-compiling from Linux is acceptable for CLI builds but still validate on Windows.
+- **Isolation**: each job defines its own `CARGO_TARGET_DIR`/temp directories and archives logs under `logs/` to avoid cross-contamination.
+- **Local parity**: when testing locally, prefer Vagrant (on macOS) or WSL2 (on Windows) to mimic CI setups without polluting the developer host.
+
 ### Vagrant headless validation
 - Use `make rust-gui-smoke` (Vagrant) to launch Windows and Linux smoke environments headlessly; capture logs to `artifacts/vagrant-smoke-<os>.log`.
 - Integrate the same target into CI/release workflows so that pre-release artefacts are validated in near-production environments.
 - Ensure Vagrant boxes remain up to date (document base box versions and update cadence here when they change).
 - Follow the quarterly playbook: refresh base boxes, run `make rust-gui-smoke`, and archive logs under `artifacts/vagrant/<year>-Q<quarter>/`; reference the results in the monthly dependency refresh ticket.
+- When releases introduce signing artifacts, pair each log bundle with the tag (e.g. `artifacts/vagrant/v0.4.1/`) and record checksum verification evidence in the release notes.
 
 ### Signing automation roadmap
 - Windows: integrate SignPath Foundation (public repository, GitHub Actions uploads `.zip`/`.exe`, retrieves signed artefacts before publishing).

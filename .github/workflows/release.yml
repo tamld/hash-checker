@@ -146,6 +146,10 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    outputs:
+      cli_artifact_id: ${{ steps.upload_cli_unsigned.outputs.artifact-id }}
+      gui_artifact_id: ${{ steps.upload_gui_unsigned.outputs.artifact-id }}
+      installer_artifact_id: ${{ steps.upload_installer_unsigned.outputs.artifact-id }}
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_windows == 'true' }}
     steps:
       - uses: actions/checkout@v4
@@ -183,31 +187,128 @@ jobs:
         shell: pwsh
         run: |
           Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path dist\win\bin | Out-Null
           New-Item -ItemType Directory -Path dist\win\portable | Out-Null
-          Copy-Item 'rust\hash-checker\target\release\hash-checker.exe' -Destination 'dist\win\portable\hash-checker.exe'
-          Copy-Item 'rust\hash-checker-gui\target\release\hash-checker-gui.exe' -Destination 'dist\win\portable\hash-checker-gui.exe'
-          (Get-FileHash dist\win\portable\hash-checker.exe -Algorithm SHA256).Hash + "  hash-checker.exe" | Set-Content -Encoding ASCII dist\win\portable\SHA256SUMS
-          (Get-FileHash dist\win\portable\hash-checker-gui.exe -Algorithm SHA256).Hash + "  hash-checker-gui.exe" | Add-Content -Encoding ASCII dist\win\portable\SHA256SUMS
-          Compress-Archive -Path dist\win\portable\* -DestinationPath dist\hash-checker-windows-portable.zip -Force
           New-Item -ItemType Directory -Path dist\win\installer | Out-Null
-          Copy-Item 'rust\hash-checker-gui\target\packager\*.exe' -Destination 'dist\win\installer'
-          Copy-Item 'rust\hash-checker-gui\target\packager\SHA256SUMS' -Destination 'dist\win\installer\SHA256SUMS'
-      - name: Upload Windows artefacts
+          Copy-Item 'rust\hash-checker\target\release\hash-checker.exe' -Destination 'dist\win\bin\hash-checker.exe'
+          Copy-Item 'rust\hash-checker-gui\target\release\hash-checker-gui.exe' -Destination 'dist\win\bin\hash-checker-gui.exe'
+          Copy-Item 'dist\win\bin\hash-checker.exe' -Destination 'dist\win\portable\hash-checker.exe'
+          Copy-Item 'dist\win\bin\hash-checker-gui.exe' -Destination 'dist\win\portable\hash-checker-gui.exe'
+          Compress-Archive -Path dist\win\portable\* -DestinationPath dist\hash-checker-windows-portable.zip -Force
+          $installerSource = Get-ChildItem 'rust\hash-checker-gui\target\packager\*.exe' | Select-Object -First 1
+          if (-not $installerSource) { throw 'Installer executable not found under rust\hash-checker-gui\target\packager' }
+          Copy-Item $installerSource.FullName -Destination 'dist\win\installer\hash-checker-gui-setup.exe' -Force
+      - name: Upload CLI binary (unsigned)
+        id: upload_cli_unsigned
         uses: actions/upload-artifact@v4
         with:
-          name: windows-portable
+          name: windows-cli-unsigned
+          path: dist/win/bin/hash-checker.exe
+      - name: Upload GUI binary (unsigned)
+        id: upload_gui_unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-gui-unsigned
+          path: dist/win/bin/hash-checker-gui.exe
+      - name: Upload Windows installer (unsigned)
+        id: upload_installer_unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-unsigned
+          path: dist/win/installer/hash-checker-gui-setup.exe
+      - name: Upload Windows portable archive (unsigned)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-portable-unsigned
           path: dist/hash-checker-windows-portable.zip
-      - name: Upload Windows installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer
-          path: dist/win/installer
       - name: Smoke test portable archive
         shell: pwsh
         run: |
           Expand-Archive dist/hash-checker-windows-portable.zip -DestinationPath smoke -Force
           .\smoke\hash-checker.exe --help | Out-Null
           .\smoke\hash-checker-gui.exe --smoke-test
+
+  windows_sign:
+    name: Sign Windows artefacts
+    runs-on: ubuntu-latest
+    needs: windows
+    if: ${{ needs.windows.outputs.cli_artifact_id != '' && needs.windows.outputs.gui_artifact_id != '' && needs.windows.outputs.installer_artifact_id != '' && secrets.SIGNPATH_API_TOKEN != '' && vars.SIGNPATH_ORGANIZATION_ID != '' && vars.SIGNPATH_PROJECT_SLUG != '' && vars.SIGNPATH_SIGNING_POLICY_SLUG != '' }}
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Submit signing request (CLI)
+        id: sign_cli
+        uses: signpath/github-actions/actions/submit-signing-request@v0.1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ needs.windows.outputs.cli_artifact_id }}
+          wait-for-completion: true
+          output-artifact-directory: signed/cli
+      - name: Submit signing request (GUI)
+        id: sign_gui
+        uses: signpath/github-actions/actions/submit-signing-request@v0.1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ needs.windows.outputs.gui_artifact_id }}
+          wait-for-completion: true
+          output-artifact-directory: signed/gui
+      - name: Submit signing request (Installer)
+        id: sign_installer
+        uses: signpath/github-actions/actions/submit-signing-request@v0.1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ needs.windows.outputs.installer_artifact_id }}
+          wait-for-completion: true
+          output-artifact-directory: signed/installer
+      - name: Repackage signed portable bundle
+        run: |
+          set -euo pipefail
+          mkdir -p signed/portable
+          cp signed/cli/*.exe signed/portable/hash-checker.exe
+          cp signed/gui/*.exe signed/portable/hash-checker-gui.exe
+          pushd signed/portable
+          sha256sum hash-checker.exe hash-checker-gui.exe > SHA256SUMS
+          zip -r ../hash-checker-windows-portable-signed.zip hash-checker.exe hash-checker-gui.exe SHA256SUMS
+          popd
+      - name: Generate installer checksum
+        run: |
+          set -euo pipefail
+          sha256sum signed/installer/*.exe > signed/installer/SHA256SUMS
+      - name: Upload signed CLI binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-cli-signed
+          path: signed/cli
+      - name: Upload signed GUI binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-gui-signed
+          path: signed/gui
+      - name: Upload signed installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-signed
+          path: signed/installer
+      - name: Upload signed portable archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-portable-signed
+          path: |
+            signed/hash-checker-windows-portable-signed.zip
+            signed/portable/SHA256SUMS
 
   publish:
     runs-on: ubuntu-latest
@@ -223,16 +324,66 @@ jobs:
         run: ls -R release-artifacts
       - name: Install cargo-dist
         run: cargo install cargo-dist --version 0.30.0
+      - name: Prepare release payload directory
+        run: mkdir -p release-final
       - name: Generate cargo-dist manifest
-        run: ~/.cargo/bin/dist manifest --output-format json > release-artifacts/dist-manifest.json
+        run: ~/.cargo/bin/dist manifest --output-format json > release-final/dist-manifest.json
+      - name: Assemble release payload
+        run: |
+          set -euo pipefail
+          mkdir -p release-final/linux
+          if [ -d release-artifacts/linux-installers ]; then
+            cp -R release-artifacts/linux-installers/. release-final/linux/
+          fi
+          mkdir -p release-final/macos
+          if [ -d release-artifacts/macos-installers ]; then
+            cp -R release-artifacts/macos-installers/. release-final/macos/
+          fi
+          mkdir -p release-final/windows
+          if [ -d release-artifacts/windows-installer-signed ]; then
+            cp -R release-artifacts/windows-installer-signed/. release-final/windows/
+          elif [ -d release-artifacts/windows-installer-unsigned ]; then
+            cp -R release-artifacts/windows-installer-unsigned/. release-final/windows/
+          fi
+          if [ -d release-artifacts/windows-portable-signed ]; then
+            cp -R release-artifacts/windows-portable-signed/. release-final/windows/
+          elif [ -d release-artifacts/windows-portable-unsigned ]; then
+            cp -R release-artifacts/windows-portable-unsigned/. release-final/windows/
+          fi
+          if [ -d release-artifacts/windows-cli-signed ]; then
+            cp -R release-artifacts/windows-cli-signed/. release-final/windows/
+          fi
+          if [ -d release-artifacts/windows-gui-signed ]; then
+            cp -R release-artifacts/windows-gui-signed/. release-final/windows/
+          fi
+      - name: Generate release SHA256SUMS
+        run: |
+          set -euo pipefail
+          cd release-final
+          mapfile -d '' files < <(find . -type f ! -name 'SHA256SUMS' ! -name '*.sig' -print0)
+          : > SHA256SUMS
+          if [ "${#files[@]}" -gt 0 ]; then
+            printf '%s\0' "${files[@]}" | sort -z | xargs -0 sha256sum >> SHA256SUMS
+          fi
+      - name: Import GPG signing key
+        id: import_gpg
+        if: ${{ secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_PASSPHRASE != '' }}
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Sign release checksums
+        if: ${{ steps.import_gpg.conclusion == 'success' }}
+        run: |
+          set -euo pipefail
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --output release-final/SHA256SUMS.sig --detach-sign release-final/SHA256SUMS
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            release-artifacts/linux-installers/*
-            release-artifacts/macos-installers/*
-            release-artifacts/windows-portable/*
-            release-artifacts/windows-installer/*
+            release-final/**
           draft: false
           prerelease: false
         env:

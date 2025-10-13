@@ -51,10 +51,10 @@
 7. (Completed 2025-10-08) Introduced automated cleanup targets (`make cleanup-packaging` / `scripts/cleanup-packaging.sh`) to purge staging artefacts with `KEEP_PACKAGING=1` opt-out, and documented the rule in the operations guide.
 
 ## Phase 4 – Security Hardening
-- [ ] Perform security review of hash verification pipeline (path handling, canonicalisation).
+- [x] Perform security review of hash verification pipeline (path handling, canonicalisation) and record findings in `docs/security/THREAT_MODEL.md`.
 - [x] Integrate supply-chain scanning (`cargo audit`, `cargo deny`).
-- [ ] Add checksum/signature verification instructions for end users.
-- [ ] Automate Windows signing via SignPath Foundation (see `docs/SIGNING.md`); macOS remains unsigned with documented Gatekeeper bypass instructions.
+- [x] Publish signature verification instructions for end users (checksum + signature workflow in `docs/security/VERIFICATION_GUIDE.md`).
+- [ ] Automate Windows signing via SignPath Foundation (see `docs/SIGNING.md`); the `windows_sign` / `publish` pipeline landed on 2025-10-13 but requires real SignPath secrets before we can mark it complete. macOS remains unsigned with documented Gatekeeper guidance.
 - [ ] Record Vagrant-based release validation steps and traceability for signed artefacts.
 - [ ] Establish a monthly dependency refresh cadence (resolve yanked crates immediately, update `Cargo.lock` regularly, document major upgrades).
 - [ ] Maintain builder toolchain schedule (Docker base images, `cargo-packager`, `rustup` components) and update alongside the dependency refresh.
@@ -62,9 +62,16 @@
 - [ ] Create and maintain a Vagrant validation playbook (box versions, log locations, quarterly run cadence).
 
 ## Phase 5 – Stretch Improvements
-- [ ] Directory hashing & manifest export/import.
-- [ ] Batch comparison reports (JSON/CSV).
-- [ ] Plugin interface for custom algorithms / SDK bindings.
+- Core feature growth:
+  - [ ] Directory hashing & manifest export/import.
+  - [ ] Batch comparison reports (JSON/CSV).
+  - [ ] Plugin interface for custom algorithms / SDK bindings.
+- Observability & performance:
+  - [ ] Add optional structured logging/telemetry for large file jobs.
+  - [ ] Introduce regression benchmarks (criterion) for common workloads.
+- Distribution & automation:
+  - [ ] Automate reproducible builds (`cargo dist build --dry-run`) in CI.
+  - [ ] Add winget/homebrew manifest generation scripts and validation in CI.
 
 ## Lessons Learned & Guardrails
 - Allocate large IO buffers on the heap (e.g. `Vec<u8>`) to avoid Windows stack overflows such as error `0xC00000FD` observed in October 2025.
@@ -73,6 +80,15 @@
 - Keep README and public docs polished (badges, ToC, installer instructions) so contributors immediately understand project health and release expectations.
 
 Progress is tracked via `docs/TASKS.md`, with backlog items in `docs/BACKLOG.md`.
+
+## Phase 6 – Governance & Automation (new)
+- [ ] Finalise SignPath production rollout, rotation procedures, and public verification instructions.
+- [ ] Publish credential/runbook documentation (issuance, rotation, revocation, emergency response).
+- [ ] Establish automated maintenance cadence:
+  - Monthly `make deps-refresh` workflow (auto-issue on failure).
+  - Quarterly Vagrant smoke + signing evidence archived under `logs/release-history/`.
+- [ ] Enforce branch protection for release workflows (`.github/workflows/release.yml`) and security docs (CODEOWNERS review).
+- [ ] Define contributor onboarding (SECURITY.md update, issue templates, triage labels).
 ## Release Readiness Checklist
 - [x] Implement GUI regression automation and include it in CI.
 - [x] Add installer smoke jobs to validate `.dmg`, `.deb`, and Windows portable packages.
