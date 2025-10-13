@@ -92,7 +92,7 @@ jobs:
           cp rust/hash-checker-gui/target/packager/*.AppImage dist/linux/ 2>/dev/null || true
           cp rust/hash-checker-gui/target/packager/*.tar.gz dist/linux/ 2>/dev/null || true
           if ls dist/linux/* >/dev/null 2>&1; then
-            sha256sum dist/linux/* > dist/linux/SHA256SUMS
+            sha256sum dist/linux/* > dist/linux/SHA256SUMS-linux
           fi
       - name: Upload Linux artefacts
         uses: actions/upload-artifact@v4
@@ -157,7 +157,9 @@ jobs:
           rm -rf dist/macos
           mkdir -p dist/macos
           cp rust/hash-checker-gui/target/packager/*.dmg dist/macos/
-          shasum -a 256 dist/macos/*.dmg > dist/macos/SHA256SUMS
+          if ls dist/macos/*.dmg >/dev/null 2>&1; then
+            shasum -a 256 dist/macos/*.dmg > dist/macos/SHA256SUMS-macos
+          fi
       - name: Upload macOS artefacts
         uses: actions/upload-artifact@v4
         with:
@@ -407,11 +409,22 @@ jobs:
           if [ -d release-artifacts/windows-gui-signed ]; then
             cp -R release-artifacts/windows-gui-signed/. release-final/windows/
           fi
+      - name: Deduplicate checksum filenames
+        run: |
+          set -euo pipefail
+          find release-final -mindepth 2 -type f -name 'SHA256SUMS' -print0 | while IFS= read -r -d '' file; do
+            dir="$(dirname "$file")"
+            suffix="$(basename "$dir" | tr -c 'A-Za-z0-9._-' '_')"
+            if [ -z "$suffix" ]; then
+              suffix="nested"
+            fi
+            mv "$file" "${dir}/SHA256SUMS-${suffix}"
+          done
       - name: Generate release SHA256SUMS
         run: |
           set -euo pipefail
           cd release-final
-          mapfile -d '' files < <(find . -type f ! -name 'SHA256SUMS' ! -name '*.sig' -print0)
+          mapfile -d '' files < <(find . -type f ! -name 'SHA256SUMS' ! -name 'SHA256SUMS-*' ! -name '*.sig' -print0)
           : > SHA256SUMS
           if [ "${#files[@]}" -gt 0 ]; then
             printf '%s\0' "${files[@]}" | sort -z | xargs -0 sha256sum >> SHA256SUMS
