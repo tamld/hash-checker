@@ -59,7 +59,7 @@
 - [ ] Plan dependency migrations away from GTK3 bindings and `instant` when replacements stabilise.
 - [ ] Monitor the local CI workflow (`make ci-linux-local`) and platform fallback logs; adjust scripts as tooling evolves.
 - [ ] Schedule monthly dependency updates (`cargo update`, review yanked crates) and capture results in PR notes.
-- [ ] Add scheduled maintenance run for `cargo-dist` upgrades and document checksum asset deduplication in release workflow notes (added 2025-10-13).
+- [x] Add scheduled maintenance run for `cargo-dist` upgrades (`.github/workflows/cargo-dist-maintenance.yml`) và giữ tài liệu checksum dedup trong release notes.
 
 ## Phase 6 – Governance & Automation
 - [ ] Roll out SignPath secrets/variables and confirm signed artefacts in release workflow.

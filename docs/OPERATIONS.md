@@ -129,3 +129,8 @@ Keep this document with the repo to standardise release expectations.
 - Dùng `scripts/generate_manifests.sh <version> <download-base-url>` để tạo template cho winget và Homebrew.
 - Điền checksum tương ứng (xem `logs/release-history/<tag>/SHA256SUMS`).
 - Gửi PR tới tap/mkpkg tương ứng sau khi kiểm tra thủ công.
+
+
+## Maintenance Automation
+- Workflow `.github/workflows/cargo-dist-maintenance.yml` chạy mỗi tháng để kiểm tra `cargo-dist` bản mới nhất bằng `cargo install --locked`.
+- Khi workflow fail, mở issue ghi lại log (artifact tên `cargo-dist-install-log`) và pin lại phiên bản hoặc cập nhật CI tương ứng.
