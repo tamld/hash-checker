@@ -45,9 +45,8 @@ Keep this document with the repo to standardise release expectations.
 - **Build from source**: keep README instructions accurate (`cargo build --release` for CLI/GUI) and verify parity with packaged builds each release cycle.
 
 ### Release automation
-- Generate a `cargo dist manifest` in CI/release pipelines to provide structured release metadata alongside artefacts.
-- Store the resulting manifest under `release-artifacts/dist-manifest.json` for auditing and downstream tooling.
 - Routine CI jobs no longer build installers; packaging is confined to the release workflow to preserve runner minutes.
+- `release.yml` pins `cargo-dist@0.29.0` (0.30.0 currently fails to compile); bump the version here and in commit history when upstream resolves the issue.
 
 ### Signing pipeline (release.yml)
 - The optional `windows_sign` job submits executables/installers to SignPath and uploads the signed variants (`windows-*-signed`). If SignPath secrets/variables are absent, the workflow falls back to unsigned artefacts.
