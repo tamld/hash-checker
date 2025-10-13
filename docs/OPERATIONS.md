@@ -14,6 +14,7 @@
    - Edit the GitHub Release description with the prepared notes.
    - Verify `.dmg`, `.deb`, and Windows artefacts (portable/installer) execute successfully; when signed, confirm Authenticode/SmartScreen trust.
    - `release.yml` produces `SHA256SUMS` + `SHA256SUMS.sig`; validate the GPG signature and attach both files to the release.
+   - Until SignPath is live, explicitly call out in the release notes that Windows artefacts are unsigned and link to `docs/security/VERIFICATION_GUIDE.md`.
 6. Update `docs/PLAN.md` / `docs/TASKS.md` if new follow-up work is identified.
 
 Keep this document with the repo to standardise release expectations.
@@ -53,6 +54,7 @@ Keep this document with the repo to standardise release expectations.
 - The `publish` job consolidates signed/unsigned artefacts, generates `release-final/SHA256SUMS`, and signs it when `GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` are available.
 - Configure secrets/variables as described in `docs/security/CI_SIGNING.md`. Run a `workflow_dispatch` test before shipping a real release.
 - Release notes should include the GPG fingerprint and clarify whether Windows artefacts were signed via SignPath or fell back to unsigned binaries.
+- Always run the Linux job (default `run_linux=true`) when triggering `release.yml` to keep parity with `ci.yml`.
 
 ### Runner & environment strategy
 - **Linux runner**: primary automation host. Execute `make ci-linux-local` and other checks inside Docker images (e.g. `rust:1.83`) so the host OS stays clean and reproducible.
