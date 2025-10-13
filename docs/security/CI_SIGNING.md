@@ -44,3 +44,5 @@ Updated: 2025-10-13
 - Document the GPG fingerprint in README and release notes so users can verify the signature.
 
 - macOS builds currently output an arm64 DMG. A universal (Intel + Apple Silicon) variant is planned and tracked in PLAN/TASKS.
+
+- Dispatch runs (`gh workflow run release.yml --ref <tag>`) are for verification; official releases use tag pushes so pipelines remain auditable.
