@@ -1,0 +1,25 @@
+name: Cargo Dist Maintenance
+
+on:
+  schedule:
+    - cron: '0 5 1 * *' # 05:00 UTC ngày 1 hàng tháng
+  workflow_dispatch:
+
+jobs:
+  install-latest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install latest cargo-dist
+        run: |
+          cargo install cargo-dist --locked | tee cargo-dist-install.log
+      - name: Verify cargo-dist version
+        run: |
+          ~/.cargo/bin/cargo-dist --version
+      - name: Upload install log
+        uses: actions/upload-artifact@v4
+        with:
+          name: cargo-dist-install-log
+          path: cargo-dist-install.log
