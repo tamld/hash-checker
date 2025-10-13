@@ -79,6 +79,7 @@ Keep this document with the repo to standardise release expectations.
 - Record major dependency upgrades (GTK, egui, packaging toolchains) in `docs/PLAN.md` and `docs/TASKS.md` so future releases track the migration status.
 - Execute `make deps-refresh` during the monthly cycle to automate these commands and capture log output under `logs/deps-refresh-<date>.log`.
 - Review Docker base images, `cargo-packager`, and other builder toolchains as part of the same cycle; update script definitions if newer versions are adopted.
+- Keep sensitive planning notes under `docs/private/` (gitignored) so public releases contain only sanitized documentation.
 
 ### Local Linux CI workflow
 - Run `make ci-linux-local` before committing or pushing. This command launches `scripts/ci-linux-local.sh`, which spins up a Docker container (`rust:1.83`) and executes `cargo fmt`, `cargo clippy`, and `cargo test` for both CLI and GUI crates.

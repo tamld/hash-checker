@@ -105,6 +105,7 @@ make rust-windows-zip-temp    # -> ${TMPDIR:-/tmp}/hash-checker-win/hash-checker
 - Docker helpers ensure build outputs remain accessible between steps.
 - Before pushing, run `make ci-linux-local` to execute fmt/clippy/tests inside a Docker container and store logs under `logs/`.
 - Execute `make deps-refresh` during the monthly maintenance cadence to update dependencies and log security scans.
+- Store any sensitive planning docs under `docs/private/` (ignored by git) so the public repo remains clean.
 
 ## Project Documents
 - `docs/PLAN.md` – development roadmap.
