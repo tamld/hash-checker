@@ -2,6 +2,8 @@
 
 This document captures the end-to-end plan for automating Windows code signing with SignPath Foundation while keeping macOS unsigned (Gatekeeper bypass instructions remain in the README).
 
+> **Status (2025-10-13):** SignPath onboarding is in progress. Releases prior to the integration ship **unsigned** Windows artefacts; users must verify them via checksums/GPG as documented in `docs/security/VERIFICATION_GUIDE.md`.
+
 ## 1. Prerequisites
 - Hash Checker repository must be **public**.
 - GitHub Actions workflow capable of producing unsigned artefacts (`.zip`, `.exe`, `.msi`/NSIS installer).
@@ -62,5 +64,6 @@ Optional:
 - Review SignPath audit logs periodically.
 - Rotate `SIGNPATH_API_TOKEN` at least twice a year.
 - Update this document whenever SignPath changes their configuration flow or GitHub Action version.
+- Keep `CODE_OF_CONDUCT.md` up to date to satisfy SignPath OSS requirements.
 
 > macOS DMG builds remain unsigned. README documents Gatekeeper bypass instructions so users can install without notarisation fees.

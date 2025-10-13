@@ -3,6 +3,7 @@
 Updated: 2025-10-13
 
 ## Overview
+- SignPath integration is **pending**; until tokens/variables are populated, releases will fall back to unsigned Windows artefacts (see `docs/security/VERIFICATION_GUIDE.md` for manual verification).
 - `release.yml` now supports GPG signing of the aggregated `SHA256SUMS` file and Authenticode signing via SignPath (when configured).
 - Unsigned artefacts are still published as a fallback whenever signing secrets or environment variables are absent.
 

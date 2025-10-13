@@ -88,6 +88,7 @@ make rust-gui-smoke-host
 - On macOS/Linux run `shasum -a 256 <artefact>` and compare with the recorded digest (`grep <artefact> SHA256SUMS`).
 - On Windows run `Get-FileHash <artefact> -Algorithm SHA256` or use the CLI binary and the recorded digest.
 - Full command examples for every platform (including upcoming signature validation) live in `docs/security/VERIFICATION_GUIDE.md`.
+- Current status: Windows artefacts are unsigned while the SignPath integration is pending; always verify using the guide above. macOS DMG remains unsigned—follow Gatekeeper instructions in the README.
 
 ## Temporary Artefacts
 Need binaries quickly without touching the repo tree?
@@ -127,3 +128,4 @@ make rust-windows-zip-temp    # -> ${TMPDIR:-/tmp}/hash-checker-win/hash-checker
 - Dependency migration plan: `docs/DEPENDENCY_MIGRATION.md`
 - GUI architecture notes: `docs/GUI_DECISION.md`, `docs/GUI_MVP_DESIGN.md`
 - Repo guardrails: `.agent/AGENTS.md`
+- Contributor behaviour: `CODE_OF_CONDUCT.md`
