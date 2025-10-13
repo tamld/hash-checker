@@ -16,6 +16,7 @@ ENV/
 # Build outputs
 build/
 dist/
+dist/manifests/
 *.egg-info/
 wheelhouse/
 
@@ -63,3 +64,4 @@ plans/
 secrets/
 *.secret
 .ci-target/
+/.agent/

@@ -54,8 +54,10 @@ jobs:
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
       - name: Install cargo-dist
         run: cargo install cargo-dist@0.30.0 --locked
-      - name: cargo-dist dry run
+      - name: cargo-dist manifest
         run: ~/.cargo/bin/dist manifest --output-format json > dist-manifest.json
+      - name: cargo-dist build dry run
+        run: ~/.cargo/bin/dist build --dry-run
       - name: Optional Vagrant GUI smoke
         if: env.VAGRANT_ENABLED == 'true'
         run: ./scripts/vagrant-gui-smoke.sh
