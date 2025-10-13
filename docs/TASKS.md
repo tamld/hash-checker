@@ -59,6 +59,7 @@
 - [ ] Plan dependency migrations away from GTK3 bindings and `instant` when replacements stabilise.
 - [ ] Monitor the local CI workflow (`make ci-linux-local`) and platform fallback logs; adjust scripts as tooling evolves.
 - [ ] Schedule monthly dependency updates (`cargo update`, review yanked crates) and capture results in PR notes.
+- [ ] Add scheduled maintenance run for `cargo-dist` upgrades and document checksum asset deduplication in release workflow notes (added 2025-10-13).
 
 ## Phase 6 – Governance & Automation
 - [ ] Roll out SignPath secrets/variables and confirm signed artefacts in release workflow.
@@ -66,6 +67,9 @@
 - [ ] Create scheduled workflows for `make deps-refresh` (monthly) and Vagrant smoke with signing verification (quarterly).
 - [ ] Archive release/signing logs under `logs/release-history/<tag>/`.
 - [ ] Update SECURITY.md, issue/PR templates, and CODEOWNERS to enforce reviews on release & security artefacts.
+- [ ] Track SignPath OSS onboarding (pending OSS org + test certificate).
+- [ ] Prepare GitHub workflow updates to consume SignPath subscription/test certificate once provisioned.
+- [ ] Draft release checklist updates covering SignPath test + production certificate rollout.
 
 ## Issue Planning Summary (2025-10-08)
 - GUI automation in CI: top priority, target completion by 2025-10-22.

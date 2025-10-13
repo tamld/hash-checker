@@ -53,7 +53,7 @@ jobs:
       - name: GUI smoke test (host)
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
       - name: Install cargo-dist
-        run: cargo install cargo-dist --version 0.30.0
+        run: cargo install cargo-dist@0.30.0 --locked
       - name: cargo-dist dry run
         run: ~/.cargo/bin/dist manifest --output-format json > dist-manifest.json
       - name: Optional Vagrant GUI smoke
