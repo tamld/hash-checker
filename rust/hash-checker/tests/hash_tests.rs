@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use hash_checker::{compute_hash, detect_algorithm, supported_algorithms, verify_hash};
+use hash_checker::{compute_hash, detect_algorithm, supported_algorithms, verify_hash, HashError};
 use tempfile::NamedTempFile;
 
 const SAMPLE_TEXT: &str = "This is a test file for the hash checker.";
@@ -82,4 +82,24 @@ fn supported_algorithms_contains_expected() {
     for name in ["md5", "sha1", "sha256", "blake2b"] {
         assert!(algos.contains(&name));
     }
+}
+
+#[test]
+fn compute_hash_rejects_directory_paths() {
+    let dir = tempfile::tempdir().expect("temp dir");
+    let err = compute_hash(dir.path(), "sha256").expect_err("expected directory failure");
+    assert!(matches!(err, HashError::NotAFile(_)));
+}
+
+#[test]
+fn verify_hash_accepts_canonicalised_paths() {
+    let dir = tempfile::tempdir().expect("temp dir");
+    let file_path = dir.path().join("sample.txt");
+    std::fs::write(&file_path, SAMPLE_TEXT.as_bytes()).expect("write sample");
+    let nested_dir = dir.path().join("nested");
+    std::fs::create_dir(&nested_dir).expect("create nested dir");
+    let tricky_path = nested_dir.join("..").join("sample.txt");
+    let digest = compute_hash(&file_path, "sha256").expect("hash");
+    let (matches, _) = verify_hash(&tricky_path, &digest, None).expect("verify");
+    assert!(matches);
 }

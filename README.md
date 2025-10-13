@@ -88,6 +88,7 @@ make rust-gui-smoke-host
 - On macOS/Linux run `shasum -a 256 <artefact>` and compare with the recorded digest (`grep <artefact> SHA256SUMS`).
 - On Windows run `Get-FileHash <artefact> -Algorithm SHA256` or use the CLI binary and the recorded digest.
 - Full command examples for every platform (including upcoming signature validation) live in `docs/security/VERIFICATION_GUIDE.md`.
+- macOS build currently ships arm64 DMG; Intel users will need the upcoming universal DMG (tracked in PLAN/TASKS) or build from source.
 - Current status: Windows artefacts are unsigned while the SignPath integration is pending; always verify using the guide above. macOS DMG remains unsigned—follow Gatekeeper instructions in the README.
 
 ## Temporary Artefacts

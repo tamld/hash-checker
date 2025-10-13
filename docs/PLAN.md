@@ -35,7 +35,7 @@
 - [x] Set up GitHub Actions matrix (Linux/macOS/Windows) running fmt, clippy, tests, Docker builds and packaging.
 - [x] Integrate GUI automation into CI.
 - [x] Deliver the Windows GA release (portable ZIP + NSIS installer) via CI and release workflows.
-- [x] Deliver the macOS GA release (universal DMG for Intel/ARM), keep it unsigned, and document Gatekeeper bypass steps.
+- [ ] Deliver the macOS GA release as a universal DMG (Intel + Apple Silicon). Current arm64 build is in place; add x86_64 support and keep it unsigned with Gatekeeper guidance.
 - [x] Deliver the Linux GA release (Debian `.deb`, AppImage, Arch `pacman`) alongside continuous smoke coverage.
 - [x] Document the build-from-source pathway and keep parity with packaged artefacts.
 - [x] Integrate optional Vagrant headless smoke tests for Windows and Linux packaging jobs.
