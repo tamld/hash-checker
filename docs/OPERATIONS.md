@@ -133,4 +133,10 @@ Keep this document with the repo to standardise release expectations.
 
 ## Maintenance Automation
 - Workflow `.github/workflows/cargo-dist-maintenance.yml` chạy mỗi tháng để kiểm tra `cargo-dist` bản mới nhất bằng `cargo install --locked`.
-- Khi workflow fail, mở issue ghi lại log (artifact tên `cargo-dist-install-log`) và pin lại phiên bản hoặc cập nhật CI tương ứng.
+- Workflow `.github/workflows/deps-refresh.yml` chạy `make deps-refresh`, `cargo audit`, `cargo deny`, đồng thời cập nhật toolchain.
+- Khi bất kỳ workflow nào fail, mở issue, đính kèm artifact (`cargo-dist-install-log` hoặc `deps-refresh-log`), sau đó vá CI và cập nhật ghi chú bảo trì.
+
+
+## Vagrant Smoke Log
+- Áp dụng playbook: `docs/vagrant/VALIDATION_PLAYBOOK.md`.
+- Sau mỗi lần chạy, copy transcript/log vào `logs/release-history/<tag>/` và tạo ghi chú theo template `docs/vagrant/RELEASE_LOG_TEMPLATE.md`.

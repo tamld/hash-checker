@@ -1,0 +1,24 @@
+name: Monthly Dependency Refresh
+
+on:
+  schedule:
+    - cron: '0 4 1 * *'
+  workflow_dispatch:
+
+jobs:
+  deps-refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          rustup update stable
+          cargo install cargo-audit --locked
+          cargo install cargo-deny --locked
+      - name: Run make deps-refresh
+        run: make deps-refresh
+      - name: Upload deps-refresh log
+        uses: actions/upload-artifact@v4
+        with:
+          name: deps-refresh-log
+          path: logs/deps-refresh-*.log
