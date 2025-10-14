@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/tamld/hash-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/tamld/hash-checker/actions/workflows/ci.yml)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![Rust](https://img.shields.io/badge/Rust-1.72%2B-orange?logo=rust)
+![Rust](https://img.shields.io/badge/Rust-1.83%2B-orange?logo=rust)
 ![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-4c1)
 
 > Cross-platform integrity checker with a shared Rust core powering CLI and egui desktop apps.
@@ -15,6 +15,7 @@
 - [Manual Host Build](#manual-host-build)
 - [Installer Builds](#installer-builds)
 - [Verify Downloads](#verify-downloads)
+- [Release & Changelog](#release--changelog)
 - [Temporary Artefacts](#temporary-artefacts)
 - [Continuous Integration](#continuous-integration)
 - [Project Documents](#project-documents)
@@ -91,7 +92,7 @@ make rust-gui-smoke-host
 - On Windows run `Get-FileHash <artefact> -Algorithm SHA256` or use the CLI binary and the recorded digest.
 - Full command examples for every platform (including upcoming signature validation) live in `docs/security/VERIFICATION_GUIDE.md`.
 - macOS build ships a universal (Intel + Apple Silicon) DMG; see Gatekeeper notes below for unsigned installs.
-- Current status: Windows artefacts are unsigned while the SignPath integration is pending; always verify using the guide above. macOS DMG remains unsigned—follow Gatekeeper instructions in the README. Hash inputs may include prefixes like `sha256:<digest>`; the app auto-detects the algorithm.
+- Current status: macOS DMG is unsigned and Windows artefacts remain unsigned while SignPath onboarding is pending. Always verify with the guide above. Hash inputs may include prefixes like `sha256:<digest>`; the app auto-detects the algorithm.
 
 ### macOS Gatekeeper (Unsigned Build)
 
@@ -108,6 +109,11 @@ xattr -d com.apple.quarantine "/Applications/Hash Checker.app"
 ```
 
 This guidance will be updated once SignPath signing or notarisation is available.
+
+## Release & Changelog
+- Latest release: **[v0.1.4](https://github.com/tamld/hash-checker/releases/tag/v0.1.4)** – ships the first universal macOS DMG, aligns crate versions, and publishes packaging evidence (logs and checksums).
+- Previous releases are listed on the [GitHub Releases](https://github.com/tamld/hash-checker/releases) page. Follow the checklist in `docs/OPERATIONS.md` for release readiness.
+- A structured changelog will be introduced in future releases; for now, consult the release notes for key highlights and verification steps.
 
 ## Temporary Artefacts
 Need binaries quickly without touching the repo tree?
