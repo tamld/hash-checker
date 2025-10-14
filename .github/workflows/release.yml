@@ -163,11 +163,15 @@ jobs:
           mv target/universal/release/hash-checker target/release/hash-checker
           mv target/universal/release/hash-checker-gui target/release/hash-checker-gui
       - name: GUI smoke test
+        env:
+          CARGO_TARGET_DIR: target
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
       - name: Smoke test release binaries
         run: |
-          ./rust/hash-checker/target/release/hash-checker --help > /dev/null
-          ./rust/hash-checker-gui/target/release/hash-checker-gui --smoke-test
+          test -f target/release/hash-checker
+          test -f target/release/hash-checker-gui
+          ./target/release/hash-checker --help > /dev/null
+          ./target/release/hash-checker-gui --smoke-test
       - name: Optional Vagrant GUI smoke
         if: env.VAGRANT_ENABLED == 'true'
         run: ./scripts/vagrant-gui-smoke.sh
