@@ -10,10 +10,13 @@ Mục tiêu: tạo bộ ảnh mới cho README và tài liệu khi giao diện t
 - Sử dụng phím `Cmd+Shift+4` (macOS) hoặc Snipping Tool (Windows) để chụp màn hình ở độ phân giải tối thiểu 1440×900.
 
 ## Ảnh cần có
-1. **Main view** – giao diện chính khi nhập file và hash.
-2. **Match result** – ví dụ hash trùng khớp (màu trạng thái xanh).
-3. **Mismatch result** – ví dụ hash không trùng (màu đỏ).
-4. **Algorithm dropdown** – minh họa danh sách thuật toán.
+| Tên file đề xuất | Nội dung | Lưu ý |
+| --- | --- | --- |
+| `gui-main.png` | Màn hình chính với form chọn file, trường expected hash, nút Calculate | Dùng theme sáng mặc định, chưa nhập hash |
+| `gui-match.png` | Kết quả hash trùng khớp (status xanh) | Hiển thị digest vừa tính, highlight thông điệp Success |
+| `gui-mismatch.png` | Kết quả hash không khớp (status đỏ) | Tô rõ thông báo Error, thể hiện digest thực tế |
+| `gui-algorithm.png` | Danh sách thuật toán trong dropdown | Mở popup dropdown, giữ focus vào SHA-256 |
+| `gui-high-contrast.png` | Giao diện với High contrast bật | Cho thấy toggle và phần nền tối |
 
 ## Quy trình lưu trữ
 - Đặt tên file trong `docs/assets/` theo định dạng `gui-<context>.png`.

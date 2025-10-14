@@ -63,15 +63,15 @@
 
 ## Phase 5 – Stretch Improvements
 - Core feature growth:
-  - [ ] Directory hashing & manifest export/import.
-  - [ ] Batch comparison reports (JSON/CSV).
-  - [ ] Plugin interface for custom algorithms / SDK bindings.
+  - [ ] Directory hashing & manifest export/import — giúp người dùng kiểm tra cả thư mục, tạo/đối chiếu danh sách hash chuẩn cho các bản phân phối lớn.
+  - [ ] Batch comparison reports (JSON/CSV) — phục vụ QA so sánh nhiều file cùng lúc, dễ tích hợp pipeline tự động.
+  - [ ] Plugin interface for custom algorithms / SDK bindings — mở đường cho tổ chức tích hợp thuật toán nội bộ hoặc wrapper cho ngôn ngữ khác.
 - Observability & performance:
-  - [ ] Add optional structured logging/telemetry for large file jobs.
-  - [ ] Introduce regression benchmarks (criterion) for common workloads.
+  - [ ] Add optional structured logging/telemetry for large file jobs — ghi lại thông tin tiến độ để hỗ trợ support và phân tích sự cố ở file kích thước lớn.
+  - [ ] Introduce regression benchmarks (criterion) for common workloads — đảm bảo nâng cấp không làm chậm xử lý hash và cung cấp số liệu tối ưu hóa.
 - Distribution & automation:
-  - [ ] Automate reproducible builds (`cargo dist build --dry-run`) in CI.
-  - [ ] Add winget/homebrew manifest generation scripts and validation in CI.
+  - [ ] Automate reproducible builds (`cargo dist build --dry-run`) in CI — xác nhận cấu hình phát hành tái lập được, giảm rủi ro khi đóng gói đa nền tảng.
+  - [ ] Add winget/homebrew manifest generation scripts and validation in CI — fallback khi SignPath chưa duyệt: vẫn phân phối qua kho ứng dụng chính thống, giảm thao tác thủ công.
 
 ## Lessons Learned & Guardrails
 - Allocate large IO buffers on the heap (e.g. `Vec<u8>`) to avoid Windows stack overflows such as error `0xC00000FD` observed in October 2025.
