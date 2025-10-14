@@ -17,6 +17,7 @@ Goal: provide a consistent set of screenshots for README/docs whenever the GUI c
 | `gui-mismatch.png` | Verification failure state (red message) | Include actual digest and error banner |
 | `gui-algorithm.png` | Algorithm dropdown expanded | Focus on SHA-256 entry, keep other UI visible |
 | `gui-high-contrast.png` | High contrast mode enabled | Highlight the toggle and dark color scheme |
+| *(Optional)* `gui-theme-slate.png` | Slate theme preview | Capture after selecting the Slate theme (if updated) |
 
 ## Storage rules
 - Save files in `docs/assets/` and keep the naming as listed above.
@@ -25,3 +26,4 @@ Goal: provide a consistent set of screenshots for README/docs whenever the GUI c
 
 ## Notes
 - The CLI environment used by automation cannot capture GUI windows; screenshots must be taken on a workstation with a display.
+- When themes change, refresh screenshots for each preset captured in docs to avoid confusing users.

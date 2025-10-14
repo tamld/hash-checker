@@ -35,6 +35,7 @@ Hash Checker delivers reproducible, container-friendly workflows for validating 
 - Command-line and egui desktop interfaces sharing the same Rust core.
 - Container-first workflows (Docker/Vagrant) to avoid host pollution.
 - Built-in clipboard workflow (copy computed hashes) and accessibility toggles for the GUI.
+- Theme picker for the GUI (Soft Light, Slate, High Contrast Dark).
 
 ## Clone & Workspace Setup
 ```bash

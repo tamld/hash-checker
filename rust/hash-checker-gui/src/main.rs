@@ -22,13 +22,76 @@ struct HashCheckerApp {
     algorithm: AlgorithmChoice,
     computed_hash: Option<String>,
     status: Option<StatusMessage>,
-    high_contrast: bool,
+    theme: ThemeChoice,
 }
 
 #[derive(Default)]
 struct AlgorithmChoice {
     algorithms: Vec<String>,
     selected_index: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ThemePreset {
+    SoftLight,
+    Slate,
+    HighContrast,
+}
+
+impl ThemePreset {
+    fn name(&self) -> &'static str {
+        match self {
+            ThemePreset::SoftLight => "Soft Light",
+            ThemePreset::Slate => "Slate",
+            ThemePreset::HighContrast => "High Contrast Dark",
+        }
+    }
+
+    fn visuals(&self) -> egui::Visuals {
+        match self {
+            ThemePreset::SoftLight => {
+                let mut visuals = egui::Visuals::light();
+                visuals.override_text_color = Some(Color32::from_rgb(40, 44, 52));
+                visuals.panel_fill = Color32::from_rgb(246, 247, 250);
+                visuals.widgets.inactive.bg_fill = Color32::from_rgb(236, 239, 244);
+                visuals.widgets.inactive.fg_stroke.color = Color32::from_rgb(54, 58, 68);
+                visuals.widgets.hovered.bg_fill = Color32::from_rgb(223, 227, 236);
+                visuals.widgets.active.bg_fill = Color32::from_rgb(209, 216, 229);
+                visuals.selection.bg_fill = Color32::from_rgb(86, 110, 157);
+                visuals.button_frame = true;
+                visuals
+            }
+            ThemePreset::Slate => {
+                let mut visuals = egui::Visuals::dark();
+                visuals.override_text_color = Some(Color32::from_rgb(225, 228, 235));
+                visuals.panel_fill = Color32::from_rgb(38, 44, 53);
+                visuals.widgets.inactive.bg_fill = Color32::from_rgb(48, 56, 66);
+                visuals.widgets.hovered.bg_fill = Color32::from_rgb(62, 72, 83);
+                visuals.widgets.active.bg_fill = Color32::from_rgb(72, 84, 96);
+                visuals.selection.bg_fill = Color32::from_rgb(86, 132, 172);
+                visuals
+            }
+            ThemePreset::HighContrast => egui::Visuals::dark(),
+        }
+    }
+}
+
+struct ThemeChoice {
+    presets: Vec<ThemePreset>,
+    selected_index: usize,
+}
+
+impl Default for ThemeChoice {
+    fn default() -> Self {
+        Self {
+            presets: vec![
+                ThemePreset::SoftLight,
+                ThemePreset::Slate,
+                ThemePreset::HighContrast,
+            ],
+            selected_index: 0,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -58,6 +121,7 @@ impl HashCheckerApp {
                 algorithms,
                 selected_index: 0,
             },
+            theme: ThemeChoice::default(),
             ..Default::default()
         }
     }
@@ -73,6 +137,10 @@ impl HashCheckerApp {
         } else {
             Some(label)
         }
+    }
+
+    fn selected_theme(&self) -> ThemePreset {
+        self.theme.presets[self.theme.selected_index]
     }
 
     fn pick_file(&mut self) {
@@ -135,8 +203,17 @@ impl HashCheckerApp {
         });
     }
 
-    fn toggle_contrast(&mut self, ui: &mut egui::Ui) {
-        ui.checkbox(&mut self.high_contrast, "High contrast theme");
+    fn theme_selector(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            ui.label("Theme:");
+            egui::ComboBox::from_label("")
+                .selected_text(self.selected_theme().name())
+                .show_ui(ui, |combo| {
+                    for (idx, preset) in self.theme.presets.iter().enumerate() {
+                        combo.selectable_value(&mut self.theme.selected_index, idx, preset.name());
+                    }
+                });
+        });
     }
 
     fn process_input(&mut self, ctx: &egui::Context) {
@@ -155,11 +232,7 @@ impl HashCheckerApp {
 impl App for HashCheckerApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut Frame) {
         self.process_input(ctx);
-        if self.high_contrast {
-            ctx.set_visuals(egui::Visuals::dark());
-        } else {
-            ctx.set_visuals(egui::Visuals::light());
-        }
+        ctx.set_visuals(self.selected_theme().visuals());
 
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Hash Checker (Rust GUI)");
@@ -195,14 +268,14 @@ impl App for HashCheckerApp {
             if ui.button("Calculate").clicked() {
                 self.calculate();
             }
-            ui.small("Press Enter to calculate or toggle contrast below.");
+            ui.small("Press Enter to calculate. Choose a theme below to adjust the palette.");
             ui.add_space(4.0);
-            self.toggle_contrast(ui);
+            self.theme_selector(ui);
 
             ui.add_space(12.0);
             if let Some(status) = &self.status {
                 let color = match status.kind {
-                    StatusKind::Info => Color32::LIGHT_GRAY,
+                    StatusKind::Info => Color32::from_rgb(120, 125, 136),
                     StatusKind::Success => Color32::from_rgb(0, 170, 0),
                     StatusKind::Warning => Color32::YELLOW,
                     StatusKind::Error => Color32::RED,
