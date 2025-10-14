@@ -146,5 +146,5 @@ make rust-windows-zip-temp    # -> ${TMPDIR:-/tmp}/hash-checker-win/hash-checker
 - Windows signing playbook: `docs/SIGNING.md`
 - Dependency migration plan: `docs/DEPENDENCY_MIGRATION.md`
 - GUI architecture notes: `docs/GUI_DECISION.md`, `docs/GUI_MVP_DESIGN.md`
-- Repo guardrails: `.agent/AGENTS.md`
+- Repo guardrails: `docs/PROJECT_STATUS.md` (public overview). Internal automation notes live in the git-ignored `.agents/` workspace.
 - Contributor behaviour: `CODE_OF_CONDUCT.md`
