@@ -43,6 +43,14 @@ fn detect_algorithm_by_length() {
 }
 
 #[test]
+fn detect_algorithm_with_prefix() {
+    assert_eq!(
+        detect_algorithm("sha256:19fe5f3e518ba46537ddf4bcd098d66e2873fda2dccf58e66f6ab1f932c6d811"),
+        Some("sha256")
+    );
+}
+
+#[test]
 fn verify_hash_matches_expected() {
     let file = write_sample_file();
     let (matches, computed) = verify_hash(
@@ -74,6 +82,25 @@ fn verify_hash_infers_blake2b() {
     let (matches, computed) = verify_hash(file.path(), &blake2b, None).expect("verify");
     assert!(matches);
     assert_eq!(computed, blake2b);
+}
+
+#[test]
+fn verify_hash_accepts_prefixed_digest() {
+    let file = write_sample_file();
+    let digest = compute_hash(file.path(), "sha256").expect("hash");
+    let prefixed = format!("sha256:{}", digest);
+    let (matches, computed) = verify_hash(file.path(), &prefixed, None).expect("verify");
+    assert!(matches);
+    assert_eq!(computed, digest);
+}
+
+#[test]
+fn verify_hash_rejects_unknown_prefix() {
+    let file = write_sample_file();
+    let digest = compute_hash(file.path(), "sha256").expect("hash");
+    let prefixed = format!("sha999:{}", digest);
+    let err = verify_hash(file.path(), &prefixed, None).expect_err("expected failure");
+    assert!(matches!(err, HashError::UnsupportedAlgorithm(_)));
 }
 
 #[test]
