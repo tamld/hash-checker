@@ -6,7 +6,7 @@ _Last updated: 2025-10-14_
 - **SignPath OSS onboarding**: awaiting response to provision OSS subscription, test certificate, and secrets (`docs/security/SIGNPATH_CHECKLIST.md`).
 - **GUI screenshots**: capture `gui-high-contrast.png` per `docs/GUI_SCREENSHOT.md` once a GUI-enabled workstation is available.
 - **macOS universal DMG**: release `v0.1.2` ships an arm64-only DMG; local automation (`make macos-dmg-universal`) now produces a universal build. Integrate it into `release.yml` before publishing the next tag (`docs/PLAN.md`, `docs/TASKS.md`).
-- **Version sync**: crate manifests now declare `0.1.3`; ensure the next tag uses the same semver.
+- **Version sync**: crate manifests now declare `0.1.4`; ensure the release tag matches.
 
 ## Automation & Maintenance
 - Monthly dependency refresh (`deps-refresh.yml`) and cargo-dist maintenance (`cargo-dist-maintenance.yml`) run automatically; review artefact logs on failure.
