@@ -2,15 +2,15 @@
 
 _Updated: 2025-10-13_
 
-## Legacy Python status
-- Repository không còn file `.py`; Rust đã thay thế hoàn toàn.
-- Nếu phát hiện thư mục `python/` hay `*.py` trong pull request, yêu cầu tác giả đưa vào repo riêng hoặc chuyển sang Rust.
+## Python status
+- No `.py` files remain; the project is Rust-only.
+- If Python files appear in contributions, request a separate repo or a Rust port.
 
-## Giám sát CI fallback
-- Khi GitHub Actions thất bại 2 lần liên tiếp trên cùng nền tảng (Windows/macOS/Linux), chuyển sang chạy `make ci-linux-local` + Vagrant smoke theo playbook.
-- Ghi log nguyên nhân vào `docs/reports/<yyyy-mm-dd>-ci-fallback.md` để tránh lặp lại.
+## CI fallback monitoring
+- After two consecutive CI failures on the same platform, run `make ci-linux-local` and the Vagrant smoke tests.
+- Document root cause in `docs/reports/<yyyy-mm-dd>-ci-fallback.md` to avoid repeat incidents.
 
-## Checklist định kỳ
-- [ ] Hàng tháng rà soát `git ls-files '*.py'` (mong đợi kết quả trống).
-- [ ] Kiểm tra script cũ trong `scripts/` và xoá nếu không còn dùng.
-- [ ] Review README/docs để đảm bảo không tham chiếu hướng dẫn Python cũ.
+## Periodic checklist
+- [ ] Monthly: `git ls-files '*.py'` should return empty.
+- [ ] Review scripts in `scripts/` and remove stale helpers.
+- [ ] Ensure README/docs no longer reference legacy Python instructions.

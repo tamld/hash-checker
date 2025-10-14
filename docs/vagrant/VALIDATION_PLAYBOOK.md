@@ -3,41 +3,37 @@
 _Updated: 2025-10-13_
 
 ## Purpose
-Đảm bảo artefact Windows và Linux (installer/portable) hoạt động trong môi trường sạch trước khi phát hành chính thức.
+Run Windows and Linux smoke tests in clean Vagrant VMs before publishing a release.
 
 ## Environments
-- **Windows smoke VM**: `hash-checker-win-smoke` (Vagrantfile nằm trong repo).
-- **Linux smoke VM**: sử dụng box `ubuntu/focal64` với Docker đã cài sẵn.
+- Windows VM: `hash-checker-win-smoke` (see `scripts/vagrant-gui-smoke.sh`).
+- Linux VM: `ubuntu/focal64` box with Docker pre-installed.
 
 ## Prerequisites
-- Vagrant + provider (VMware Fusion theo hướng dẫn trong README).
-- Artefact cần test nằm trong `dist/` hoặc tải từ GitHub Release draft.
+- Vagrant + VMware Fusion (as documented in README).
+- Release artefacts placed under `dist/` or downloaded from the draft release.
 
-## Execution Steps
-1. `make rust-gui-smoke` (Linux) hoặc `make rust-gui-smoke-host` để xác nhận GUI chạy qua CLI.
-2. `vagrant up` (sử dụng script `scripts/vagrant-gui-smoke.sh` nếu cần tự động).
-3. Bên trong máy ảo Windows:
-   - Copy artefact từ host (`vagrant scp` hoặc thư mục sync `./dist` → `C:\vagrant`).
-   - Chạy `hash-checker-gui.exe --smoke-test` và ghi lại kết quả.
-   - Nếu có installer, chạy setup, sau đó chạy ứng dụng từ Start Menu.
-4. Bên trong máy ảo Linux:
-   - Cài đặt gói `.deb` và AppImage từ `dist/linux`.
-   - Thực thi `hash-checker-gui --smoke-test`.
-5. Thu thập log:
-   - Windows: lưu PowerShell transcript (`Start-Transcript`) vào `C:\vagrant\logs\windows-smoke.txt`.
-   - Linux: ghi output vào `/vagrant/logs/linux-smoke.txt`.
-6. Sau khi kiểm tra xong: `vagrant destroy -f` để giải phóng tài nguyên.
+## Steps
+1. `make rust-gui-smoke` (Linux) or `make rust-gui-smoke-host` for quick local verification.
+2. `vagrant up` (or the helper script) to start the environment.
+3. Windows VM:
+   - Copy artefacts via synced folder or `vagrant scp`.
+   - Run `hash-checker-gui.exe --smoke-test`; if installer is present, install then launch from Start Menu.
+   - Save a PowerShell transcript to `C:\vagrant\logs\windows-smoke.txt`.
+4. Linux VM:
+   - Install `.deb` and AppImage from `dist/linux`.
+   - Execute `hash-checker-gui --smoke-test`.
+   - Save terminal output to `/vagrant/logs/linux-smoke.txt`.
+5. Destroy VMs (`vagrant destroy -f`) after tests.
 
-## Log Archiving
-- Sao chép các file log về host và lưu tại `logs/release-history/<tag>/` với cấu trúc:
-  - `logs/release-history/<tag>/windows-smoke.txt`
-  - `logs/release-history/<tag>/linux-smoke.txt`
-- Ghi chú nhanh vào `logs/release-history/<tag>/README.md` (template tùy chọn) tóm tắt kết quả.
+## Log archival
+- Copy logs back to `logs/release-history/<tag>/`.
+- Fill out `docs/vagrant/RELEASE_LOG_TEMPLATE.md` and commit or attach to release notes.
 
-## Failure Handling
-- Nếu smoke test thất bại, mở issue với mô tả VM, output, commit hash.
-- Không phát hành cho tới khi smoke test pass. Lặp lại toàn bộ quy trình sau khi fix.
+## Failure handling
+- File an issue with VM details, artefact names, and logs.
+- Do not publish until smoke tests pass; rerun the entire flow after fixing.
 
-## Automation Notes
-- Script `scripts/vagrant-gui-smoke.sh` có thể mở rộng để tự động copy artefact và thu log.
-- Khi SignPath ký Windows installer, bổ sung bước xác minh chữ ký trong máy ảo.
+## Automation notes
+- Extend `scripts/vagrant-gui-smoke.sh` to copy artefacts/logs automatically.
+- Once SignPath signing is active, add signature verification inside the VM.
