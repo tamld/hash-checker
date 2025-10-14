@@ -1,43 +1,43 @@
 # Credential Runbook
 
-_Updated: 2025-10-13_
+_Updated: 2025-10-14_
 
-Tài liệu này mô tả quy trình quản lý khóa và chứng thư liên quan tới việc ký phát hành Hash Checker.
+This playbook describes how to manage signing credentials (SignPath API tokens, certificates, and GPG keys) for the Hash Checker release pipeline.
 
-## 1. Phạm vi
-- Chứng thư/khoá do SignPath Foundation cấp (test certificate, release certificate).
-- Biến môi trường/secret trong GitHub Actions (`SIGNPATH_API_TOKEN`, `SIGNPATH_ORGANIZATION_ID`, ...).
-- Khóa GPG dùng để ký file `SHA256SUMS` (nếu được bật trong pipeline).
+## 1. Scope
+- SignPath-issued certificates (test + release).
+- GitHub Actions secrets/variables: `SIGNPATH_API_TOKEN`, `SIGNPATH_ORGANIZATION_ID`, `SIGNPATH_PROJECT_SLUG`, `SIGNPATH_SIGNING_POLICY_SLUG`, `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG`.
+- GPG private key/passphrase used to sign `SHA256SUMS`.
 
-## 2. Lưu trữ & phân quyền
-- Secret dài hạn được lưu trong GitHub Actions secrets (repo private hoặc organization) với quyền truy cập giới hạn cho maintainers.
-- Passphrase và file PGP private key chỉ lưu trong vault nội bộ (không commit). Truy cập yêu cầu xác thực MFA.
-- Các biến SignPath ở dạng `vars` (non-secret) chỉ chứa mã định danh; token thực phải ở `secrets`.
+## 2. Storage & Access Control
+- Store long-lived secrets in GitHub Actions secrets (repo or org level) with access limited to maintainers.
+- Keep the GPG private key + passphrase in the internal secret vault (never committed). Require MFA for retrieval.
+- Keep SignPath IDs (`vars`) non-sensitive; only the API token belongs in secrets.
 
-## 3. Cấp mới / onboarding
-1. Hoàn tất quy trình SignPath OSS để nhận test certificate.
-2. Ghi log vào `logs/credentials/<yyyy-mm-dd>-signpath-onboarding.md` (template trong mục 6).
-3. Thêm token SignPath vào GitHub secrets (`SIGNPATH_API_TOKEN`), các slug Id vào GitHub variables.
-4. Cập nhật workflow `.github/workflows/release.yml` nếu có đường dẫn artefact mới.
+## 3. Onboarding / Provisioning
+1. Complete the SignPath OSS onboarding to obtain the test certificate.
+2. Record the event at `logs/credentials/<yyyy-mm-dd>-signpath-onboarding.md` (template in section 6).
+3. Populate GitHub secrets/variables listed above.
+4. Update `.github/workflows/release.yml` if artefact paths or configuration change.
 
-## 4. Rotation định kỳ
-- Đặt lịch 6 tháng/lần cho token SignPath và passphrase GPG.
-- Khi rotation: tạo token mới, cập nhật secret, thử chạy `gh workflow run release.yml --ref main --field run_windows=true --field run_linux=false --field run_macos=false` ở chế độ dry-run.
-- Lưu log rotation trong `logs/credentials/<yyyy-mm-dd>-rotation.md` kèm người thực hiện.
+## 4. Regular Rotation
+- Rotate SignPath API tokens and the GPG passphrase at least every 6 months.
+- After rotation: update secrets, trigger `gh workflow run release.yml --ref main --field run_windows=true --field run_linux=false --field run_macos=false` as a dry run, and capture the run URL.
+- Log the rotation outcome in `logs/credentials/<yyyy-mm-dd>-rotation.md`.
 
-## 5. Sự cố & khôi phục
-- Nếu nghi ngờ rò rỉ: thu hồi token SignPath trong dashboard, vô hiệu hóa workflow release (tạm thời chỉnh `permissions: contents: read`).
-- Thu hồi chứng thư thông qua SignPath ticket; phát hành bản vá mới với chứng thư mới.
-- Tạo báo cáo sự cố trong `logs/credentials/<yyyy-mm-dd>-incident.md`.
+## 5. Incident Response
+- Suspected leak: revoke the SignPath token, temporarily limit workflow permissions (e.g., `permissions: contents: read`).
+- Revoke certificates via SignPath ticket, issue a patched release with the new certificate.
+- File an incident report at `logs/credentials/<yyyy-mm-dd>-incident.md`.
 
-## 6. Templates log
+## 6. Log Templates
 ```text
 # SignPath onboarding log
 Date:
 Operator:
 Certificate type: test | release
 Secrets updated:
-Verification: (workflow run URL)
+Verification (workflow URL):
 Notes:
 ```
 
@@ -46,10 +46,10 @@ Notes:
 Date:
 Operator:
 Secrets rotated:
-Verification:
+Verification (workflow URL):
 Notes:
 ```
 
-## 7. Công việc tiếp theo
-- Đồng bộ runbook này vào không gian nội bộ nếu có thay đổi.
-- Cập nhật `docs/SIGNING.md` khi quy trình SignPath chính thức hoạt động.
+## 7. Follow-up Tasks
+- Keep this runbook synced with internal documentation.
+- Update `docs/security/SIGNPATH_CHECKLIST.md` and `docs/security/CI_SIGNING.md` when SignPath moves to production.
