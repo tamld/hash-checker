@@ -111,8 +111,40 @@ where
     Ok(hex::encode(digest.finalize()))
 }
 
+fn normalize_algorithm_name(name: &str) -> Option<&'static str> {
+    match name.trim().to_ascii_lowercase().as_str() {
+        "md5" => Some("md5"),
+        "sha1" => Some("sha1"),
+        "sha224" => Some("sha224"),
+        "sha256" => Some("sha256"),
+        "sha384" => Some("sha384"),
+        "sha512" => Some("sha512"),
+        "blake2s" => Some("blake2s"),
+        "blake2b" => Some("blake2b"),
+        _ => None,
+    }
+}
+
+fn split_algorithm_prefix(expected_hash: &str) -> (Option<&str>, &str) {
+    let trimmed = expected_hash.trim();
+    if let Some(idx) = trimmed.find(':') {
+        let (prefix, rest) = trimmed.split_at(idx);
+        let digest = rest[1..].trim();
+        (Some(prefix), digest)
+    } else {
+        (None, trimmed)
+    }
+}
+
 pub fn detect_algorithm(expected_hash: &str) -> Option<&'static str> {
-    candidate_algorithms_for_length(expected_hash.trim().len())
+    let (maybe_prefix, digest_part) = split_algorithm_prefix(expected_hash);
+    if let Some(prefix) = maybe_prefix {
+        if let Some(normalized) = normalize_algorithm_name(prefix) {
+            return Some(normalized);
+        }
+    }
+
+    candidate_algorithms_for_length(digest_part.len())
         .first()
         .copied()
 }
@@ -126,7 +158,10 @@ pub fn verify_hash(
     expected_hash: &str,
     algorithm: Option<&str>,
 ) -> HashResult<(bool, String)> {
-    let digest = expected_hash.trim().to_lowercase();
+    let trimmed = expected_hash.trim();
+    let (maybe_prefix, digest_part) = split_algorithm_prefix(trimmed);
+
+    let digest = digest_part.to_ascii_lowercase();
     if digest.is_empty() {
         return Err(HashError::EmptyExpectedHash);
     }
@@ -134,27 +169,41 @@ pub fn verify_hash(
         return Err(HashError::InvalidExpectedHash);
     }
 
-    let provided_algorithm = algorithm.and_then(|name| {
-        let trimmed = name.trim();
-        if trimmed.is_empty() {
+    let provided_algorithm: Option<&'static str> = if let Some(name) = algorithm {
+        if name.trim().is_empty() {
             None
         } else {
-            Some(trimmed.to_lowercase())
+            Some(
+                normalize_algorithm_name(name)
+                    .ok_or_else(|| HashError::UnsupportedAlgorithm(name.trim().to_string()))?,
+            )
         }
-    });
+    } else {
+        None
+    };
 
-    let candidates: Vec<String> = if let Some(name) = provided_algorithm {
+    let prefix_algorithm: Option<&'static str> = match maybe_prefix {
+        Some(prefix) if !prefix.trim().is_empty() => Some(
+            normalize_algorithm_name(prefix)
+                .ok_or_else(|| HashError::UnsupportedAlgorithm(prefix.trim().to_string()))?,
+        ),
+        _ => None,
+    };
+
+    let candidates: Vec<&'static str> = if let Some(name) = provided_algorithm {
+        vec![name]
+    } else if let Some(name) = prefix_algorithm {
         vec![name]
     } else {
         let inferred = candidate_algorithms_for_length(digest.len());
         if inferred.is_empty() {
             return Err(HashError::InferenceFailed(digest.len()));
         }
-        inferred.iter().map(|algo| (*algo).to_string()).collect()
+        inferred.to_vec()
     };
 
     let mut first_computed: Option<String> = None;
-    for candidate in &candidates {
+    for &candidate in &candidates {
         let computed = compute_hash(path, candidate)?;
         if computed == digest {
             return Ok((true, computed));

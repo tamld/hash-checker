@@ -91,7 +91,7 @@ make rust-gui-smoke-host
 - On Windows run `Get-FileHash <artefact> -Algorithm SHA256` or use the CLI binary and the recorded digest.
 - Full command examples for every platform (including upcoming signature validation) live in `docs/security/VERIFICATION_GUIDE.md`.
 - macOS build ships a universal (Intel + Apple Silicon) DMG; see Gatekeeper notes below for unsigned installs.
-- Current status: Windows artefacts are unsigned while the SignPath integration is pending; always verify using the guide above. macOS DMG remains unsigned—follow Gatekeeper instructions in the README.
+- Current status: Windows artefacts are unsigned while the SignPath integration is pending; always verify using the guide above. macOS DMG remains unsigned—follow Gatekeeper instructions in the README. Hash inputs may include prefixes like `sha256:<digest>`; the app auto-detects the algorithm.
 
 ### macOS Gatekeeper (Unsigned Build)
 
