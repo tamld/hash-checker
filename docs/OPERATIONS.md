@@ -10,10 +10,10 @@
    - Link to `docs/security/VERIFICATION_GUIDE.md` so end users can validate downloads.
    - Signing status: published GPG fingerprint and the outcome of the `windows_sign` (SignPath) job when enabled.
 4. Tag the commit (`git tag vX.Y.Z && git push origin vX.Y.Z`).
-5. Nếu có thay đổi secret/chứng thư, cập nhật log theo `docs/security/CREDENTIAL_RUNBOOK.md` (onboarding, rotation, incident).
+5. If any secrets/certificates change, append an entry using `docs/security/CREDENTIAL_RUNBOOK.md` (onboarding, rotation, incident).
 6. After the automated workflow publishes artefacts:
    - Edit the GitHub Release description with the prepared notes.
-   - Verify `.dmg`, `.deb`, và Windows artefacts (portable/installer) chạy thành công; tham chiếu `docs/vagrant/VALIDATION_PLAYBOOK.md` để thu log smoke test.
+   - Verify `.dmg`, `.deb`, and Windows artefacts (portable/installer) run successfully; follow `docs/vagrant/VALIDATION_PLAYBOOK.md` to capture smoke-test logs.
    - `release.yml` produces `SHA256SUMS` + `SHA256SUMS.sig`; validate the GPG signature and attach both files to the release.
    - Until SignPath is live, explicitly call out in the release notes that Windows artefacts are unsigned and link to `docs/security/VERIFICATION_GUIDE.md`.
    - When the workflow definition changes, run `gh workflow run release.yml --ref <branch-or-tag>` to verify the pipeline in GitHub Actions before tagging; record the dispatch run ID in the corresponding issue/PR for traceability.
@@ -126,17 +126,18 @@ Keep this document with the repo to standardise release expectations.
 
 
 ## Distribution Manifests
-- Dùng `scripts/generate_manifests.sh <version> <download-base-url>` để tạo template cho winget và Homebrew.
-- Điền checksum tương ứng (xem `logs/release-history/<tag>/SHA256SUMS`).
-- Gửi PR tới tap/mkpkg tương ứng sau khi kiểm tra thủ công.
+- Generate templates with `scripts/generate_manifests.sh <version> <download-base-url>`.
+- Fill in the actual checksums (`logs/release-history/<tag>/SHA256SUMS`).
+- Submit PRs to the appropriate tap/package feed after manual validation.
 
 
 ## Maintenance Automation
-- Workflow `.github/workflows/cargo-dist-maintenance.yml` chạy mỗi tháng để kiểm tra `cargo-dist` bản mới nhất bằng `cargo install --locked`.
-- Workflow `.github/workflows/deps-refresh.yml` chạy `make deps-refresh`, `cargo audit`, `cargo deny`, đồng thời cập nhật toolchain.
-- Khi bất kỳ workflow nào fail, mở issue, đính kèm artifact (`cargo-dist-install-log` hoặc `deps-refresh-log`), sau đó vá CI và cập nhật ghi chú bảo trì.
+- Workflow `.github/workflows/cargo-dist-maintenance.yml` runs monthly to verify the latest `cargo-dist` via `cargo install --locked`.
+- Workflow `.github/workflows/deps-refresh.yml` executes `make deps-refresh`, runs `cargo audit`/`cargo deny`, refreshes the toolchain (`rustup update`, `docker pull`, `cargo-packager`), and stores logs in the workflow artefact.
+- Workflow `.github/workflows/vagrant-smoke-reminder.yml` triggers every quarter (and on demand) to open a reminder issue for manual Vagrant smoke testing.
+- If any workflow fails, open an issue, attach the artefact (`cargo-dist-install-log` or `deps-refresh-log`), fix the pipeline, and update maintenance notes.
 
 
 ## Vagrant Smoke Log
-- Áp dụng playbook: `docs/vagrant/VALIDATION_PLAYBOOK.md`.
-- Sau mỗi lần chạy, copy transcript/log vào `logs/release-history/<tag>/` và tạo ghi chú theo template `docs/vagrant/RELEASE_LOG_TEMPLATE.md`.
+- Follow `docs/vagrant/VALIDATION_PLAYBOOK.md` when running smoke tests.
+- After each run, copy transcripts/logs into `logs/release-history/<tag>/` and record the summary using `docs/vagrant/RELEASE_LOG_TEMPLATE.md`.

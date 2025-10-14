@@ -1,0 +1,45 @@
+name: Quarterly Vagrant Smoke Reminder
+
+on:
+  schedule:
+    - cron: '0 6 1 1,4,7,10 *'
+  workflow_dispatch:
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} is:issue state:open "Vagrant smoke validation"`
+            });
+            if (issues.data.total_count === 0) {
+              const labelName = 'maintenance';
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: labelName
+                });
+              } catch (error) {
+                if (error.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: labelName,
+                    color: '0E8A16'
+                  });
+                } else {
+                  throw error;
+                }
+              }
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Vagrant smoke validation (quarterly reminder)',
+                body: `Run the Vagrant release validation playbook (docs/vagrant/VALIDATION_PLAYBOOK.md) and archive logs under logs/release-history/<tag>/.\n\nPlease close this issue once the smoke run is complete.`,
+                labels: ['maintenance']
+              });
+            }

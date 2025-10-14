@@ -10,6 +10,15 @@ mkdir -p "$LOG_DIR"
 
 {
   echo "[deps-refresh] timestamp=$TIMESTAMP"
+  echo "# rustup update" && echo
+  rustup update
+  echo
+  echo "# docker pull rust:1.83" && echo
+  docker pull rust:1.83 || echo "(warning) docker not available"
+  echo
+  echo "# cargo install cargo-packager@0.11.7 --locked" && echo
+  cargo install cargo-packager@0.11.7 --locked
+  echo
   echo "# cargo update" && echo
   (cd "$ROOT_DIR" && cargo update)
   echo
