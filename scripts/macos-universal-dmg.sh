@@ -99,4 +99,6 @@ rm -f /tmp/hdiutil-create.log
 
 shasum -a 256 "$DEST_PATH" | tee "$LOG_DIR/dmg-sha256.log"
 
+find "$LOG_DIR" -type f -empty -delete
+
 echo "[macos-universal] DMG ready: $DEST_PATH"

@@ -1,6 +1,6 @@
 [package]
 name = "hash-checker"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 authors = ["tamld <tamld@users.noreply.github.com>"]
 description = "Cross-platform hash verification utility implemented in Rust."
