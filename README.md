@@ -26,7 +26,7 @@ Hash Checker delivers reproducible, container-friendly workflows for validating 
 ![Hash Checker main view](docs/assets/gui-main.png)
 *High-contrast mode with result panel and clipboard actions.*
 
-> Quy trình cập nhật ảnh được mô tả trong `docs/GUI_SCREENSHOT.md`.
+> Screenshot update workflow is documented in `docs/GUI_SCREENSHOT.md`.
 
 ## Feature Highlights
 - Multiple algorithms: SHA-2 family, SHA-1, MD5, BLAKE2.
@@ -95,19 +95,19 @@ make rust-gui-smoke-host
 
 ### macOS Gatekeeper (Unsigned Build)
 
-Gatekeeper sẽ cảnh báo khi mở DMG/app chưa được notarise. Làm theo các bước sau để chạy bản phát hành hiện tại:
+Gatekeeper warns when launching an unsigned DMG/app. Follow these steps to run the current release:
 
-1. Tải và giải nén DMG từ trang phát hành của Hash Checker.
-2. Mở Finder, nhấp chuột phải vào `Hash Checker.app` rồi chọn **Open**.
-3. Trong hộp thoại cảnh báo, tiếp tục chọn **Open** để xác nhận.
+1. Download and mount the DMG from the Hash Checker release page.
+2. In Finder, right-click `Hash Checker.app` and choose **Open**.
+3. When the warning dialog appears, click **Open** again to confirm.
 
-Nếu muốn tắt cờ quarantine thủ công (ví dụ khi copy app ra `/Applications`):
+To remove the quarantine flag manually (e.g., after copying to `/Applications`):
 
 ```bash
 xattr -d com.apple.quarantine "/Applications/Hash Checker.app"
 ```
 
-Sau khi SignPath hoặc notarisation được thiết lập, phần này sẽ được cập nhật tương ứng.
+This guidance will be updated once SignPath signing or notarisation is available.
 
 ## Temporary Artefacts
 Need binaries quickly without touching the repo tree?

@@ -40,7 +40,7 @@ Examples of representing a project or community include using an official projec
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainer at:
 
-📧 **tamld.contact@example.com** ← *(thay bằng email thật của bạn)*
+📧 **tamld.contact@example.com** *(replace with the real contact email for maintainers)*
 
 All complaints will be reviewed and investigated promptly and fairly.
 

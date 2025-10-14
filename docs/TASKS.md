@@ -14,7 +14,7 @@
 - [x] Add accessibility toggles (high contrast, keyboard hints, clipboard).
 - [x] Hook the `--smoke-test` mode into CI/Vagrant.
 - [x] Automate GUI regression via headless `cargo test`.
-- [ ] Capture refreshed screenshots/fixtures for README and docs. (Checklist: `docs/GUI_SCREENSHOT.md`; pending môi trường GUI để chụp ảnh mới)
+- [ ] Capture refreshed screenshots/fixtures for README and docs. (Checklist: `docs/GUI_SCREENSHOT.md`; pending access to a GUI-capable workstation.)
 
 ## Phase 3 – Distribution & Releases
 - [x] Integrate a GUI automation job (headless GUI tests) into CI and gate merges on it.
@@ -34,7 +34,7 @@
 - [x] Keep macOS unsigned; maintain Gatekeeper bypass documentation and verify smoke coverage for every release (README Gatekeeper section updated 2025-10-13).
 - [x] Maintain a runbook for credential management (rotation, recovery, revocation). See `docs/security/CREDENTIAL_RUNBOOK.md`.
 - [x] Record the Vagrant validation path for signed artefacts and map checksums to releases (log roots documented in `docs/vagrant/VALIDATION_PLAYBOOK.md`).
-- [x] Run the monthly dependency refresh checklist (`make deps-refresh`, `cargo audit`, `cargo deny`) – automated via `.github/workflows/deps-refresh.yml` (logs lưu trong artifact).
+- [x] Run the monthly dependency refresh checklist (`make deps-refresh`, `cargo audit`, `cargo deny`) – automated via `.github/workflows/deps-refresh.yml` (logs stored in workflow artefacts).
 - [x] Update builder toolchains (Docker images, `cargo-packager`, `rustup` components) alongside deps refresh (see `scripts/deps-refresh.sh`).
 - [x] Maintain the Vagrant validation playbook (document box versions, log archive template) and execute it quarterly (reminder via `vagrant-smoke-reminder.yml`).
 
@@ -54,12 +54,12 @@
 
 ## Maintenance & Ops
 - [x] Keep README/docs free of personal machine paths (enforced via `rg "/Users/"` sanity check).
-- [x] Maintain fixture/hash samples for regression QA (quy trình: `docs/maintenance/QA_FIXTURES.md`).
-- [x] Retire the legacy Python implementation once the Rust release is production ready (đã xác nhận repo thuần Rust – xem `docs/maintenance/LEGACY_CLEANUP.md`).
+- [x] Maintain fixture/hash samples for regression QA (see `docs/maintenance/QA_FIXTURES.md`).
+- [x] Retire the legacy Python implementation once the Rust release is production ready (confirmed Rust-only; see `docs/maintenance/LEGACY_CLEANUP.md`).
 - [ ] Plan dependency migrations away from GTK3 bindings and `instant` when replacements stabilise.
-- [x] Monitor the local CI workflow (`make ci-linux-local`) và fallback logs; quy trình ghi lại tại `docs/maintenance/LEGACY_CLEANUP.md`.
+- [x] Monitor the local CI workflow (`make ci-linux-local`) and fallback logs; procedure documented in `docs/maintenance/LEGACY_CLEANUP.md`.
 - [x] Schedule monthly dependency updates (`cargo update`, review yanked crates) – automated by `.github/workflows/deps-refresh.yml` (artefact log).
-- [x] Add scheduled maintenance run for `cargo-dist` upgrades (`.github/workflows/cargo-dist-maintenance.yml`) và giữ tài liệu checksum dedup trong release notes.
+- [x] Add scheduled maintenance run for `cargo-dist` upgrades (`.github/workflows/cargo-dist-maintenance.yml`) and keep checksum deduplication guidance in release documentation.
 
 ## Phase 6 – Governance & Automation
 - [ ] Roll out SignPath secrets/variables and confirm signed artefacts in release workflow (blocked on OSS onboarding).

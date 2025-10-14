@@ -120,9 +120,9 @@ Keep this document with the repo to standardise release expectations.
 
 
 ## Signing & Credential Notes
-- Windows signing: xem `docs/SIGNING.md` khi SignPath được bật.
-- Credential management: tuân theo `docs/security/CREDENTIAL_RUNBOOK.md`.
-- macOS chưa notarise; tham khảo mục Gatekeeper trong README.
+- Windows signing: see `docs/SIGNING.md` once SignPath is enabled.
+- Credential management: follow `docs/security/CREDENTIAL_RUNBOOK.md`.
+- macOS builds are unsigned; follow the Gatekeeper section in the README.
 
 
 ## Distribution Manifests
