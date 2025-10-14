@@ -1,39 +1,47 @@
 # Vagrant Release Validation Playbook
 
-_Updated: 2025-10-13_
+_Updated: 2025-10-14_
 
 ## Purpose
-Run Windows and Linux smoke tests in clean Vagrant VMs before publishing a release.
+Execute GUI smoke tests inside real virtual machines, ensuring releases behave the same as on end-user desktops (beyond container-only CI).
+
+## Why it remains manual
+- GitHub-hosted runners do not support nested VMware/VirtualBox and cannot ship licensed Windows images; self-hosted hardware is required.
+- The helper script `scripts/vagrant-gui-smoke.sh` can orchestrate the run and capture logs, but creating/destroying the VM and providing secrets/licences still requires an operator.
+- Workflow `.github/workflows/vagrant-smoke-reminder.yml` creates quarterly reminder issues. Once suitable self-hosted runners are available, this checklist can be automated within CI.
 
 ## Environments
 - Linux VM: `generic/ubuntu2204` defined in the root `Vagrantfile` (headless, VMware Fusion provider).
-- Windows coverage is currently manual (documented in release notes) until a Windows box is provisioned.
+- Optional Windows VM: provision manually when Windows smoke validation is required; record the steps in release notes.
 
 ## Prerequisites
-- Vagrant + VMware Fusion (as documented in README).
-- Release artefacts placed under `dist/` or downloaded from the draft release.
+- Vagrant + VMware Fusion (see README).
+- Artefacts from the target release (`dist/` or downloaded from the draft release).
 
 ## Steps
-1. `make rust-gui-smoke` (Linux) or `make rust-gui-smoke-host` for quick local verification.
-2. `vagrant up` (or the helper script) to start the environment.
-3. Windows VM:
-   - Copy artefacts via synced folder or `vagrant scp`.
-   - Run `hash-checker-gui.exe --smoke-test`; if installer is present, install then launch from Start Menu.
-   - Save a PowerShell transcript to `C:\vagrant\logs\windows-smoke.txt`.
-4. Linux VM:
-   - Install `.deb` and AppImage from `dist/linux`.
-   - Execute `hash-checker-gui --smoke-test`.
-   - Save terminal output to `/vagrant/logs/linux-smoke.txt`.
-5. Destroy the VM after tests (`vagrant destroy -f`).
+1. Run `make rust-gui-smoke` (host) for a quick pre-check.
+2. Launch the VM:
+   ```bash
+   vagrant up
+   ```
+3. Inside the VM run smoke tests:
+   - Linux: `hash-checker-gui --smoke-test` or use the helper script.
+   - Windows (if available): `hash-checker-gui.exe --smoke-test`; capture a PowerShell transcript at `C:\vagrant\logs\windows-smoke.txt`.
+4. Collect logs in `/workspace/logs/` (Linux) or the synced folder.
+5. Tear down the environment:
+   ```bash
+   vagrant halt
+   vagrant destroy -f
+   ```
 
 ## Log archival
-- Copy logs back to `logs/release-history/<tag>/`.
-- Fill out `docs/vagrant/RELEASE_LOG_TEMPLATE.md` and commit or attach to release notes.
+- Copy logs to `logs/release-history/<tag>/` on the host.
+- Fill out `docs/vagrant/RELEASE_LOG_TEMPLATE.md` and link it in the release PR/issue.
 
 ## Failure handling
-- File an issue with VM details, artefact names, and logs.
-- Do not publish until smoke tests pass; rerun the entire flow after fixing.
+- Open an issue with VM details, artefact names, and log attachments.
+- Do not publish the release until all smoke tests pass.
 
-## Automation notes
-- Extend `scripts/vagrant-gui-smoke.sh` to copy artefacts/logs automatically.
-- Once SignPath signing is active (Windows installer signing), add signature verification to the manual checklist.
+## Future automation
+- When self-hosted runners with virtualization are available, integrate this playbook into CI and upload logs automatically.
+- Consider headless UI testing (e.g., Playwright) once the environment is automated.

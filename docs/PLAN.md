@@ -55,6 +55,7 @@
 - [x] Integrate supply-chain scanning (`cargo audit`, `cargo deny`).
 - [x] Publish signature verification instructions for end users (checksum + signature workflow in `docs/security/VERIFICATION_GUIDE.md`).
 - [ ] Automate Windows signing via SignPath Foundation (see `docs/SIGNING.md`); the `windows_sign` / `publish` pipeline landed on 2025-10-13 but requires real SignPath secrets before we can mark it complete. macOS remains unsigned with documented Gatekeeper guidance.
+- [ ] Ship a macOS universal DMG (Intel + Apple Silicon) in the next release cycle (bundle with Windows console fix).
 - [ ] Record Vagrant-based release validation steps and traceability for signed artefacts.
 - [ ] Establish a monthly dependency refresh cadence (resolve yanked crates immediately, update `Cargo.lock` regularly, document major upgrades).
 - [ ] Maintain builder toolchain schedule (Docker base images, `cargo-packager`, `rustup` components) and update alongside the dependency refresh.
@@ -63,15 +64,15 @@
 
 ## Phase 5 – Stretch Improvements
 - Core feature growth:
-  - [ ] Directory hashing & manifest export/import — giúp người dùng kiểm tra cả thư mục, tạo/đối chiếu danh sách hash chuẩn cho các bản phân phối lớn.
-  - [ ] Batch comparison reports (JSON/CSV) — phục vụ QA so sánh nhiều file cùng lúc, dễ tích hợp pipeline tự động.
-  - [ ] Plugin interface for custom algorithms / SDK bindings — mở đường cho tổ chức tích hợp thuật toán nội bộ hoặc wrapper cho ngôn ngữ khác.
+  - [ ] Directory hashing & manifest export/import — export manifests in TXT/CSV/JSON so CI, AI pipelines, and archives can diff entire bundles.
+  - [ ] Batch comparison reports (JSON/CSV) — support QA and CI pipelines comparing many files in one run.
+  - [ ] Plugin interface for custom algorithms / SDK bindings — allow partners to embed Hash Checker in Node/WASI or add proprietary algorithms without forking.
 - Observability & performance:
-  - [ ] Add optional structured logging/telemetry for large file jobs — ghi lại thông tin tiến độ để hỗ trợ support và phân tích sự cố ở file kích thước lớn.
-  - [ ] Introduce regression benchmarks (criterion) for common workloads — đảm bảo nâng cấp không làm chậm xử lý hash và cung cấp số liệu tối ưu hóa.
+  - [ ] Add optional structured logging/telemetry for large file jobs — capture progress/error context for support tickets and long-running tasks.
+  - [ ] Introduce regression benchmarks (criterion) for common workloads — ensure future refactors keep hashing throughput and memory in check.
 - Distribution & automation:
-  - [ ] Automate reproducible builds (`cargo dist build --dry-run`) in CI — xác nhận cấu hình phát hành tái lập được, giảm rủi ro khi đóng gói đa nền tảng.
-  - [ ] Add winget/homebrew manifest generation scripts and validation in CI — fallback khi SignPath chưa duyệt: vẫn phân phối qua kho ứng dụng chính thống, giảm thao tác thủ công.
+  - [ ] Automate reproducible builds (`cargo dist build --dry-run`) in CI — guarantee release manifests are reproducible across environments.
+  - [ ] Add winget/homebrew manifest generation scripts and validation in CI — fallback channel if SignPath onboarding is delayed, reduce manual packaging.
 
 ## Lessons Learned & Guardrails
 - Allocate large IO buffers on the heap (e.g. `Vec<u8>`) to avoid Windows stack overflows such as error `0xC00000FD` observed in October 2025.
