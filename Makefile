@@ -1,4 +1,4 @@
-.PHONY: rust-test rust-build rust-gui-build rust-gui-smoke clean help dist-linux cleanup-packaging ci-linux-local deps-refresh
+.PHONY: rust-test rust-build rust-gui-build rust-gui-smoke clean help dist-linux cleanup-packaging ci-linux-local deps-refresh macos-dmg-universal
 
 PROJECT_ROOT := $(shell pwd)
 DIST_DIR := dist
@@ -80,7 +80,10 @@ rust-build-temp: ## Build Rust binaries into /tmp/hash-checker-build (clean)
 		docker run --rm -v "$(shell pwd):/workspace" -w /workspace/rust/hash-checker-gui rust:1.83 bash -lc "apt-get update >/dev/null && apt-get install -y pkg-config libgtk-3-dev >/dev/null && export PATH=\"/usr/local/cargo/bin:$$PATH\"; cargo build --release" && \
 		cp rust/hash-checker/target/release/hash-checker $$TMP/ && \
 		cp rust/hash-checker-gui/target/release/hash-checker-gui $$TMP/ && \
-		sha256sum $$TMP/hash-checker $$TMP/hash-checker-gui > $$TMP/SHA256SUMS
+	sha256sum $$TMP/hash-checker $$TMP/hash-checker-gui > $$TMP/SHA256SUMS
+
+macos-dmg-universal: ## Build universal (Intel + Apple Silicon) macOS DMG locally
+	./scripts/macos-universal-dmg.sh
 
 rust-build-host: ## Build Rust CLI on host (requires Rust toolchain)
 	cargo build --release --manifest-path rust/hash-checker/Cargo.toml

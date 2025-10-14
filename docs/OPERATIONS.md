@@ -42,7 +42,7 @@ Keep this document with the repo to standardise release expectations.
 
 ### Platform release targets
 - **Windows**: publish both the portable ZIP and NSIS installer. Keep them separate, attach SHA256SUMS, and ensure Vagrant smoke + CI validation passes before tagging.
-- **macOS**: build a universal DMG (Intel/ARM). Do not auto-install—deliver the `.dmg` artefact and document the manual drag-and-drop into `/Applications`.
+- **macOS**: target a universal DMG (Intel/ARM). Use `make macos-dmg-universal` (scripted via `scripts/macos-universal-dmg.sh`) to build both slices, combine with `lipo`, and generate the DMG locally. Keep Gatekeeper guidance until signing is available.
 - **Linux**: start with Debian `.deb`; record follow-up tasks for RHEL (`.rpm`) and Arch (`pkg.tar.zst`). Each package must include SHA256SUMS and release notes entries.
 - **Build from source**: keep README instructions accurate (`cargo build --release` for CLI/GUI) and verify parity with packaged builds each release cycle.
 

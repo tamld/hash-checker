@@ -177,17 +177,32 @@ jobs:
         run: ./scripts/vagrant-gui-smoke.sh
 
       - name: Install cargo-packager
-        run: cargo install cargo-packager@0.11.7 --locked
-      - name: Build macOS installer (.dmg)
-        run: cargo packager --release --formats dmg
-        working-directory: rust/hash-checker-gui
-        env:
-          CARGO_PACKAGER_SKIP_BUILD: "true"
+        run: |
+          source "$HOME/.cargo/env"
+          cargo install cargo-packager@0.11.7 --locked
+      - name: Build universal DMG
+        run: |
+          source "$HOME/.cargo/env"
+          make macos-dmg-universal
+      - name: Verify DMG architecture
+        run: |
+          set -euo pipefail
+          DMG_PATH="$(ls dist/macos-universal/*.dmg | head -n1)"
+          MOUNT_DIR="$(mktemp -d)"
+          hdiutil attach "$DMG_PATH" -mountpoint "$MOUNT_DIR" -nobrowse >/tmp/hdiutil.attach.log
+          lipo -info "$MOUNT_DIR/Hash Checker.app/Contents/MacOS/hash-checker-gui"
+          hdiutil detach "$MOUNT_DIR" >/tmp/hdiutil.detach.log
+          rmdir "$MOUNT_DIR"
+          cat /tmp/hdiutil.attach.log /tmp/hdiutil.detach.log
       - name: Collect macOS artefacts
         run: |
           rm -rf dist/macos
           mkdir -p dist/macos
-          cp rust/hash-checker-gui/target/packager/*.dmg dist/macos/
+          cp dist/macos-universal/*.dmg dist/macos/
+          if ls logs/local-test/*.log >/dev/null 2>&1; then
+            mkdir -p dist/macos/logs
+            cp logs/local-test/*.log dist/macos/logs/
+          fi
           if ls dist/macos/*.dmg >/dev/null 2>&1; then
             shasum -a 256 dist/macos/*.dmg > dist/macos/SHA256SUMS-macos
           fi
