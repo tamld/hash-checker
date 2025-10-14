@@ -19,7 +19,7 @@
 ## Phase 3 – Distribution & Releases
 - [x] Integrate a GUI automation job (headless GUI tests) into CI and gate merges on it.
 - [x] Ship the Windows GA release: portable ZIP + NSIS installer, validated in CI and release workflows.
-- [x] Ship the macOS GA release: universal, unsigned DMG with documented Gatekeeper bypass steps.
+- [ ] Ship the macOS GA release as a universal (Intel + Apple Silicon) DMG. Local script (`make macos-dmg-universal`) now builds and verifies the universal DMG; integrate it into the release workflow/re-signing path before closing.
 - [x] Ship the Linux GA release: produce Debian `.deb`, AppImage, and Arch `pacman` packages in CI/release workflows.
 - [x] Embed branded icon assets across all installers.
 - [x] Add `cargo-dist` automation for release manifests.
@@ -57,6 +57,7 @@
 - [x] Maintain fixture/hash samples for regression QA (see `docs/maintenance/QA_FIXTURES.md`).
 - [x] Retire the legacy Python implementation once the Rust release is production ready (confirmed Rust-only; see `docs/maintenance/LEGACY_CLEANUP.md`).
 - [ ] Plan dependency migrations away from GTK3 bindings and `instant` when replacements stabilise.
+- [x] Align crate version numbers with release tags (v0.1.2).
 - [x] Monitor the local CI workflow (`make ci-linux-local`) and fallback logs; procedure documented in `docs/maintenance/LEGACY_CLEANUP.md`.
 - [x] Schedule monthly dependency updates (`cargo update`, review yanked crates) – automated by `.github/workflows/deps-refresh.yml` (artefact log).
 - [x] Add scheduled maintenance run for `cargo-dist` upgrades (`.github/workflows/cargo-dist-maintenance.yml`) and keep checksum deduplication guidance in release documentation.
