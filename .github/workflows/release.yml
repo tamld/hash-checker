@@ -145,14 +145,17 @@ jobs:
           cargo build --release --target x86_64-apple-darwin --manifest-path rust/hash-checker-gui/Cargo.toml
       - name: Create universal binaries
         run: |
+          mkdir -p target/universal/release
           lipo -create \
-            -output target/release/hash-checker \
-            target/aarch64-apple-darwin/release/hash-checker \
+            -output target/universal/release/hash-checker \
+            target/release/hash-checker \
             target/x86_64-apple-darwin/release/hash-checker
           lipo -create \
-            -output target/release/hash-checker-gui \
-            target/aarch64-apple-darwin/release/hash-checker-gui \
+            -output target/universal/release/hash-checker-gui \
+            target/release/hash-checker-gui \
             target/x86_64-apple-darwin/release/hash-checker-gui
+          mv target/universal/release/hash-checker target/release/hash-checker
+          mv target/universal/release/hash-checker-gui target/release/hash-checker-gui
       - name: GUI smoke test
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
       - name: Smoke test release binaries
