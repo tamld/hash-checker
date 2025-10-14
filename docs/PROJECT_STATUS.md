@@ -8,7 +8,6 @@ _Last updated: 2025-10-14_
 
 ## Automation & Maintenance
 - Monthly dependency refresh (`deps-refresh.yml`) and cargo-dist maintenance (`cargo-dist-maintenance.yml`) run automatically; review artefact logs on failure.
-- macOS universal DMG now produced by release workflow; include the DMG in smoke validation.
 - Quarterly Vagrant smoke reminder (`vagrant-smoke-reminder.yml`) opens an issue for manual VM validation; follow `docs/vagrant/VALIDATION_PLAYBOOK.md`.
 - Credential/runbook references: `docs/security/CREDENTIAL_RUNBOOK.md`, `docs/security/CI_SIGNING.md`.
 
