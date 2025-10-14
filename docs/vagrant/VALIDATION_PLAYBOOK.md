@@ -6,8 +6,8 @@ _Updated: 2025-10-13_
 Run Windows and Linux smoke tests in clean Vagrant VMs before publishing a release.
 
 ## Environments
-- Windows VM: `hash-checker-win-smoke` (see `scripts/vagrant-gui-smoke.sh`).
-- Linux VM: `ubuntu/focal64` box with Docker pre-installed.
+- Linux VM: `generic/ubuntu2204` defined in the root `Vagrantfile` (headless, VMware Fusion provider).
+- Windows coverage is currently manual (documented in release notes) until a Windows box is provisioned.
 
 ## Prerequisites
 - Vagrant + VMware Fusion (as documented in README).
@@ -24,7 +24,7 @@ Run Windows and Linux smoke tests in clean Vagrant VMs before publishing a relea
    - Install `.deb` and AppImage from `dist/linux`.
    - Execute `hash-checker-gui --smoke-test`.
    - Save terminal output to `/vagrant/logs/linux-smoke.txt`.
-5. Destroy VMs (`vagrant destroy -f`) after tests.
+5. Destroy the VM after tests (`vagrant destroy -f`).
 
 ## Log archival
 - Copy logs back to `logs/release-history/<tag>/`.
@@ -36,4 +36,4 @@ Run Windows and Linux smoke tests in clean Vagrant VMs before publishing a relea
 
 ## Automation notes
 - Extend `scripts/vagrant-gui-smoke.sh` to copy artefacts/logs automatically.
-- Once SignPath signing is active, add signature verification inside the VM.
+- Once SignPath signing is active (Windows installer signing), add signature verification to the manual checklist.

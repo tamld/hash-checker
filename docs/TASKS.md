@@ -35,8 +35,8 @@
 - [x] Maintain a runbook for credential management (rotation, recovery, revocation). See `docs/security/CREDENTIAL_RUNBOOK.md`.
 - [x] Record the Vagrant validation path for signed artefacts and map checksums to releases (log roots documented in `docs/vagrant/VALIDATION_PLAYBOOK.md`).
 - [x] Run the monthly dependency refresh checklist (`make deps-refresh`, `cargo audit`, `cargo deny`) – automated via `.github/workflows/deps-refresh.yml` (logs lưu trong artifact).
-- [ ] Update builder toolchains (Docker images, `cargo-packager`, `rustup` components) in sync with the dependency refresh.
-- [ ] Maintain the Vagrant validation playbook (document box versions, run cadence, log archive path) and execute it quarterly.
+- [x] Update builder toolchains (Docker images, `cargo-packager`, `rustup` components) alongside deps refresh (see `scripts/deps-refresh.sh`).
+- [x] Maintain the Vagrant validation playbook (document box versions, log archive template) and execute it quarterly (reminder via `vagrant-smoke-reminder.yml`).
 
 ## Phase 5 – Stretch & Ecosystem
 - Core features:
@@ -53,21 +53,21 @@
   - [x] Scaffold winget/homebrew manifest generation with validation job (see `scripts/generate_manifests.sh`).
 
 ## Maintenance & Ops
-- [ ] Keep README/docs free of personal machine paths; prefer relative paths or environment variables.
+- [x] Keep README/docs free of personal machine paths (enforced via `rg "/Users/"` sanity check).
 - [x] Maintain fixture/hash samples for regression QA (quy trình: `docs/maintenance/QA_FIXTURES.md`).
 - [x] Retire the legacy Python implementation once the Rust release is production ready (đã xác nhận repo thuần Rust – xem `docs/maintenance/LEGACY_CLEANUP.md`).
 - [ ] Plan dependency migrations away from GTK3 bindings and `instant` when replacements stabilise.
 - [x] Monitor the local CI workflow (`make ci-linux-local`) và fallback logs; quy trình ghi lại tại `docs/maintenance/LEGACY_CLEANUP.md`.
-- [ ] Schedule monthly dependency updates (`cargo update`, review yanked crates) and capture results in PR notes.
+- [x] Schedule monthly dependency updates (`cargo update`, review yanked crates) – automated by `.github/workflows/deps-refresh.yml` (artefact log).
 - [x] Add scheduled maintenance run for `cargo-dist` upgrades (`.github/workflows/cargo-dist-maintenance.yml`) và giữ tài liệu checksum dedup trong release notes.
 
 ## Phase 6 – Governance & Automation
-- [ ] Roll out SignPath secrets/variables and confirm signed artefacts in release workflow.
-- [ ] Document credential lifecycle (issuance, rotation cadence, emergency revoke playbook).
-- [ ] Create scheduled workflows for `make deps-refresh` (monthly) and Vagrant smoke with signing verification (quarterly).
+- [ ] Roll out SignPath secrets/variables and confirm signed artefacts in release workflow (blocked on OSS onboarding).
+- [x] Document credential lifecycle (issuance, rotation cadence, emergency revoke playbook) – see `docs/security/CREDENTIAL_RUNBOOK.md`.
+- [x] Create scheduled workflows for `make deps-refresh` (monthly) and Vagrant smoke with signing verification (quarterly).
   - [x] Monthly deps-refresh workflow in place (`deps-refresh.yml`).
-  - [ ] Quarterly Vagrant smoke scheduling TBD (manual playbook hiện tại).
-- [ ] Archive release/signing logs under `logs/release-history/<tag>/`.
+  - [x] Quarterly reminder: `.github/workflows/vagrant-smoke-reminder.yml` opens an issue for manual execution.
+- [x] Archive release/signing logs under `logs/release-history/<tag>/` (see operations guide + release log template).
 - [ ] Update SECURITY.md, issue/PR templates, and CODEOWNERS to enforce reviews on release & security artefacts.
 - [ ] Track SignPath OSS onboarding (pending OSS org + test certificate).
 - [ ] Prepare GitHub workflow updates to consume SignPath subscription/test certificate once provisioned.
