@@ -2,6 +2,7 @@
 
 > Canonical roadmap lives in this document. `docs/TASKS.md` now only lists the
 > near-term scope derived from the plan.
+> High-level status snapshots are kept in `docs/PROJECT_STATUS.md` to avoid duplicating checklists.
 
 ## Table of Contents
 - [Phase 0 – Preparation](#phase-0--preparation)
@@ -32,7 +33,7 @@
 - [x] Add accessibility essentials (high contrast, keyboard hints, clipboard).
 - [x] Expose `--smoke-test` mode for automation.
 - [x] Add automated GUI regression tests (headless `cargo test`).
-- [ ] Capture refreshed screenshots/fixtures for README and docs. (Checklist: `docs/GUI_SCREENSHOT.md`; pending GUI-capable workstation.)
+- [x] Capture refreshed screenshots/fixtures for README and docs. (Updated 2025-10-15; see `docs/assets/` and `logs/qa/theme-copy-verification-20251015.md`.)
 
 ## Phase 3 – Tooling & Distribution
 - [x] Set up GitHub Actions matrix (Linux/macOS/Windows) running fmt, clippy, tests, Docker builds and packaging.

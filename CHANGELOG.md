@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Theme picker with Soft Light, Slate, and High Contrast Dark presets.
 - Hash copy button now includes the algorithm prefix (e.g. `SHA256:abcdef…`).
 - Pasting a prefixed hash auto-selects the matching algorithm.
+- Documentation for the GUI warning that surfaces when an unsupported hash prefix is pasted.
 - Internal release checklist recorded to prevent empty/tag-only releases.
 
 ### Changed
 - Soft Light palette softened to reduce glare; Slate palette tuned for better contrast.
 - README Feature Highlights updated for theme/copy improvements.
+- Refreshed GUI screenshots (Slate default, algorithm dropdown, match/mismatch, high contrast) in README and docs.
 
 ### Planned
 - SignPath signing integration for Windows artefacts.
@@ -35,4 +37,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.2] - 2025-10-14
 ### Added
 - Initial Rust GUI release, Windows/macOS/Linux packaging.
-

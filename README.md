@@ -24,8 +24,16 @@
 Hash Checker delivers reproducible, container-friendly workflows for validating file hashes across Windows, macOS, and Linux. The project is fully Rust-based and uses Docker/Vagrant helpers to keep host systems clean.
 
 ## GUI Preview
-![Hash Checker main view](docs/assets/gui-main.png)
-*High-contrast mode with result panel and clipboard actions.*
+![Hash Checker Slate theme](docs/assets/gui-main.png)
+*Slate theme (mặc định) với nút copy kèm prefix và thông báo trạng thái.*
+
+Các khung giao diện chính:
+
+![Thuật toán được chọn tự động từ prefix](docs/assets/gui-algorithm.png)
+![Kết quả trùng khớp](docs/assets/gui-match.png)
+![Cảnh báo không khớp](docs/assets/gui-mismatch.png)
+![Chế độ High Contrast](docs/assets/gui-high-contrast.png)
+![Bộ chọn theme Slate/Soft Light/High Contrast](docs/assets/gui-theme-slate.png)
 
 > Screenshot update workflow is documented in `docs/GUI_SCREENSHOT.md`.
 
@@ -36,6 +44,7 @@ Hash Checker delivers reproducible, container-friendly workflows for validating 
 - Container-first workflows (Docker/Vagrant) to avoid host pollution.
 - Built-in clipboard workflow (copy computed hashes) and accessibility toggles for the GUI.
 - Theme picker for the GUI (Soft Light, Slate, High Contrast Dark).
+- Warns when pasted hashes use unsupported prefixes so users can correct them before verification.
 - Copy/paste aware hash comparison: copy buttons include algorithm prefixes and pasting prefixed values auto-selects the algorithm.
 
 ## Clone & Workspace Setup
@@ -61,6 +70,8 @@ Prerequisites: Docker (build/test) and Vagrant + VMware Fusion (optional, for he
 | `make rust-build-temp` | Build CLI+GUI in Docker and copy artefacts to `/tmp/hash-checker-build` |
 | `make clean` | Remove build artefacts and prune Docker volumes |
 | `make cleanup-packaging` | Remove packaging staging directories (`dist/linux`, `target/packager`, `/tmp/hash-checker-*`) |
+
+> Tip: keep build outputs out of the repo workspace—set `CARGO_TARGET_DIR` to an OS-specific temp path (for example `/tmp/hash-checker-target` on Linux/macOS or `%TEMP%\hash-checker-target` on Windows) before running Docker/host builds so sync tools do not lock intermediate files, and delete that temp directory or run `make clean` once finished.
 
 ## Manual Host Build
 Prefer building locally? With Rust installed:
