@@ -6,7 +6,9 @@ maintained in [`docs/PLAN.md`](PLAN.md); historical summaries live in
 
 > Scope: keep this list focused on actionable work for the current cycle. Longer-term context stays in `docs/PLAN.md`; summary updates belong in `docs/PROJECT_STATUS.md`.
 
--## Current release focus
+## Current release focus
+- [x] **Trim release artefacts** – Keep only installer/portable packages and a single SHA256SUMS on GitHub releases (v0.1.4 cleanup on 2025-10-15).
+- [ ] **Capture Vagrant smoke log** – Run the manual VMware/VirtualBox GUI smoke workflow and archive logs under `logs/release-history/<tag>/vagrant/` before tagging the next release.
 - [ ] **Merge theme & copy UX updates** – PR #7 (`feature/gui-themes`) and PR #9 (`feature/gui-copy-prefix`) have full QA coverage; awaiting review/merge alongside the refreshed screenshots.
 - [x] **Tweak Soft Light palette** – Palette accepted as of 2025-10-15; capture future adjustments if additional feedback arrives.
 - [x] **Refresh screenshots** – Updated set stored in `docs/assets/` with QA evidence in `logs/qa/theme-copy-verification-20251015.md`.
