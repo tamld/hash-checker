@@ -39,7 +39,7 @@
 - [x] Set up GitHub Actions matrix (Linux/macOS/Windows) running fmt, clippy, tests, Docker builds and packaging.
 - [x] Integrate GUI automation into CI.
 - [x] Deliver the Windows GA release (portable ZIP + NSIS installer) via CI and release workflows.
-- [ ] Deliver the macOS GA release as a universal DMG. Local automation (`make macos-dmg-universal`) now produces a universal DMG; wire it into `release.yml` before marking complete.
+- [x] Deliver the macOS GA release as a universal DMG. Release workflow now builds the combined binary and publishes the DMG automatically (2025-10-15).
 - [x] Deliver the Linux GA release (Debian `.deb`, AppImage, Arch `pacman`).
 - [x] Document the build-from-source pathway and keep parity with packaged artefacts.
 - [x] Integrate optional Vagrant headless smoke tests for Windows and Linux packaging jobs.
@@ -59,7 +59,7 @@
 - [x] Integrate `cargo audit` and `cargo deny` into CI.
 - [x] Publish verification guide for end users (`docs/security/VERIFICATION_GUIDE.md`).
 - [ ] Automate Windows signing via SignPath (pending secrets).
-- [ ] Ship macOS universal DMG in release workflow (once CI integration complete).
+- [x] Ship macOS universal DMG in release workflow (CI now produces the universal artefact).
 - [x] Record Vagrant validation steps (`docs/vagrant/VALIDATION_PLAYBOOK.md`).
 - [x] Monthly dependency refresh cadence (`deps-refresh.yml`).
 - [x] Maintain builder toolchains (`scripts/deps-refresh.sh`).
