@@ -11,7 +11,7 @@ Execute GUI smoke tests inside real virtual machines, ensuring releases behave t
 - Workflow `.github/workflows/vagrant-smoke-reminder.yml` creates quarterly reminder issues. Once suitable self-hosted runners are available, this checklist can be automated within CI.
 
 ## Environments
-- Linux VM: `generic/ubuntu2204` defined in the root `Vagrantfile` (headless, VMware Fusion provider).
+- Linux VM: `generic/ubuntu2204` defined in the root `Vagrantfile` (defaults to VMware Fusion; override with `VAGRANT_DEFAULT_PROVIDER=virtualbox` or another provider if required).
 - Optional Windows VM: provision manually when Windows smoke validation is required; record the steps in release notes.
 
 ## Prerequisites
@@ -20,14 +20,15 @@ Execute GUI smoke tests inside real virtual machines, ensuring releases behave t
 
 ## Steps
 1. Run `make rust-gui-smoke` (host) for a quick pre-check.
-2. Launch the VM:
+2. Launch the VM (choose provider via `VAGRANT_DEFAULT_PROVIDER` if you are not using VMware Fusion):
    ```bash
+   export VAGRANT_DEFAULT_PROVIDER=vmware_fusion   # or virtualbox if needed
    vagrant up
    ```
 3. Inside the VM run smoke tests:
    - Linux: `hash-checker-gui --smoke-test` or use the helper script.
    - Windows (if available): `hash-checker-gui.exe --smoke-test`; capture a PowerShell transcript at `C:\vagrant\logs\windows-smoke.txt`.
-4. Collect logs in `/workspace/logs/` (Linux) or the synced folder.
+4. Collect logs in `/workspace/logs/` (Linux) or the synced folder, then copy them to `logs/release-history/<tag>/vagrant/` on the host.
 5. Tear down the environment:
    ```bash
    vagrant halt

@@ -1,10 +1,26 @@
-# Vagrant configuration for headless GUI testing (VMware Fusion provider)
+# Vagrant configuration for headless GUI testing (defaults to VMware Fusion)
 Vagrant.configure("2") do |config|
   config.vm.box = "generic/ubuntu2204"
-  config.vm.provider :vmware_fusion do |v|
-    v.gui = false
-    v.vmx["memsize"] = 4096
-    v.vmx["numvcpus"] = 2
+  provider = ENV.fetch("VAGRANT_DEFAULT_PROVIDER", "vmware_fusion")
+
+  case provider
+  when "vmware_fusion"
+    config.vm.provider :vmware_fusion do |v|
+      v.gui = false
+      v.vmx["memsize"] = 4096
+      v.vmx["numvcpus"] = 2
+    end
+  when "vmware_desktop"
+    config.vm.provider :vmware_desktop do |v|
+      v.gui = false
+      v.vmx["memsize"] = 4096
+      v.vmx["numvcpus"] = 2
+    end
+  else
+    warn "Using fallback provider '#{provider}'. Ensure it is installed (set VAGRANT_DEFAULT_PROVIDER to override)."
+    config.vm.provider provider.to_sym do |v|
+      v.gui = false if v.respond_to?(:gui=)
+    end
   end
 
   config.vm.synced_folder ".", "/workspace", type: "rsync", rsync__args: ["--verbose", "--archive", "--delete"]
