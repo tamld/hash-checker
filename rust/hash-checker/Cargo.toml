@@ -15,6 +15,9 @@ sha2 = "0.10"
 md-5 = "0.10"
 blake2 = "0.10"
 thiserror = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "json", "std"] }
+atty = "0.2"
 
 [dev-dependencies]
 assert_cmd = "2"

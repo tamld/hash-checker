@@ -74,3 +74,16 @@ fn cli_infers_blake2b_without_algorithm_flag() {
     cmd.assert().success().stdout(contains("Hashes match"));
     drop(temp_dir);
 }
+
+#[test]
+fn cli_emits_json_logs_when_requested() {
+    let (temp_dir, path) = sample_file();
+    let digest = compute_hash(path.as_path(), "sha256").expect("hash");
+    let mut cmd = Command::cargo_bin("hash-checker").expect("binary");
+    cmd.arg(&path).arg(digest).arg("--log-format").arg("json");
+    cmd.assert()
+        .success()
+        .stdout(contains("Hashes match"))
+        .stderr(contains("\"Hashes match\""));
+    drop(temp_dir);
+}
