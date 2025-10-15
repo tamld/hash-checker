@@ -29,86 +29,84 @@
 ## Phase 2 – GUI MVP
 - [x] Select egui/eframe (see `docs/GUI_DECISION.md`).
 - [x] Implement minimal GUI flow (file select, algorithm, result panel).
-- [x] Add accessibility essentials (high contrast, keyboard shortcut).
+- [x] Add accessibility essentials (high contrast, keyboard hints, clipboard).
 - [x] Expose `--smoke-test` mode for automation.
-- [x] Add automated GUI regression tests (Playwright or similar).
-- [x] Capture screenshots / fixture hashes for documentation.
+- [x] Add automated GUI regression tests (headless `cargo test`).
+- [ ] Capture refreshed screenshots/fixtures for README and docs. (Checklist: `docs/GUI_SCREENSHOT.md`; pending GUI-capable workstation.)
 
 ## Phase 3 – Tooling & Distribution
 - [x] Set up GitHub Actions matrix (Linux/macOS/Windows) running fmt, clippy, tests, Docker builds and packaging.
 - [x] Integrate GUI automation into CI.
 - [x] Deliver the Windows GA release (portable ZIP + NSIS installer) via CI and release workflows.
-- [ ] Deliver the macOS GA release as a universal DMG (Intel + Apple Silicon). Local automation (`make macos-dmg-universal`) now produces a universal DMG; wire it into `release.yml` before ticking this box (unsigned, Gatekeeper guidance remains).
-- [x] Deliver the Linux GA release (Debian `.deb`, AppImage, Arch `pacman`) alongside continuous smoke coverage.
+- [ ] Deliver the macOS GA release as a universal DMG. Local automation (`make macos-dmg-universal`) now produces a universal DMG; wire it into `release.yml` before marking complete.
+- [x] Deliver the Linux GA release (Debian `.deb`, AppImage, Arch `pacman`).
 - [x] Document the build-from-source pathway and keep parity with packaged artefacts.
 - [x] Integrate optional Vagrant headless smoke tests for Windows and Linux packaging jobs.
 - [x] Add `cargo-dist` (or an equivalent tool) to automate release notes and distribution.
 
 ### Closure roadmap (target: 2025-10-22)
-1. (Completed 2025-10-08) Stabilised Linux packaging in CI and added a nightly `cargo packager --formats deb` schedule.
-2. (Completed 2025-10-08) Wired the existing smoke harness into GitHub Actions and gate merges on the GUI automation job.
-3. (Completed 2025-10-08) Added `cargo dist manifest` automation with documentation updates in `docs/OPERATIONS.md`.
-4. (Completed 2025-10-08) Replaced deprecated GitHub Actions usage (e.g. `actions-rs/toolchain@v1`) with `dtolnay/rust-toolchain@stable` to silence `set-output` warnings.
-5. (Completed 2025-10-09) Drafted the signing/notarisation runbook in `docs/SIGNING.md` (macOS Developer ID, Windows SignPath) including credential prerequisites.
-6. (Completed 2025-10-09) Logged the dependency migration roadmap in `docs/DEPENDENCY_MIGRATION.md`; future PRs will reference the schedule when dropping GTK3 bindings/`instant`.
-7. (Completed 2025-10-08) Introduced automated cleanup targets (`make cleanup-packaging` / `scripts/cleanup-packaging.sh`) to purge staging artefacts with `KEEP_PACKAGING=1` opt-out, and documented the rule in the operations guide.
+1. (Completed) Stabilised Linux packaging + nightly Debian job.
+2. (Completed) Gate merges on GUI automation job.
+3. (Completed) `cargo dist manifest` automation in `docs/OPERATIONS.md`.
+4. (Completed) Modernise GitHub Actions toolchain.
+5. (Completed) Signing/notarisation runbook (`docs/SIGNING.md`).
+6. (Completed) Dependency migration roadmap (`docs/DEPENDENCY_MIGRATION.md`).
+7. (Completed) Cleanup targets (`make cleanup-packaging`).
 
 ## Phase 4 – Security Hardening
-- [x] Perform security review of hash verification pipeline (path handling, canonicalisation) and record findings in `docs/security/THREAT_MODEL.md`.
-- [x] Integrate supply-chain scanning (`cargo audit`, `cargo deny`).
-- [x] Publish signature verification instructions for end users (checksum + signature workflow in `docs/security/VERIFICATION_GUIDE.md`).
-- [ ] Automate Windows signing via SignPath Foundation (see `docs/SIGNING.md`); the `windows_sign` / `publish` pipeline landed on 2025-10-13 but requires real SignPath secrets before we can mark it complete. macOS remains unsigned with documented Gatekeeper guidance.
-- [ ] Ship a macOS universal DMG (Intel + Apple Silicon) in the next release cycle (bundled with Windows console fix).
-- [x] Record Vagrant-based release validation steps and traceability for signed artefacts (see `docs/vagrant/VALIDATION_PLAYBOOK.md`).
-- [x] Establish a monthly dependency refresh cadence (resolve yanked crates immediately, update `Cargo.lock` regularly, document major upgrades) via `.github/workflows/deps-refresh.yml`.
-- [x] Maintain builder toolchain schedule (Docker base images, `cargo-packager`, `rustup` components) and update alongside the dependency refresh (`scripts/deps-refresh.sh`).
-- [x] Document the fallback automation script (`make deps-refresh`) and link it to the monthly checklist.
-- [x] Create and maintain a Vagrant validation playbook (box versions, log locations, quarterly run cadence).
+- [x] Threat modelling (see `docs/security/THREAT_MODEL.md`).
+- [x] Integrate `cargo audit` and `cargo deny` into CI.
+- [x] Publish verification guide for end users (`docs/security/VERIFICATION_GUIDE.md`).
+- [ ] Automate Windows signing via SignPath (pending secrets).
+- [ ] Ship macOS universal DMG in release workflow (once CI integration complete).
+- [x] Record Vagrant validation steps (`docs/vagrant/VALIDATION_PLAYBOOK.md`).
+- [x] Monthly dependency refresh cadence (`deps-refresh.yml`).
+- [x] Maintain builder toolchains (`scripts/deps-refresh.sh`).
+- [x] Document fallback automation (`make deps-refresh`).
+- [x] Create Vagrant validation playbook.
 
 ## Phase 5 – Stretch Improvements
 - Core feature growth:
-  - [ ] Directory hashing & manifest export/import — export manifests in TXT/CSV/JSON so CI, AI pipelines, and archives can diff entire bundles.
-  - [ ] Batch comparison reports (JSON/CSV) — support QA and CI pipelines comparing many files in one run.
-  - [ ] Plugin interface for custom algorithms / SDK bindings — allow partners to embed Hash Checker in Node/WASI or add proprietary algorithms without forking.
+  - [ ] Directory hashing & manifest export/import.
+  - [ ] Batch comparison reports (JSON/CSV).
+  - [ ] Plugin interface for custom algorithms / SDK bindings.
 - Observability & performance:
-  - [ ] Add optional structured logging/telemetry for large file jobs — capture progress/error context for support tickets and long-running tasks.
-  - [ ] Introduce regression benchmarks (criterion) for common workloads — ensure future refactors keep hashing throughput and memory in check.
+  - [ ] Structured logging/telemetry (Issue TBD).
+  - [ ] Regression benchmarks (criterion) for large files.
 - Distribution & automation:
-  - [ ] Automate reproducible builds (`cargo dist build --dry-run`) in CI — guarantee release manifests are reproducible across environments.
-  - [ ] Add winget/homebrew manifest generation scripts and validation in CI — fallback channel if SignPath onboarding is delayed, reduce manual packaging.
+  - [ ] Automate reproducible builds (`cargo dist build --dry-run`) in CI.
+  - [ ] Add winget/homebrew manifests.
 
 ### Implementation order (easy → hard)
 1. Structured logging / telemetry toggle.
 2. Criterion regression benchmarks.
 3. Directory hashing & manifest export workflows.
 4. Batch comparison reports API.
-5. Plugin interface for custom algorithms / SDK bindings.
+5. Plugin interface for additional runtimes.
 
 ### Migration roadmap
-- Track GTK3 ➜ GTK4/egui-native experiments via `docs/DEPENDENCY_MIGRATION.md`.
-- Replace the deprecated `instant` crate once new timing abstractions are stable.
+- Track GTK3 → GTK4/egui-native in `docs/DEPENDENCY_MIGRATION.md`.
+- Replace `instant` crate once stable alternatives land.
 
 ## Lessons Learned & Guardrails
-- Allocate large IO buffers on the heap (e.g. `Vec<u8>`) to avoid Windows stack overflows such as error `0xC00000FD` observed in October 2025.
-- Manage temp resources via `TempDir`/`TempPath` in CLI tests to remain portable across Windows path semantics and file-handle behaviour.
-- After a CI failure, record the root cause in PLAN/TASKS and pivot remediation instead of repeating the same fix attempt.
-- Keep README and public docs polished (badges, ToC, installer instructions) so contributors immediately understand project health and release expectations.
-- Treat every release tag as production-ready: draft notes, verify artefacts, and run the release checklist before tagging (lesson learned from the withdrawn `v0.1.3`).
+- Allocate large IO buffers on heap (avoid Windows stack overflow, ref Oct 2025).
+- Manage temp resources via `TempDir`/`TempPath` in tests for portability.
+- After CI failure, record RCA instead of repeating same attempt.
+- Keep README/public docs polished.
+- Treat every release tag as production-ready: update changelog, verify artefacts, tick release checklist before tagging (lesson from withdrawn `v0.1.3`).
 
 Progress is tracked via `docs/TASKS.md`, with backlog items in `docs/BACKLOG.md`.
 
 ## Phase 6 – Governance & Automation (new)
-- [ ] Finalise SignPath production rollout, rotation procedures, and public verification instructions.
-- [ ] Publish credential/runbook documentation (issuance, rotation, revocation, emergency response).
-- [ ] Establish automated maintenance cadence:
-  - Monthly `make deps-refresh` workflow (auto-issue on failure).
-  - Quarterly Vagrant smoke + signing evidence archived under `logs/release-history/`.
-- [ ] Enforce branch protection for release workflows (`.github/workflows/release.yml`) and security docs (CODEOWNERS review).
-- [ ] Define contributor onboarding (SECURITY.md update, issue templates, triage labels).
-## Release Readiness Checklist
-- [x] Implement GUI regression automation and include it in CI.
-- [x] Add installer smoke jobs to validate `.dmg`, `.deb`, and Windows portable packages.
-- [x] Provide end-user checksum verification instructions alongside releases.
-- [x] Run supply-chain scanning (`cargo audit`, `cargo deny`) as part of the gating process.
-- [x] Capture GUI screenshots/fixtures for documentation and QA reference.
-- [ ] Produce ICO/ICNS bundles from the PNG assets when introducing signed distributions.
+- [ ] Finalise SignPath rollout (secrets, verification docs).
+- [ ] Publish credential/runbook documentation (rotations, emergency).
+- [ ] Maintenance cadence: monthly deps-refresh, quarterly Vagrant smoke.
+- [ ] Enforce branch protection for release workflows.
+- [ ] Define contributor onboarding (SECURITY.md update, templates).
+## Release readiness checklist
+- [x] GUI regression automation wired to CI.
+- [x] Installer smoke jobs in CI.
+- [x] End-user checksum instructions included.
+- [x] Supply-chain scanning (cargo audit/deny) gating.
+- [ ] Refresh GUI screenshots for latest theme/UX.
+- [ ] Produce ICO/ICNS bundles alongside signed distributions.
