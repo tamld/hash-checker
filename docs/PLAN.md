@@ -72,14 +72,14 @@
   - [ ] Batch comparison reports (JSON/CSV).
   - [ ] Plugin interface for custom algorithms / SDK bindings.
 - Observability & performance:
-  - [ ] Structured logging/telemetry (Issue TBD).
+  - [x] Structured logging/telemetry toggle for CLI runs (added `--log-format`, Oct 2025).
   - [ ] Regression benchmarks (criterion) for large files.
 - Distribution & automation:
   - [ ] Automate reproducible builds (`cargo dist build --dry-run`) in CI.
   - [ ] Add winget/homebrew manifests.
 
 ### Implementation order (easy → hard)
-1. Structured logging / telemetry toggle.
+1. Structured logging / telemetry toggle (completed Oct 2025).
 2. Criterion regression benchmarks.
 3. Directory hashing & manifest export workflows.
 4. Batch comparison reports API.
