@@ -1,30 +1,26 @@
 # Project Status Overview
 
-_Last updated: 2025-10-14_
+_Last updated: 2025-10-15_
 
-## In Progress / Pending
-- **SignPath OSS onboarding**: awaiting response to provision OSS subscription, test certificate, and secrets (`docs/security/SIGNPATH_CHECKLIST.md`).
-- **GUI screenshots**: capture `gui-high-contrast.png` per `docs/GUI_SCREENSHOT.md` once a GUI-enabled workstation is available.
-- **macOS universal DMG**: release `v0.1.2` ships an arm64-only DMG; local automation (`make macos-dmg-universal`) now produces a universal build. Integrate it into `release.yml` before publishing the next tag (`docs/PLAN.md`, `docs/TASKS.md`).
-- **Version sync**: crate manifests now declare `0.1.4`; ensure the release tag matches.
+This page highlights the high-level state; detailed task tracking now lives in
+[`docs/TASKS.md`](TASKS.md) and the roadmap in [`docs/PLAN.md`](PLAN.md).
 
-## Automation & Maintenance
-- Monthly dependency refresh (`deps-refresh.yml`) and cargo-dist maintenance (`cargo-dist-maintenance.yml`) run automatically; review artefact logs on failure.
-- Quarterly Vagrant smoke reminder (`vagrant-smoke-reminder.yml`) opens an issue for manual VM validation; follow `docs/vagrant/VALIDATION_PLAYBOOK.md`.
-- Credential/runbook references: `docs/security/CREDENTIAL_RUNBOOK.md`, `docs/security/CI_SIGNING.md`.
+## In-flight
+- **Release polishing** – Theme picker + copy/paste UX (PR #7/#9) pending merge; run QA then tag the next release.
+- **macOS universal DMG** – Local script builds a universal DMG into `/tmp`; wire it into `release.yml` prior to release.
+- **Screenshot refresh** – Follow the list in `docs/GUI_SCREENSHOT.md` once the palette locks.
+- **SignPath onboarding** – Awaiting OSS credentials/secrets (see `docs/security/SIGNPATH_CHECKLIST.md`).
 
-## Stretch Goals (Phase 5)
-- Directory hashing manifests (TXT/CSV/JSON).
-- Batch comparison reporting for CI/QA.
-- Plugin interface for custom algorithms/SDK bindings.
-- Structured telemetry/logging (see `docs/security/TELEMETRY_NOTES.md`).
-- Regression benchmarks (criterion) to guard performance.
+## Maintenance cadence
+- Monthly: dependency refresh (`deps-refresh.yml`) and cargo-dist maintenance.
+- Quarterly: Vagrant smoke reminder + log archival (`docs/vagrant/VALIDATION_PLAYBOOK.md`).
+- Internal release checklist recorded after the withdrawn v0.1.3 tag to prevent empty releases.
 
-## Strategic Items
-- GTK3 migration path (evaluate GTK4/libadwaita or wgpu/tao stack).
-- Alternative distribution channels (winget/Homebrew manifests) ready via `scripts/generate_manifests.sh` when needed.
+## Upcoming priorities (ordered)
+1. Structured logging / telemetry toggle.
+2. Criterion regression benchmarks.
+3. Directory hashing & manifest export.
+4. Batch comparison reports for CI.
+5. GTK3 ➜ GTK4/egui-native migration (watch `docs/DEPENDENCY_MIGRATION.md`).
 
-## Recent Updates
-- Maintenance workflows tightened (`deps-refresh` enhancements, Vagrant reminder).
-- SignPath onboarding checklist added.
-- Vagrant playbook clarified with manual/automation rationale.
+For a comprehensive backlog, consult `docs/PLAN.md` §Phase 5.
