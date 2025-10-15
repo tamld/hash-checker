@@ -36,6 +36,7 @@ Hash Checker delivers reproducible, container-friendly workflows for validating 
 - Container-first workflows (Docker/Vagrant) to avoid host pollution.
 - Built-in clipboard workflow (copy computed hashes) and accessibility toggles for the GUI.
 - Theme picker for the GUI (Soft Light, Slate, High Contrast Dark).
+- Copy/paste aware hash comparison: copy buttons include algorithm prefixes and pasting prefixed values auto-selects the algorithm.
 
 ## Clone & Workspace Setup
 ```bash
@@ -93,7 +94,7 @@ make rust-gui-smoke-host
 - On Windows run `Get-FileHash <artefact> -Algorithm SHA256` or use the CLI binary and the recorded digest.
 - Full command examples for every platform (including upcoming signature validation) live in `docs/security/VERIFICATION_GUIDE.md`.
 - macOS build ships a universal (Intel + Apple Silicon) DMG; see Gatekeeper notes below for unsigned installs.
-- Current status: macOS DMG is unsigned and Windows artefacts remain unsigned while SignPath onboarding is pending. Always verify with the guide above. Hash inputs may include prefixes like `sha256:<digest>`; the app auto-detects the algorithm.
+- Current status: macOS DMG is unsigned and Windows artefacts remain unsigned while SignPath onboarding is pending. Always verify with the guide above. Hash inputs may include prefixes like `sha256:<digest>`; the app auto-detects the algorithm and updates the dropdown automatically.
 
 ### macOS Gatekeeper (Unsigned Build)
 

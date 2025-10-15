@@ -27,3 +27,11 @@ Goal: provide a consistent set of screenshots for README/docs whenever the GUI c
 ## Notes
 - The CLI environment used by automation cannot capture GUI windows; screenshots must be taken on a workstation with a display.
 - When themes change, refresh screenshots for each preset captured in docs to avoid confusing users.
+- Capture order recommendation:
+  1. `gui-main.png` (Soft Light theme, no hash entered).
+  2. `gui-match.png` (Soft Light theme, matching hash message).
+  3. `gui-mismatch.png` (Soft Light theme, mismatch message).
+  4. `gui-algorithm.png` (Soft Light theme with dropdown open).
+  5. `gui-high-contrast.png` (High Contrast theme toggled on).
+  6. *(Optional)* `gui-theme-slate.png` (Slate theme overview, if we publish dark preview).
+- After capturing, record the action in `logs/assets/<yyyy-mm-dd>-screenshots.md` with theme/version context.

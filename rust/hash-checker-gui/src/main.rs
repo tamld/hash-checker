@@ -52,24 +52,27 @@ impl ThemePreset {
         match self {
             ThemePreset::SoftLight => {
                 let mut visuals = egui::Visuals::light();
-                visuals.override_text_color = Some(Color32::from_rgb(40, 44, 52));
-                visuals.panel_fill = Color32::from_rgb(246, 247, 250);
-                visuals.widgets.inactive.bg_fill = Color32::from_rgb(236, 239, 244);
-                visuals.widgets.inactive.fg_stroke.color = Color32::from_rgb(54, 58, 68);
-                visuals.widgets.hovered.bg_fill = Color32::from_rgb(223, 227, 236);
-                visuals.widgets.active.bg_fill = Color32::from_rgb(209, 216, 229);
-                visuals.selection.bg_fill = Color32::from_rgb(86, 110, 157);
-                visuals.button_frame = true;
+                visuals.override_text_color = Some(Color32::from_rgb(44, 50, 62));
+                visuals.panel_fill = Color32::from_rgb(242, 244, 248);
+                visuals.hyperlink_color = Color32::from_rgb(0, 102, 204);
+                visuals.widgets.inactive.bg_fill = Color32::from_rgb(229, 232, 239);
+                visuals.widgets.inactive.fg_stroke.color = Color32::from_rgb(58, 64, 78);
+                visuals.widgets.hovered.bg_fill = Color32::from_rgb(214, 219, 229);
+                visuals.widgets.active.bg_fill = Color32::from_rgb(201, 208, 222);
+                visuals.selection.bg_fill = Color32::from_rgb(74, 112, 171);
+                visuals.window_fill = Color32::from_rgb(247, 248, 252);
                 visuals
             }
             ThemePreset::Slate => {
                 let mut visuals = egui::Visuals::dark();
-                visuals.override_text_color = Some(Color32::from_rgb(225, 228, 235));
-                visuals.panel_fill = Color32::from_rgb(38, 44, 53);
+                visuals.override_text_color = Some(Color32::from_rgb(221, 226, 233));
+                visuals.panel_fill = Color32::from_rgb(34, 40, 49);
+                visuals.hyperlink_color = Color32::from_rgb(116, 196, 255);
                 visuals.widgets.inactive.bg_fill = Color32::from_rgb(48, 56, 66);
-                visuals.widgets.hovered.bg_fill = Color32::from_rgb(62, 72, 83);
-                visuals.widgets.active.bg_fill = Color32::from_rgb(72, 84, 96);
-                visuals.selection.bg_fill = Color32::from_rgb(86, 132, 172);
+                visuals.widgets.hovered.bg_fill = Color32::from_rgb(61, 72, 84);
+                visuals.widgets.active.bg_fill = Color32::from_rgb(74, 88, 104);
+                visuals.selection.bg_fill = Color32::from_rgb(102, 153, 204);
+                visuals.window_fill = Color32::from_rgb(40, 47, 58);
                 visuals
             }
             ThemePreset::HighContrast => egui::Visuals::dark(),

@@ -1,5 +1,8 @@
 # Development Plan
 
+> Canonical roadmap lives in this document. `docs/TASKS.md` now only lists the
+> near-term scope derived from the plan.
+
 ## Table of Contents
 - [Phase 0 – Preparation](#phase-0--preparation)
 - [Phase 1 – Rust Core MVP](#phase-1--rust-core-mvp)
@@ -74,11 +77,23 @@
   - [ ] Automate reproducible builds (`cargo dist build --dry-run`) in CI — guarantee release manifests are reproducible across environments.
   - [ ] Add winget/homebrew manifest generation scripts and validation in CI — fallback channel if SignPath onboarding is delayed, reduce manual packaging.
 
+### Implementation order (easy → hard)
+1. Structured logging / telemetry toggle.
+2. Criterion regression benchmarks.
+3. Directory hashing & manifest export workflows.
+4. Batch comparison reports API.
+5. Plugin interface for custom algorithms / SDK bindings.
+
+### Migration roadmap
+- Track GTK3 ➜ GTK4/egui-native experiments via `docs/DEPENDENCY_MIGRATION.md`.
+- Replace the deprecated `instant` crate once new timing abstractions are stable.
+
 ## Lessons Learned & Guardrails
 - Allocate large IO buffers on the heap (e.g. `Vec<u8>`) to avoid Windows stack overflows such as error `0xC00000FD` observed in October 2025.
 - Manage temp resources via `TempDir`/`TempPath` in CLI tests to remain portable across Windows path semantics and file-handle behaviour.
 - After a CI failure, record the root cause in PLAN/TASKS and pivot remediation instead of repeating the same fix attempt.
 - Keep README and public docs polished (badges, ToC, installer instructions) so contributors immediately understand project health and release expectations.
+- Treat every release tag as production-ready: draft notes, verify artefacts, and run the release checklist before tagging (lesson learned from the withdrawn `v0.1.3`).
 
 Progress is tracked via `docs/TASKS.md`, with backlog items in `docs/BACKLOG.md`.
 
