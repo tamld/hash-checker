@@ -23,6 +23,7 @@ struct HashCheckerApp {
     computed_hash: Option<String>,
     status: Option<StatusMessage>,
     theme: ThemeChoice,
+    last_algorithm_used: Option<String>,
 }
 
 #[derive(Default)]
@@ -122,6 +123,7 @@ impl HashCheckerApp {
                 selected_index: 0,
             },
             theme: ThemeChoice::default(),
+            last_algorithm_used: None,
             ..Default::default()
         }
     }
@@ -137,6 +139,12 @@ impl HashCheckerApp {
         } else {
             Some(label)
         }
+    }
+
+    fn resolve_algorithm(&self) -> String {
+        self.selected_algorithm()
+            .unwrap_or("sha256")
+            .to_ascii_lowercase()
     }
 
     fn selected_theme(&self) -> ThemePreset {
@@ -167,10 +175,11 @@ impl HashCheckerApp {
 
         let expected = self.expected_hash.trim();
         if expected.is_empty() {
-            let algorithm = self.selected_algorithm().unwrap_or("sha256");
-            match compute_hash(&path, algorithm) {
+            let algorithm = self.resolve_algorithm();
+            match compute_hash(&path, &algorithm) {
                 Ok(digest) => {
                     self.computed_hash = Some(digest.clone());
+                    self.last_algorithm_used = Some(algorithm.to_ascii_uppercase());
                     self.set_status("Hash computed successfully.", StatusKind::Success);
                 }
                 Err(err) => {
@@ -179,9 +188,11 @@ impl HashCheckerApp {
                 }
             }
         } else {
+            let algorithm = self.resolve_algorithm();
             match verify_hash(&path, expected, self.selected_algorithm()) {
                 Ok((matches, digest)) => {
                     self.computed_hash = Some(digest.clone());
+                    self.last_algorithm_used = Some(algorithm.to_ascii_uppercase());
                     if matches {
                         self.set_status("Hashes match.", StatusKind::Success);
                     } else {
@@ -260,9 +271,12 @@ impl App for HashCheckerApp {
 
             ui.add_space(8.0);
             ui.label("Expected hash (optional):");
-            ui.add(
+            let response = ui.add(
                 egui::TextEdit::singleline(&mut self.expected_hash).desired_width(f32::INFINITY),
             );
+            if response.changed() {
+                self.handle_expected_hash_change();
+            }
 
             ui.add_space(8.0);
             if ui.button("Calculate").clicked() {
@@ -300,11 +314,80 @@ impl App for HashCheckerApp {
                 let response = ui.add_enabled(self.computed_hash.is_some(), copy_button);
                 if response.clicked() {
                     let value = self.computed_hash.clone().unwrap_or_default();
-                    ctx.output_mut(|o| o.copied_text = value);
+                    let algo = self
+                        .last_algorithm_used
+                        .clone()
+                        .unwrap_or_else(|| self.resolve_algorithm().to_ascii_uppercase());
+                    let formatted = format!("{}:{}", algo, value);
+                    ctx.output_mut(|o| o.copied_text = formatted);
                     self.set_status("Hash copied to clipboard.", StatusKind::Info);
                 }
             });
         });
+    }
+}
+
+impl HashCheckerApp {
+    fn handle_expected_hash_change(&mut self) {
+        let trimmed = self.expected_hash.trim().to_owned();
+        if let Some((algo, digest)) = parse_prefixed_hash(&trimmed) {
+            if let Some(index) = self
+                .algorithm
+                .algorithms
+                .iter()
+                .position(|label| label.eq_ignore_ascii_case(&algo))
+            {
+                self.algorithm.selected_index = index;
+            }
+            self.expected_hash = digest.to_string();
+            self.last_algorithm_used = Some(algo.to_ascii_uppercase());
+            self.set_status(
+                &format!("Detected {} from pasted hash.", algo.to_ascii_uppercase()),
+                StatusKind::Info,
+            );
+        } else {
+            self.expected_hash = trimmed;
+        }
+    }
+}
+
+fn parse_prefixed_hash(input: &str) -> Option<(String, String)> {
+    let mut parts = input.splitn(2, ':');
+    let prefix = parts.next()?.trim();
+    let rest = parts.next()?.trim();
+    if prefix.is_empty() || rest.is_empty() {
+        return None;
+    }
+    let lowered = prefix.to_ascii_lowercase();
+    let known = ["sha1", "sha256", "sha512", "md5", "blake2b", "blake2s"];
+    if known.contains(&lowered.as_str()) {
+        Some((lowered, rest.to_string()))
+    } else {
+        None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_prefixed_hash;
+
+    #[test]
+    fn parses_known_prefix() {
+        let parsed = parse_prefixed_hash("sha256: abcdef").expect("should parse");
+        assert_eq!(parsed.0, "sha256");
+        assert_eq!(parsed.1, "abcdef");
+    }
+
+    #[test]
+    fn rejects_unknown_prefix() {
+        assert!(parse_prefixed_hash("foo:123").is_none());
+    }
+
+    #[test]
+    fn handles_uppercase_prefix() {
+        let parsed = parse_prefixed_hash("SHA1:ABC").expect("upper-case ok");
+        assert_eq!(parsed.0, "sha1");
+        assert_eq!(parsed.1, "ABC");
     }
 }
 
