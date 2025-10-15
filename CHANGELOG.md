@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pasting a prefixed hash auto-selects the matching algorithm.
 - Documentation for the GUI warning that surfaces when an unsupported hash prefix is pasted.
 - Internal release checklist recorded to prevent empty/tag-only releases.
+- Structured logging toggle for CLI runs via `--log-format` (text/json).
 
 ### Changed
 - Soft Light palette softened to reduce glare; Slate palette tuned for better contrast.
