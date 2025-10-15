@@ -400,30 +400,6 @@ fn supported_prefixes() -> [&'static str; 6] {
     ["sha1", "sha256", "sha512", "md5", "blake2b", "blake2s"]
 }
 
-#[cfg(test)]
-mod tests {
-    use super::parse_prefixed_hash;
-
-    #[test]
-    fn parses_known_prefix() {
-        let parsed = parse_prefixed_hash("sha256: abcdef").expect("should parse");
-        assert_eq!(parsed.0, "sha256");
-        assert_eq!(parsed.1, "abcdef");
-    }
-
-    #[test]
-    fn rejects_unknown_prefix() {
-        assert!(parse_prefixed_hash("foo:123").is_none());
-    }
-
-    #[test]
-    fn handles_uppercase_prefix() {
-        let parsed = parse_prefixed_hash("SHA1:ABC").expect("upper-case ok");
-        assert_eq!(parsed.0, "sha1");
-        assert_eq!(parsed.1, "ABC");
-    }
-}
-
 fn run_smoke_test() -> Result<(), String> {
     let path = env::temp_dir().join("hash_checker_gui_smoke.txt");
     {
@@ -475,4 +451,28 @@ fn load_app_icon() -> Option<IconData> {
         width,
         height,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_prefixed_hash;
+
+    #[test]
+    fn parses_known_prefix() {
+        let parsed = parse_prefixed_hash("sha256: abcdef").expect("should parse");
+        assert_eq!(parsed.0, "sha256");
+        assert_eq!(parsed.1, "abcdef");
+    }
+
+    #[test]
+    fn rejects_unknown_prefix() {
+        assert!(parse_prefixed_hash("foo:123").is_none());
+    }
+
+    #[test]
+    fn handles_uppercase_prefix() {
+        let parsed = parse_prefixed_hash("SHA1:ABC").expect("upper-case ok");
+        assert_eq!(parsed.0, "sha1");
+        assert_eq!(parsed.1, "ABC");
+    }
 }
