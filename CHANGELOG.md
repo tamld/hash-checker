@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation for the GUI warning that surfaces when an unsupported hash prefix is pasted.
 - Internal release checklist recorded to prevent empty/tag-only releases.
 - Structured logging toggle for CLI runs via `--log-format` (text/json).
+- Criterion benchmarks for hashing (1/10/50 MB files across SHA-2/BLAKE2 families).
 
 ### Changed
 - Release workflow trims GitHub assets to installers/portable packages and a single SHA256SUMS manifest.

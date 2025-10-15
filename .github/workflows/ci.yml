@@ -48,6 +48,8 @@ jobs:
         run: cargo test --manifest-path rust/hash-checker/Cargo.toml --all
       - name: GUI automation tests (hash-checker-gui)
         run: cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --all
+      - name: Cargo bench (hash-checker)
+        run: cargo bench --manifest-path rust/hash-checker/Cargo.toml
       - name: Rust tests (Docker)
         run: make rust-test
       - name: GUI smoke test (host)
