@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Structured logging toggle for CLI runs via `--log-format` (text/json).
 
 ### Changed
+- Release workflow trims GitHub assets to installers/portable packages and a single SHA256SUMS manifest.
 - Soft Light palette softened to reduce glare; Slate palette tuned for better contrast.
 - README Feature Highlights updated for theme/copy improvements.
 - Refreshed GUI screenshots (Slate default, algorithm dropdown, match/mismatch, high contrast) in README and docs.
