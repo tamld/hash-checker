@@ -24,7 +24,10 @@ fn bench_hashing(c: &mut Criterion) {
     }
 
     for &size in &SIZES {
-        let file_path = prepare_file(tmp_dir.path().join(format!("sample_{}mb.bin", size / MB)), size);
+        let file_path = prepare_file(
+            tmp_dir.path().join(format!("sample_{}mb.bin", size / MB)),
+            size,
+        );
         group.throughput(Throughput::Bytes(size as u64));
 
         for &algo in &ALGORITHMS {
