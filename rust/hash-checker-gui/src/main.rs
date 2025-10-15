@@ -44,7 +44,7 @@ impl ThemePreset {
         match self {
             ThemePreset::SoftLight => "Soft Light",
             ThemePreset::Slate => "Slate",
-            ThemePreset::HighContrast => "High Contrast Dark",
+            ThemePreset::HighContrast => "High Contrast",
         }
     }
 
@@ -52,27 +52,29 @@ impl ThemePreset {
         match self {
             ThemePreset::SoftLight => {
                 let mut visuals = egui::Visuals::light();
-                visuals.override_text_color = Some(Color32::from_rgb(44, 50, 62));
-                visuals.panel_fill = Color32::from_rgb(242, 244, 248);
-                visuals.hyperlink_color = Color32::from_rgb(0, 102, 204);
-                visuals.widgets.inactive.bg_fill = Color32::from_rgb(229, 232, 239);
-                visuals.widgets.inactive.fg_stroke.color = Color32::from_rgb(58, 64, 78);
-                visuals.widgets.hovered.bg_fill = Color32::from_rgb(214, 219, 229);
-                visuals.widgets.active.bg_fill = Color32::from_rgb(201, 208, 222);
-                visuals.selection.bg_fill = Color32::from_rgb(74, 112, 171);
-                visuals.window_fill = Color32::from_rgb(247, 248, 252);
+                visuals.override_text_color = Some(Color32::from_rgb(48, 52, 61));
+                visuals.panel_fill = Color32::from_rgb(233, 236, 241);
+                visuals.window_fill = Color32::from_rgb(228, 231, 236);
+                visuals.extreme_bg_color = Color32::from_rgb(220, 223, 229);
+                visuals.hyperlink_color = Color32::from_rgb(41, 112, 178);
+                visuals.widgets.inactive.bg_fill = Color32::from_rgb(217, 221, 229);
+                visuals.widgets.inactive.fg_stroke.color = Color32::from_rgb(70, 75, 87);
+                visuals.widgets.hovered.bg_fill = Color32::from_rgb(206, 211, 222);
+                visuals.widgets.active.bg_fill = Color32::from_rgb(195, 201, 214);
+                visuals.selection.bg_fill = Color32::from_rgb(88, 122, 177);
                 visuals
             }
             ThemePreset::Slate => {
                 let mut visuals = egui::Visuals::dark();
-                visuals.override_text_color = Some(Color32::from_rgb(221, 226, 233));
-                visuals.panel_fill = Color32::from_rgb(34, 40, 49);
-                visuals.hyperlink_color = Color32::from_rgb(116, 196, 255);
-                visuals.widgets.inactive.bg_fill = Color32::from_rgb(48, 56, 66);
-                visuals.widgets.hovered.bg_fill = Color32::from_rgb(61, 72, 84);
-                visuals.widgets.active.bg_fill = Color32::from_rgb(74, 88, 104);
-                visuals.selection.bg_fill = Color32::from_rgb(102, 153, 204);
-                visuals.window_fill = Color32::from_rgb(40, 47, 58);
+                visuals.override_text_color = Some(Color32::from_rgb(219, 224, 233));
+                visuals.panel_fill = Color32::from_rgb(36, 42, 52);
+                visuals.window_fill = Color32::from_rgb(32, 38, 47);
+                visuals.extreme_bg_color = Color32::from_rgb(28, 33, 41);
+                visuals.hyperlink_color = Color32::from_rgb(124, 190, 248);
+                visuals.widgets.inactive.bg_fill = Color32::from_rgb(49, 58, 70);
+                visuals.widgets.hovered.bg_fill = Color32::from_rgb(61, 73, 87);
+                visuals.widgets.active.bg_fill = Color32::from_rgb(71, 86, 103);
+                visuals.selection.bg_fill = Color32::from_rgb(104, 148, 206);
                 visuals
             }
             ThemePreset::HighContrast => egui::Visuals::dark(),
@@ -93,7 +95,7 @@ impl Default for ThemeChoice {
                 ThemePreset::Slate,
                 ThemePreset::HighContrast,
             ],
-            selected_index: 0,
+            selected_index: 1,
         }
     }
 }
@@ -220,7 +222,7 @@ impl HashCheckerApp {
     fn theme_selector(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.label("Theme:");
-            egui::ComboBox::from_label("")
+            egui::ComboBox::from_id_source("theme_selector")
                 .selected_text(self.selected_theme().name())
                 .show_ui(ui, |combo| {
                     for (idx, preset) in self.theme.presets.iter().enumerate() {
@@ -263,7 +265,7 @@ impl App for HashCheckerApp {
             ui.add_space(8.0);
             ui.horizontal(|ui| {
                 ui.label("Algorithm:");
-                egui::ComboBox::from_label("")
+                egui::ComboBox::from_id_source("algorithm_selector")
                     .selected_text(self.algorithm_label(self.algorithm.selected_index))
                     .show_ui(ui, |combo| {
                         for (idx, label) in self.algorithm.algorithms.iter().enumerate() {
@@ -349,6 +351,16 @@ impl HashCheckerApp {
                 StatusKind::Info,
             );
         } else {
+            if let Some(prefix) = extract_prefix(&trimmed) {
+                let supported = supported_prefixes().join(", ");
+                self.set_status(
+                    &format!(
+                        "Unsupported hash prefix '{}'. Supported prefixes: {}.",
+                        prefix, supported
+                    ),
+                    StatusKind::Warning,
+                );
+            }
             self.expected_hash = trimmed;
         }
     }
@@ -362,12 +374,30 @@ fn parse_prefixed_hash(input: &str) -> Option<(String, String)> {
         return None;
     }
     let lowered = prefix.to_ascii_lowercase();
-    let known = ["sha1", "sha256", "sha512", "md5", "blake2b", "blake2s"];
-    if known.contains(&lowered.as_str()) {
+    if supported_prefixes().contains(&lowered.as_str()) {
         Some((lowered, rest.to_string()))
     } else {
         None
     }
+}
+
+fn extract_prefix(input: &str) -> Option<String> {
+    let mut parts = input.splitn(2, ':');
+    let prefix = parts.next()?.trim();
+    let rest = parts.next()?.trim();
+    if prefix.is_empty() || rest.is_empty() {
+        return None;
+    }
+    let lower = prefix.to_ascii_lowercase();
+    if supported_prefixes().contains(&lower.as_str()) {
+        None
+    } else {
+        Some(prefix.to_string())
+    }
+}
+
+fn supported_prefixes() -> [&'static str; 6] {
+    ["sha1", "sha256", "sha512", "md5", "blake2b", "blake2s"]
 }
 
 #[cfg(test)]
