@@ -12,12 +12,12 @@ Goal: provide a consistent set of screenshots for README/docs whenever the GUI c
 ## Required Shots
 | Suggested filename | Content | Notes |
 | --- | --- | --- |
-| `gui-main.png` | Main screen with file picker, expected hash field, and Calculate button | Chụp với theme mặc định (Slate), trước khi nhập hash |
+| `gui-main.png` | Main screen with file picker, expected hash field, and Calculate button | Capture using the default Slate theme before entering a hash |
 | `gui-match.png` | Verification success state (green message) | Show computed digest and success banner |
 | `gui-mismatch.png` | Verification failure state (red message) | Include actual digest and error banner |
 | `gui-algorithm.png` | Algorithm dropdown expanded | Focus on SHA-256 entry, keep other UI visible |
 | `gui-high-contrast.png` | High contrast mode enabled | Highlight the toggle and dark color scheme |
-| `gui-theme-slate.png` | Theme selector overview | Minh họa hộp thoại chọn theme Slate/Soft Light/High Contrast |
+| `gui-theme-slate.png` | Theme selector overview | Highlight the Slate/Soft Light/High Contrast selector dialog |
 
 ## Storage rules
 - Save files in `docs/assets/` and keep the naming as listed above.
@@ -33,5 +33,5 @@ Goal: provide a consistent set of screenshots for README/docs whenever the GUI c
   3. `gui-mismatch.png` (Slate theme, mismatch message).
   4. `gui-algorithm.png` (Slate theme with dropdown open).
   5. `gui-high-contrast.png` (High Contrast theme toggled on).
-  6. `gui-theme-slate.png` (Bộ chọn theme hiển thị cả ba preset).
+  6. `gui-theme-slate.png` (Theme selector showing all three presets).
 - After capturing, record the action in `logs/assets/<yyyy-mm-dd>-screenshots.md` with theme/version context.
