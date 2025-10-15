@@ -25,15 +25,15 @@ Hash Checker delivers reproducible, container-friendly workflows for validating 
 
 ## GUI Preview
 ![Hash Checker Slate theme](docs/assets/gui-main.png)
-*Slate theme (mặc định) với nút copy kèm prefix và thông báo trạng thái.*
+*Slate theme (default) with copy-to-clipboard shortcut and status banner.*
 
-Các khung giao diện chính:
+Key interface states:
 
-![Thuật toán được chọn tự động từ prefix](docs/assets/gui-algorithm.png)
-![Kết quả trùng khớp](docs/assets/gui-match.png)
-![Cảnh báo không khớp](docs/assets/gui-mismatch.png)
-![Chế độ High Contrast](docs/assets/gui-high-contrast.png)
-![Bộ chọn theme Slate/Soft Light/High Contrast](docs/assets/gui-theme-slate.png)
+![Algorithm dropdown auto-selected from prefix](docs/assets/gui-algorithm.png)
+![Successful verification state](docs/assets/gui-match.png)
+![Verification mismatch warning](docs/assets/gui-mismatch.png)
+![High Contrast mode](docs/assets/gui-high-contrast.png)
+![Theme selector (Slate, Soft Light, High Contrast)](docs/assets/gui-theme-slate.png)
 
 > Screenshot update workflow is documented in `docs/GUI_SCREENSHOT.md`.
 

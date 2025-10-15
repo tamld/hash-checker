@@ -7,10 +7,10 @@ the roadmap and [`docs/TASKS.md`](TASKS.md) for near-term work; this overview
 only highlights the key signals and where to dig deeper.
 
 ## Snapshot
-- Feature polishing: PR #7 (`feature/gui-themes`) và PR #9 (`feature/gui-copy-prefix`) đã có đủ log test/QA; chờ bạn duyệt để gộp. Checklist và tài liệu được cập nhật trong `docs/TASKS.md` & `logs/qa/`.
-- macOS universal DMG: script cục bộ vẫn tạo artefact; bước tự động hóa CI được theo dõi tại `docs/PLAN.md` §Phase 3.
-- Documentation: README/CHANGELOG và bộ screenshot (`docs/assets/`) đã làm mới ngày 2025-10-15.
-- SignPath onboarding: vẫn kẹt vì OSS subscription; theo dõi trong `.agents/project_state.yml` và `docs/security/SIGNPATH_CHECKLIST.md`.
+- Feature polishing: PR #7 (`feature/gui-themes`) and PR #9 (`feature/gui-copy-prefix`) have complete QA logs; pending review/merge. See `docs/TASKS.md` and `logs/qa/` for evidence.
+- macOS universal DMG: local script still produces the artefact; CI automation remains in `docs/PLAN.md` §Phase 3.
+- Documentation: README/CHANGELOG and the screenshot set (`docs/assets/`) were refreshed on 2025-10-15.
+- SignPath onboarding: still blocked on OSS subscription; status tracked in `.agents/project_state.yml` and `docs/security/SIGNPATH_CHECKLIST.md`.
 
 ## Maintenance cadence
 - Monthly: dependency refresh (`deps-refresh.yml`) and cargo-dist maintenance.
