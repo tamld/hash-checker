@@ -80,7 +80,7 @@
 
 ### Implementation order (easy → hard)
 1. Structured logging / telemetry toggle (completed Oct 2025).
-2. Criterion regression benchmarks.
+2. Criterion regression benchmarks (added Oct 2025 via Criterion benches).
 3. Directory hashing & manifest export workflows.
 4. Batch comparison reports API.
 5. Plugin interface for additional runtimes.
