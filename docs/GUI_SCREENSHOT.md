@@ -1,6 +1,6 @@
 # GUI Screenshot Checklist
 
-_Updated: 2025-10-13_
+_Updated: 2025-10-15_
 
 Goal: provide a consistent set of screenshots for README/docs whenever the GUI changes.
 
@@ -12,12 +12,12 @@ Goal: provide a consistent set of screenshots for README/docs whenever the GUI c
 ## Required Shots
 | Suggested filename | Content | Notes |
 | --- | --- | --- |
-| `gui-main.png` | Main screen with file picker, expected hash field, and Calculate button | Use default light theme, before entering a hash |
+| `gui-main.png` | Main screen with file picker, expected hash field, and Calculate button | Chụp với theme mặc định (Slate), trước khi nhập hash |
 | `gui-match.png` | Verification success state (green message) | Show computed digest and success banner |
 | `gui-mismatch.png` | Verification failure state (red message) | Include actual digest and error banner |
 | `gui-algorithm.png` | Algorithm dropdown expanded | Focus on SHA-256 entry, keep other UI visible |
 | `gui-high-contrast.png` | High contrast mode enabled | Highlight the toggle and dark color scheme |
-| *(Optional)* `gui-theme-slate.png` | Slate theme preview | Capture after selecting the Slate theme (if updated) |
+| `gui-theme-slate.png` | Theme selector overview | Minh họa hộp thoại chọn theme Slate/Soft Light/High Contrast |
 
 ## Storage rules
 - Save files in `docs/assets/` and keep the naming as listed above.
@@ -28,10 +28,10 @@ Goal: provide a consistent set of screenshots for README/docs whenever the GUI c
 - The CLI environment used by automation cannot capture GUI windows; screenshots must be taken on a workstation with a display.
 - When themes change, refresh screenshots for each preset captured in docs to avoid confusing users.
 - Capture order recommendation:
-  1. `gui-main.png` (Soft Light theme, no hash entered).
-  2. `gui-match.png` (Soft Light theme, matching hash message).
-  3. `gui-mismatch.png` (Soft Light theme, mismatch message).
-  4. `gui-algorithm.png` (Soft Light theme with dropdown open).
+  1. `gui-main.png` (Slate theme, no hash entered).
+  2. `gui-match.png` (Slate theme, matching hash message).
+  3. `gui-mismatch.png` (Slate theme, mismatch message).
+  4. `gui-algorithm.png` (Slate theme with dropdown open).
   5. `gui-high-contrast.png` (High Contrast theme toggled on).
-  6. *(Optional)* `gui-theme-slate.png` (Slate theme overview, if we publish dark preview).
+  6. `gui-theme-slate.png` (Bộ chọn theme hiển thị cả ba preset).
 - After capturing, record the action in `logs/assets/<yyyy-mm-dd>-screenshots.md` with theme/version context.

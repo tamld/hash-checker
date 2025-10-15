@@ -4,11 +4,20 @@ This file lists near-term tasks for the upcoming release. The long-term roadmap 
 maintained in [`docs/PLAN.md`](PLAN.md); historical summaries live in
 [`docs/PROJECT_STATUS.md`](PROJECT_STATUS.md).
 
+> Scope: keep this list focused on actionable work for the current cycle. Longer-term context stays in `docs/PLAN.md`; summary updates belong in `docs/PROJECT_STATUS.md`.
+
 ## Current release focus
-- [ ] **Merge theme & copy UX updates** – Review and merge PR #7 (`feature/gui-themes`) and PR #9 (`feature/gui-copy-prefix`) once QA passes.
-- [ ] **Tweak Soft Light palette** – Validate the new colours on real displays, capture feedback, and apply follow-up adjustments if needed.
-- [ ] **Refresh screenshots** – Capture the six frames enumerated in `docs/GUI_SCREENSHOT.md` after palette sign-off.
+- [ ] **Merge theme & copy UX updates** – PR #7 (`feature/gui-themes`) và PR #9 (`feature/gui-copy-prefix`) đã hoàn tất QA; chờ duyệt/merge sau khi xem screenshot mới.
+- [x] **Tweak Soft Light palette** – Người dùng xác nhận palette hiện tại ổn (2025-10-15); ghi chú thêm nếu cần điều chỉnh trong tương lai.
+- [x] **Refresh screenshots** – Bộ ảnh mới nằm trong `docs/assets/` và log QA `logs/qa/theme-copy-verification-20251015.md`.
 - [ ] **Integrate macOS DMG flow into CI** – Move the `/tmp` universal DMG build into `release.yml` so tags publish the universal artefact automatically.
+- [x] **Add unsupported-prefix warning docs** – Update README/CHANGELOG to mention the new behaviour (Issue #10, completed 2025-10-15).
+
+### QA checklist – theme & copy UX
+- [x] Capture container test evidence (`docker run … cargo test`) and attach logs/screenshots to PR #9. (See `logs/local-test/docker-rust-test-20251015.log`.)
+- [x] Run GUI regression tests (`cargo test --manifest-path rust/hash-checker-gui/Cargo.toml`) and confirm clipboard prefix flow manually. (See `logs/local-test/gui-tests-20251015.log`.)
+- [x] Validate theme presets on real displays (Soft Light glare, Slate contrast) and note observations in `logs/qa/`. (See `logs/qa/theme-copy-verification-20251015.md`.)
+- [x] Refresh screenshots following `docs/GUI_SCREENSHOT.md` after palette sign-off. (Assets uploaded 2025-10-15.)
 
 ## Ready backlog (pull next)
 - [ ] Structured logging / telemetry toggle for long-running jobs.
