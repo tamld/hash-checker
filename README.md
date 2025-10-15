@@ -92,6 +92,16 @@ make rust-gui-build-host
 make rust-gui-smoke-host
 ```
 
+## CLI Logging Modes
+- Theo mặc định, CLI chỉ in kết quả kiểm tra. Khi cần theo dõi tiến trình hoặc tích hợp hệ thống log, bật structured logging qua `--log-format`:
+
+```bash
+hash-checker path/to/file.txt EXPECTED_HASH --log-format text   # log dạng text
+hash-checker path/to/file.txt EXPECTED_HASH --log-format json   # log dạng JSON
+```
+
+- Log được ghi ra `stderr`, còn `stdout` giữ nguyên thông báo kết quả nên các script/CI cũ không bị ảnh hưởng.
+
 ## Installer Builds
 - Install the packager once per machine: `cargo install cargo-packager@0.11.7 --locked`.
 - From `rust/hash-checker-gui/`, run `cargo packager --release --formats dmg` (macOS) or `cargo packager --release --formats deb appimage pacman` (Linux) to produce native installers.
