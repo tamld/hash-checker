@@ -1,30 +1,21 @@
 # Project Status Overview
 
-_Last updated: 2025-10-14_
+_Last updated: 2025-10-15_
 
-## In Progress / Pending
-- **SignPath OSS onboarding**: awaiting response to provision OSS subscription, test certificate, and secrets (`docs/security/SIGNPATH_CHECKLIST.md`).
-- **GUI screenshots**: capture `gui-high-contrast.png` per `docs/GUI_SCREENSHOT.md` once a GUI-enabled workstation is available.
-- **macOS universal DMG**: release `v0.1.2` ships an arm64-only DMG; local automation (`make macos-dmg-universal`) now produces a universal build. Integrate it into `release.yml` before publishing the next tag (`docs/PLAN.md`, `docs/TASKS.md`).
-- **Version sync**: crate manifests now declare `0.1.4`; ensure the release tag matches.
+This page summarises the current state. Refer to [`docs/PLAN.md`](PLAN.md) for
+the roadmap and [`docs/TASKS.md`](TASKS.md) for near-term work; this overview
+only highlights the key signals and where to dig deeper.
 
-## Automation & Maintenance
-- Monthly dependency refresh (`deps-refresh.yml`) and cargo-dist maintenance (`cargo-dist-maintenance.yml`) run automatically; review artefact logs on failure.
-- Quarterly Vagrant smoke reminder (`vagrant-smoke-reminder.yml`) opens an issue for manual VM validation; follow `docs/vagrant/VALIDATION_PLAYBOOK.md`.
-- Credential/runbook references: `docs/security/CREDENTIAL_RUNBOOK.md`, `docs/security/CI_SIGNING.md`.
+## Snapshot
+- Feature polishing: PR #7 (`feature/gui-themes`) and PR #9 (`feature/gui-copy-prefix`) have complete QA logs; pending review/merge. See `docs/TASKS.md` and `logs/qa/` for evidence.
+- macOS universal DMG: local script still produces the artefact; CI automation remains in `docs/PLAN.md` §Phase 3.
+- Documentation: README/CHANGELOG and the screenshot set (`docs/assets/`) were refreshed on 2025-10-15.
+- SignPath onboarding: still blocked on OSS subscription; status tracked in `.agents/project_state.yml` and `docs/security/SIGNPATH_CHECKLIST.md`.
 
-## Stretch Goals (Phase 5)
-- Directory hashing manifests (TXT/CSV/JSON).
-- Batch comparison reporting for CI/QA.
-- Plugin interface for custom algorithms/SDK bindings.
-- Structured telemetry/logging (see `docs/security/TELEMETRY_NOTES.md`).
-- Regression benchmarks (criterion) to guard performance.
+## Maintenance cadence
+- Monthly: dependency refresh (`deps-refresh.yml`) and cargo-dist maintenance.
+- Quarterly: Vagrant smoke reminder + log archival (`docs/vagrant/VALIDATION_PLAYBOOK.md`).
 
-## Strategic Items
-- GTK3 migration path (evaluate GTK4/libadwaita or wgpu/tao stack).
-- Alternative distribution channels (winget/Homebrew manifests) ready via `scripts/generate_manifests.sh` when needed.
-
-## Recent Updates
-- Maintenance workflows tightened (`deps-refresh` enhancements, Vagrant reminder).
-- SignPath onboarding checklist added.
-- Vagrant playbook clarified with manual/automation rationale.
+## Looking ahead
+- Near-term backlog comes directly from `docs/TASKS.md` (“Ready backlog”).
+- Longer-term stretch goals remain in `docs/PLAN.md` §Phase 5.
