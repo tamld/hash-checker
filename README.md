@@ -102,6 +102,15 @@ hash-checker path/to/file.txt EXPECTED_HASH --log-format json   # log dạng JSO
 
 - Log được ghi ra `stderr`, còn `stdout` giữ nguyên thông báo kết quả nên các script/CI cũ không bị ảnh hưởng.
 
+## Benchmark
+- Sử dụng Criterion để theo dõi hiệu năng hashing:
+
+```bash
+cargo bench --manifest-path rust/hash-checker/Cargo.toml
+```
+
+- Benchmarks tạo dữ liệu 1/10/50 MB và đo SHA-256, SHA-512, BLAKE2s, BLAKE2b. Kết quả nằm trong `target/criterion/` (có HTML, CSV) để so sánh giữa các commit.
+
 ## Installer Builds
 - Install the packager once per machine: `cargo install cargo-packager@0.11.7 --locked`.
 - From `rust/hash-checker-gui/`, run `cargo packager --release --formats dmg` (macOS) or `cargo packager --release --formats deb appimage pacman` (Linux) to produce native installers.
