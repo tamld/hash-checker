@@ -22,13 +22,82 @@ struct HashCheckerApp {
     algorithm: AlgorithmChoice,
     computed_hash: Option<String>,
     status: Option<StatusMessage>,
-    high_contrast: bool,
+    theme: ThemeChoice,
+    last_algorithm_used: Option<String>,
 }
 
 #[derive(Default)]
 struct AlgorithmChoice {
     algorithms: Vec<String>,
     selected_index: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ThemePreset {
+    SoftLight,
+    Slate,
+    HighContrast,
+}
+
+impl ThemePreset {
+    fn name(&self) -> &'static str {
+        match self {
+            ThemePreset::SoftLight => "Soft Light",
+            ThemePreset::Slate => "Slate",
+            ThemePreset::HighContrast => "High Contrast",
+        }
+    }
+
+    fn visuals(&self) -> egui::Visuals {
+        match self {
+            ThemePreset::SoftLight => {
+                let mut visuals = egui::Visuals::light();
+                visuals.override_text_color = Some(Color32::from_rgb(48, 52, 61));
+                visuals.panel_fill = Color32::from_rgb(233, 236, 241);
+                visuals.window_fill = Color32::from_rgb(228, 231, 236);
+                visuals.extreme_bg_color = Color32::from_rgb(220, 223, 229);
+                visuals.hyperlink_color = Color32::from_rgb(41, 112, 178);
+                visuals.widgets.inactive.bg_fill = Color32::from_rgb(217, 221, 229);
+                visuals.widgets.inactive.fg_stroke.color = Color32::from_rgb(70, 75, 87);
+                visuals.widgets.hovered.bg_fill = Color32::from_rgb(206, 211, 222);
+                visuals.widgets.active.bg_fill = Color32::from_rgb(195, 201, 214);
+                visuals.selection.bg_fill = Color32::from_rgb(88, 122, 177);
+                visuals
+            }
+            ThemePreset::Slate => {
+                let mut visuals = egui::Visuals::dark();
+                visuals.override_text_color = Some(Color32::from_rgb(219, 224, 233));
+                visuals.panel_fill = Color32::from_rgb(36, 42, 52);
+                visuals.window_fill = Color32::from_rgb(32, 38, 47);
+                visuals.extreme_bg_color = Color32::from_rgb(28, 33, 41);
+                visuals.hyperlink_color = Color32::from_rgb(124, 190, 248);
+                visuals.widgets.inactive.bg_fill = Color32::from_rgb(49, 58, 70);
+                visuals.widgets.hovered.bg_fill = Color32::from_rgb(61, 73, 87);
+                visuals.widgets.active.bg_fill = Color32::from_rgb(71, 86, 103);
+                visuals.selection.bg_fill = Color32::from_rgb(104, 148, 206);
+                visuals
+            }
+            ThemePreset::HighContrast => egui::Visuals::dark(),
+        }
+    }
+}
+
+struct ThemeChoice {
+    presets: Vec<ThemePreset>,
+    selected_index: usize,
+}
+
+impl Default for ThemeChoice {
+    fn default() -> Self {
+        Self {
+            presets: vec![
+                ThemePreset::SoftLight,
+                ThemePreset::Slate,
+                ThemePreset::HighContrast,
+            ],
+            selected_index: 1,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -58,6 +127,8 @@ impl HashCheckerApp {
                 algorithms,
                 selected_index: 0,
             },
+            theme: ThemeChoice::default(),
+            last_algorithm_used: None,
             ..Default::default()
         }
     }
@@ -73,6 +144,16 @@ impl HashCheckerApp {
         } else {
             Some(label)
         }
+    }
+
+    fn resolve_algorithm(&self) -> String {
+        self.selected_algorithm()
+            .unwrap_or("sha256")
+            .to_ascii_lowercase()
+    }
+
+    fn selected_theme(&self) -> ThemePreset {
+        self.theme.presets[self.theme.selected_index]
     }
 
     fn pick_file(&mut self) {
@@ -99,10 +180,11 @@ impl HashCheckerApp {
 
         let expected = self.expected_hash.trim();
         if expected.is_empty() {
-            let algorithm = self.selected_algorithm().unwrap_or("sha256");
-            match compute_hash(&path, algorithm) {
+            let algorithm = self.resolve_algorithm();
+            match compute_hash(&path, &algorithm) {
                 Ok(digest) => {
                     self.computed_hash = Some(digest.clone());
+                    self.last_algorithm_used = Some(algorithm.to_ascii_uppercase());
                     self.set_status("Hash computed successfully.", StatusKind::Success);
                 }
                 Err(err) => {
@@ -111,9 +193,11 @@ impl HashCheckerApp {
                 }
             }
         } else {
+            let algorithm = self.resolve_algorithm();
             match verify_hash(&path, expected, self.selected_algorithm()) {
                 Ok((matches, digest)) => {
                     self.computed_hash = Some(digest.clone());
+                    self.last_algorithm_used = Some(algorithm.to_ascii_uppercase());
                     if matches {
                         self.set_status("Hashes match.", StatusKind::Success);
                     } else {
@@ -135,8 +219,17 @@ impl HashCheckerApp {
         });
     }
 
-    fn toggle_contrast(&mut self, ui: &mut egui::Ui) {
-        ui.checkbox(&mut self.high_contrast, "High contrast theme");
+    fn theme_selector(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            ui.label("Theme:");
+            egui::ComboBox::from_id_source("theme_selector")
+                .selected_text(self.selected_theme().name())
+                .show_ui(ui, |combo| {
+                    for (idx, preset) in self.theme.presets.iter().enumerate() {
+                        combo.selectable_value(&mut self.theme.selected_index, idx, preset.name());
+                    }
+                });
+        });
     }
 
     fn process_input(&mut self, ctx: &egui::Context) {
@@ -155,11 +248,7 @@ impl HashCheckerApp {
 impl App for HashCheckerApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut Frame) {
         self.process_input(ctx);
-        if self.high_contrast {
-            ctx.set_visuals(egui::Visuals::dark());
-        } else {
-            ctx.set_visuals(egui::Visuals::light());
-        }
+        ctx.set_visuals(self.selected_theme().visuals());
 
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Hash Checker (Rust GUI)");
@@ -176,7 +265,7 @@ impl App for HashCheckerApp {
             ui.add_space(8.0);
             ui.horizontal(|ui| {
                 ui.label("Algorithm:");
-                egui::ComboBox::from_label("")
+                egui::ComboBox::from_id_source("algorithm_selector")
                     .selected_text(self.algorithm_label(self.algorithm.selected_index))
                     .show_ui(ui, |combo| {
                         for (idx, label) in self.algorithm.algorithms.iter().enumerate() {
@@ -187,22 +276,25 @@ impl App for HashCheckerApp {
 
             ui.add_space(8.0);
             ui.label("Expected hash (optional):");
-            ui.add(
+            let response = ui.add(
                 egui::TextEdit::singleline(&mut self.expected_hash).desired_width(f32::INFINITY),
             );
+            if response.changed() {
+                self.handle_expected_hash_change();
+            }
 
             ui.add_space(8.0);
             if ui.button("Calculate").clicked() {
                 self.calculate();
             }
-            ui.small("Press Enter to calculate or toggle contrast below.");
+            ui.small("Press Enter to calculate. Choose a theme below to adjust the palette.");
             ui.add_space(4.0);
-            self.toggle_contrast(ui);
+            self.theme_selector(ui);
 
             ui.add_space(12.0);
             if let Some(status) = &self.status {
                 let color = match status.kind {
-                    StatusKind::Info => Color32::LIGHT_GRAY,
+                    StatusKind::Info => Color32::from_rgb(120, 125, 136),
                     StatusKind::Success => Color32::from_rgb(0, 170, 0),
                     StatusKind::Warning => Color32::YELLOW,
                     StatusKind::Error => Color32::RED,
@@ -227,12 +319,85 @@ impl App for HashCheckerApp {
                 let response = ui.add_enabled(self.computed_hash.is_some(), copy_button);
                 if response.clicked() {
                     let value = self.computed_hash.clone().unwrap_or_default();
-                    ctx.output_mut(|o| o.copied_text = value);
+                    let algo = self
+                        .last_algorithm_used
+                        .clone()
+                        .unwrap_or_else(|| self.resolve_algorithm().to_ascii_uppercase());
+                    let formatted = format!("{}:{}", algo, value);
+                    ctx.output_mut(|o| o.copied_text = formatted);
                     self.set_status("Hash copied to clipboard.", StatusKind::Info);
                 }
             });
         });
     }
+}
+
+impl HashCheckerApp {
+    fn handle_expected_hash_change(&mut self) {
+        let trimmed = self.expected_hash.trim().to_owned();
+        if let Some((algo, digest)) = parse_prefixed_hash(&trimmed) {
+            if let Some(index) = self
+                .algorithm
+                .algorithms
+                .iter()
+                .position(|label| label.eq_ignore_ascii_case(&algo))
+            {
+                self.algorithm.selected_index = index;
+            }
+            self.expected_hash = digest.to_string();
+            self.last_algorithm_used = Some(algo.to_ascii_uppercase());
+            self.set_status(
+                &format!("Detected {} from pasted hash.", algo.to_ascii_uppercase()),
+                StatusKind::Info,
+            );
+        } else {
+            if let Some(prefix) = extract_prefix(&trimmed) {
+                let supported = supported_prefixes().join(", ");
+                self.set_status(
+                    &format!(
+                        "Unsupported hash prefix '{}'. Supported prefixes: {}.",
+                        prefix, supported
+                    ),
+                    StatusKind::Warning,
+                );
+            }
+            self.expected_hash = trimmed;
+        }
+    }
+}
+
+fn parse_prefixed_hash(input: &str) -> Option<(String, String)> {
+    let mut parts = input.splitn(2, ':');
+    let prefix = parts.next()?.trim();
+    let rest = parts.next()?.trim();
+    if prefix.is_empty() || rest.is_empty() {
+        return None;
+    }
+    let lowered = prefix.to_ascii_lowercase();
+    if supported_prefixes().contains(&lowered.as_str()) {
+        Some((lowered, rest.to_string()))
+    } else {
+        None
+    }
+}
+
+fn extract_prefix(input: &str) -> Option<String> {
+    let mut parts = input.splitn(2, ':');
+    let prefix = parts.next()?.trim();
+    let rest = parts.next()?.trim();
+    if prefix.is_empty() || rest.is_empty() {
+        return None;
+    }
+    let lower = prefix.to_ascii_lowercase();
+    if supported_prefixes().contains(&lower.as_str()) {
+        None
+    } else {
+        Some(prefix.to_string())
+    }
+}
+
+fn supported_prefixes() -> [&'static str; 6] {
+    ["sha1", "sha256", "sha512", "md5", "blake2b", "blake2s"]
 }
 
 fn run_smoke_test() -> Result<(), String> {
@@ -286,4 +451,28 @@ fn load_app_icon() -> Option<IconData> {
         width,
         height,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_prefixed_hash;
+
+    #[test]
+    fn parses_known_prefix() {
+        let parsed = parse_prefixed_hash("sha256: abcdef").expect("should parse");
+        assert_eq!(parsed.0, "sha256");
+        assert_eq!(parsed.1, "abcdef");
+    }
+
+    #[test]
+    fn rejects_unknown_prefix() {
+        assert!(parse_prefixed_hash("foo:123").is_none());
+    }
+
+    #[test]
+    fn handles_uppercase_prefix() {
+        let parsed = parse_prefixed_hash("SHA1:ABC").expect("upper-case ok");
+        assert_eq!(parsed.0, "sha1");
+        assert_eq!(parsed.1, "ABC");
+    }
 }

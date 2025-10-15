@@ -24,8 +24,16 @@
 Hash Checker delivers reproducible, container-friendly workflows for validating file hashes across Windows, macOS, and Linux. The project is fully Rust-based and uses Docker/Vagrant helpers to keep host systems clean.
 
 ## GUI Preview
-![Hash Checker main view](docs/assets/gui-main.png)
-*High-contrast mode with result panel and clipboard actions.*
+![Hash Checker Slate theme](docs/assets/gui-main.png)
+*Slate theme (default) with copy-to-clipboard shortcut and status banner.*
+
+Key interface states:
+
+![Algorithm dropdown auto-selected from prefix](docs/assets/gui-algorithm.png)
+![Successful verification state](docs/assets/gui-match.png)
+![Verification mismatch warning](docs/assets/gui-mismatch.png)
+![High Contrast mode](docs/assets/gui-high-contrast.png)
+![Theme selector (Slate, Soft Light, High Contrast)](docs/assets/gui-theme-slate.png)
 
 > Screenshot update workflow is documented in `docs/GUI_SCREENSHOT.md`.
 
@@ -35,6 +43,9 @@ Hash Checker delivers reproducible, container-friendly workflows for validating 
 - Command-line and egui desktop interfaces sharing the same Rust core.
 - Container-first workflows (Docker/Vagrant) to avoid host pollution.
 - Built-in clipboard workflow (copy computed hashes) and accessibility toggles for the GUI.
+- Theme picker for the GUI (Soft Light, Slate, High Contrast Dark).
+- Warns when pasted hashes use unsupported prefixes so users can correct them before verification.
+- Copy/paste aware hash comparison: copy buttons include algorithm prefixes and pasting prefixed values auto-selects the algorithm.
 
 ## Clone & Workspace Setup
 ```bash
@@ -59,6 +70,8 @@ Prerequisites: Docker (build/test) and Vagrant + VMware Fusion (optional, for he
 | `make rust-build-temp` | Build CLI+GUI in Docker and copy artefacts to `/tmp/hash-checker-build` |
 | `make clean` | Remove build artefacts and prune Docker volumes |
 | `make cleanup-packaging` | Remove packaging staging directories (`dist/linux`, `target/packager`, `/tmp/hash-checker-*`) |
+
+> Tip: keep build outputs out of the repo workspace—set `CARGO_TARGET_DIR` to an OS-specific temp path (for example `/tmp/hash-checker-target` on Linux/macOS or `%TEMP%\hash-checker-target` on Windows) before running Docker/host builds so sync tools do not lock intermediate files, and delete that temp directory or run `make clean` once finished.
 
 ## Manual Host Build
 Prefer building locally? With Rust installed:
@@ -92,7 +105,7 @@ make rust-gui-smoke-host
 - On Windows run `Get-FileHash <artefact> -Algorithm SHA256` or use the CLI binary and the recorded digest.
 - Full command examples for every platform (including upcoming signature validation) live in `docs/security/VERIFICATION_GUIDE.md`.
 - macOS build ships a universal (Intel + Apple Silicon) DMG; see Gatekeeper notes below for unsigned installs.
-- Current status: macOS DMG is unsigned and Windows artefacts remain unsigned while SignPath onboarding is pending. Always verify with the guide above. Hash inputs may include prefixes like `sha256:<digest>`; the app auto-detects the algorithm.
+- Current status: macOS DMG is unsigned and Windows artefacts remain unsigned while SignPath onboarding is pending. Always verify with the guide above. Hash inputs may include prefixes like `sha256:<digest>`; the app auto-detects the algorithm and updates the dropdown automatically.
 
 ### macOS Gatekeeper (Unsigned Build)
 
