@@ -10,7 +10,7 @@ maintained in [`docs/PLAN.md`](PLAN.md); historical summaries live in
 - _None at the moment._ All items from the October 2025 polishing cycle have landed; pick work from the backlog below.
 
 ## Ready backlog (pull next)
-- [ ] Criterion-based regression benchmarks for large files.
+- [x] Criterion-based regression benchmarks for large files (see Criterion benches).
 - [ ] Directory hashing + manifest export/import workflows.
 - [ ] Batch comparison reports API for CI.
 
