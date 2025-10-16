@@ -94,6 +94,12 @@ Keep this document with the repo to standardise release expectations.
   ```
   Use these targeted runs to iterate quickly; they are not considered valid for releases or merges.
 - **Canonical runs (merge/release):** Pushes và pull request mặc định chạy đủ Linux, macOS, Windows. Để bỏ qua Linux cho PR thuần tài liệu, gắn nhãn `skip-linux-ci`; reviewer phải xác nhận trước khi merge. Nếu nhãn không hiện diện, Linux phải hoàn tất xanh.
+
+#### Sử dụng nhãn `skip-linux-ci` an toàn
+1. **Phạm vi tệp được phép:** chỉ áp dụng cho PR chỉnh sửa tài liệu hoặc metadata thuần văn bản (ví dụ `README.md`, `docs/**/*.md`, `CHANGELOG.md`). Nếu đụng tới `rust/**`, `scripts/**`, workflow `.yml`, hay bất kỳ mã nguồn/build script nào, *không* được gắn nhãn.
+2. **Tự kiểm tra thay đổi:** dùng `git diff --stat` hoặc `gh pr view --files` để chắc chắn các đường dẫn đều thuộc danh sách an toàn. Reviewer phải xác nhận lại trước khi merge.
+3. **Gắn/thu hồi nhãn:** thêm nhãn `skip-linux-ci` vào PR để bỏ qua job. Nếu cần chạy lại Linux CI (ví dụ trước khi merge), chỉ việc xoá nhãn rồi dùng `gh workflow run CI --field run_linux=true`.
+4. **Bổ sung bằng chứng (khuyến nghị):** với PR tài liệu nhạy cảm (hướng dẫn build, vận hành), chạy `make ci-linux-local` và đính kèm log để có chứng cứ dù job Linux bị skip.
 - **Release gating:** The publish workflow remains blocked unless the preceding CI run (with every platform enabled) completes successfully. Never release artefacts produced exclusively by debug-only runs.
 
 ### Dependency hygiene
