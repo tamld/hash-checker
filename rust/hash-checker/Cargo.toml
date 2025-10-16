@@ -17,7 +17,6 @@ blake2 = "0.10"
 thiserror = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "json", "std"] }
-atty = "0.2"
 
 [dev-dependencies]
 criterion = "0.5"
