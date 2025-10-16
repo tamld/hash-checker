@@ -93,7 +93,7 @@ Keep this document with the repo to standardise release expectations.
     --field run_windows=false
   ```
   Use these targeted runs to iterate quickly; they are not considered valid for releases or merges.
-- **Canonical runs (merge/release):** Pushes and pull requests execute Linux, macOS, and Windows by default. Use the dispatch inputs only for selective reruns; branch protection and release workflows rely on these automatic runs completing successfully.
+- **Canonical runs (merge/release):** Pushes và pull request mặc định chạy đủ Linux, macOS, Windows. Để bỏ qua Linux cho PR thuần tài liệu, gắn nhãn `skip-linux-ci`; reviewer phải xác nhận trước khi merge. Nếu nhãn không hiện diện, Linux phải hoàn tất xanh.
 - **Release gating:** The publish workflow remains blocked unless the preceding CI run (with every platform enabled) completes successfully. Never release artefacts produced exclusively by debug-only runs.
 
 ### Dependency hygiene
