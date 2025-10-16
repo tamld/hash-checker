@@ -14,11 +14,11 @@ fn bench_hashing(c: &mut Criterion) {
     let tmp_dir = tempdir().expect("tempdir");
     let mut group = c.benchmark_group("hash_file");
     if std::env::var("CI").is_ok() {
-        group.sample_size(5);
+        group.sample_size(10);
         group.measurement_time(Duration::from_secs(1));
         group.warm_up_time(Duration::from_millis(500));
     } else {
-        group.sample_size(10);
+        group.sample_size(20);
         group.measurement_time(Duration::from_secs(2));
         group.warm_up_time(Duration::from_secs(1));
     }
