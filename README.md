@@ -93,14 +93,14 @@ make rust-gui-smoke-host
 ```
 
 ## CLI Logging Modes
-- Theo mặc định, CLI chỉ in kết quả kiểm tra. Khi cần theo dõi tiến trình hoặc tích hợp hệ thống log, bật structured logging qua `--log-format`:
+- By default the CLI only prints the verification outcome. Enable structured logging with `--log-format` when you need progress information or want to ingest logs elsewhere:
 
 ```bash
-hash-checker path/to/file.txt EXPECTED_HASH --log-format text   # log dạng text
-hash-checker path/to/file.txt EXPECTED_HASH --log-format json   # log dạng JSON
+hash-checker path/to/file.txt EXPECTED_HASH --log-format text   # human-readable logs
+hash-checker path/to/file.txt EXPECTED_HASH --log-format json   # JSON logs
 ```
 
-- Log được ghi ra `stderr`, còn `stdout` giữ nguyên thông báo kết quả nên các script/CI cũ không bị ảnh hưởng.
+- Logs are written to `stderr` so `stdout` keeps the check result unchanged for legacy scripts/CI pipelines.
 
 ## Benchmark
 - Sử dụng Criterion để theo dõi hiệu năng hashing:
@@ -143,7 +143,7 @@ xattr -d com.apple.quarantine "/Applications/Hash Checker.app"
 This guidance will be updated once SignPath signing or notarisation is available.
 
 ## Release & Changelog
-- Latest release: **[v0.1.4](https://github.com/tamld/hash-checker/releases/tag/v0.1.4)** – ships the first universal macOS DMG, aligns crate versions, and publishes packaging evidence (logs and checksums).
+- Latest release: **[v0.1.5](https://github.com/tamld/hash-checker/releases/tag/v0.1.5)** – refreshes GUI themes/copy workflow, adds CLI structured logging, and replaces the unmaintained `atty` crate.
 - Previous releases are listed on the [GitHub Releases](https://github.com/tamld/hash-checker/releases) page. Follow the checklist in `docs/OPERATIONS.md` for release readiness.
 - A structured changelog will be introduced in future releases; for now, consult the release notes for key highlights and verification steps.
 
