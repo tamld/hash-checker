@@ -100,3 +100,7 @@ find "$LOG_DIR" -type f -empty -delete
 
 echo "[macos-universal] DMG ready: $DEST_PATH"
 echo "[macos-universal] Logs stored under $LOG_DIR"
+
+DIST_DIR="$PROJECT_ROOT/dist/macos-universal"
+mkdir -p "$DIST_DIR"
+cp "$DEST_PATH" "$DIST_DIR/"
