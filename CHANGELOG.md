@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Planned
+- SignPath signing integration for Windows artefacts.
+- Light-theme palette follow-up adjustments based on tester feedback.
+
+## [0.1.5] - 2025-10-17
 ### Added
 - Theme picker with Soft Light, Slate, and High Contrast Dark presets.
 - Hash copy button now includes the algorithm prefix (e.g. `SHA256:abcdef…`).
@@ -14,16 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Internal release checklist recorded to prevent empty/tag-only releases.
 - Structured logging toggle for CLI runs via `--log-format` (text/json).
 - Criterion benchmarks for hashing (1/10/50 MB files across SHA-2/BLAKE2 families).
+- Guidance for using the `skip-linux-ci` label so documentation-only PRs can bypass the Linux job safely.
 
 ### Changed
 - Release workflow trims GitHub assets to installers/portable packages and a single SHA256SUMS manifest.
 - Soft Light palette softened to reduce glare; Slate palette tuned for better contrast.
 - README Feature Highlights updated for theme/copy improvements.
 - Refreshed GUI screenshots (Slate default, algorithm dropdown, match/mismatch, high contrast) in README and docs.
-
-### Planned
-- SignPath signing integration for Windows artefacts.
-- Light-theme palette follow-up adjustments based on tester feedback.
+- CLI terminal detection now relies on `std::io::IsTerminal`, removing the unmaintained `atty` dependency and clearing `cargo audit` warnings.
 
 ## [0.1.4] - 2025-10-14
 ### Added
