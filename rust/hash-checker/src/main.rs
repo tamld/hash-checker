@@ -1,3 +1,4 @@
+use std::io::{stderr, IsTerminal};
 use std::path::PathBuf;
 
 use clap::{Parser, ValueEnum};
@@ -114,7 +115,7 @@ fn init_logging(format: LogFormat) {
         LogFormat::Text => {
             let _ = tracing_subscriber::fmt()
                 .with_writer(std::io::stderr)
-                .with_ansi(atty::is(atty::Stream::Stderr))
+                .with_ansi(stderr().is_terminal())
                 .with_level(true)
                 .with_target(false)
                 .with_max_level(tracing::Level::INFO)

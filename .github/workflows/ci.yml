@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VAGRANT_ENABLED: 'false'
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_linux == 'true' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_linux == 'true' }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust toolchain
@@ -57,8 +57,10 @@ jobs:
       - name: Install cargo-dist
         run: cargo install cargo-dist@0.30.0 --locked
       - name: cargo-dist manifest
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: ~/.cargo/bin/dist manifest --output-format json > dist-manifest.json
       - name: cargo-dist build dry run
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: ~/.cargo/bin/dist build --dry-run
       - name: Optional Vagrant GUI smoke
         if: env.VAGRANT_ENABLED == 'true'

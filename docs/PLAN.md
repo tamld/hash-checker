@@ -109,5 +109,5 @@ Progress is tracked via `docs/TASKS.md`, with backlog items in `docs/BACKLOG.md`
 - [x] Installer smoke jobs in CI.
 - [x] End-user checksum instructions included.
 - [x] Supply-chain scanning (cargo audit/deny) gating.
-- [ ] Refresh GUI screenshots for latest theme/UX.
-- [ ] Produce ICO/ICNS bundles alongside signed distributions.
+- [x] Refresh GUI screenshots for latest theme/UX (updated 2025-10-16; see `docs/assets/` and `logs/qa/`).
+- [x] Produce ICO/ICNS bundles alongside signed distributions (`package.metadata.packager.icons`).
