@@ -50,15 +50,15 @@ Keep this document with the repo to standardise release expectations.
 
 ### Release automation
 - Routine CI jobs no longer build installers; packaging is confined to the release workflow to preserve runner minutes.
-- `release.yml` pins `cargo-dist@0.29.0` (0.30.0 currently fails to compile); bump the version here and in commit history when upstream resolves the issue.
+- `release.yml` installs `cargo-dist@0.30.0` (verified 2025-10-16); keep the version in sync with `.github/workflows/ci.yml` and note any upstream regressions in the changelog.
 
 ### Signing pipeline (release.yml)
 - The optional `windows_sign` job submits executables/installers to SignPath and uploads the signed variants (`windows-*-signed`). If SignPath secrets/variables are absent, the workflow falls back to unsigned artefacts.
 - The `publish` job consolidates signed/unsigned artefacts, generates `release-final/SHA256SUMS`, and signs it when `GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` are available.
 - Configure secrets/variables as described in `docs/security/CI_SIGNING.md`. Run a `workflow_dispatch` test before shipping a real release.
 - Release notes should include the GPG fingerprint and clarify whether Windows artefacts were signed via SignPath or fell back to unsigned binaries.
-- Always run the Linux job (default `run_linux=true`) when triggering `release.yml` to keep parity with `ci.yml`.
-- macOS builds currently output an arm64 DMG; the universal (Intel + Apple Silicon) variant is tracked in PLAN/TASKS and will replace the arm64-only build once available.
+- Always run the Linux job (`run_linux=true`) when triggering `release.yml` to keep parity with `ci.yml`; record the run ID in the release issue when dispatching manual validations.
+- macOS builds publish a universal (Intel + Apple Silicon) DMG; retain `scripts/macos-universal-dmg.sh` for local smoke tests or incident response.
 
 ### Runner & environment strategy
 - **Linux runner**: primary automation host. Execute `make ci-linux-local` and other checks inside Docker images (e.g. `rust:1.83`) so the host OS stays clean and reproducible.
@@ -93,7 +93,7 @@ Keep this document with the repo to standardise release expectations.
     --field run_windows=false
   ```
   Use these targeted runs to iterate quickly; they are not considered valid for releases or merges.
-- **Canonical runs (merge/release):** Pushes and pull requests execute macOS and Windows by default. Linux is manual-only—dispatch the job above when cloud validation is required. Branch protection and release workflows depend on the platforms that remain enabled plus any manual Linux run you trigger.
+- **Canonical runs (merge/release):** Pushes and pull requests execute Linux, macOS, and Windows by default. Use the dispatch inputs only for selective reruns; branch protection and release workflows rely on these automatic runs completing successfully.
 - **Release gating:** The publish workflow remains blocked unless the preceding CI run (with every platform enabled) completes successfully. Never release artefacts produced exclusively by debug-only runs.
 
 ### Dependency hygiene
