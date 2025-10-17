@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README Feature Highlights updated for theme/copy improvements.
 - Refreshed GUI screenshots (Slate default, algorithm dropdown, match/mismatch, high contrast) in README and docs.
 - CLI terminal detection now relies on `std::io::IsTerminal`, removing the unmaintained `atty` dependency and clearing `cargo audit` warnings.
+- Release script now copies the universal macOS DMG into `dist/macos-universal/`, restoring the architecture verification step in CI.
 
 ## [0.1.4] - 2025-10-14
 ### Added
