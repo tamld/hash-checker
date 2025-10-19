@@ -58,10 +58,10 @@ jobs:
         run: cargo install cargo-dist@0.30.0 --locked
       - name: cargo-dist manifest
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: ~/.cargo/bin/dist manifest --output-format json > dist-manifest.json
+        run: ~/.cargo/bin/dist manifest --artifacts=all --target x86_64-unknown-linux-gnu --output-format json > dist-manifest.json
       - name: cargo-dist build dry run
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: ~/.cargo/bin/dist build --dry-run
+        run: ~/.cargo/bin/dist build --artifacts=all --target x86_64-unknown-linux-gnu --dry-run
       - name: Optional Vagrant GUI smoke
         if: env.VAGRANT_ENABLED == 'true'
         run: ./scripts/vagrant-gui-smoke.sh
