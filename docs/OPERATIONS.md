@@ -23,6 +23,13 @@
 
 Keep this document with the repo to standardise release expectations.
 
+## CI Modes (2025-10-19)
+- **Push / Pull Request**: `ci.yml` runs fmt, clippy, unit tests, Docker tests, and GUI smoke. No packaging steps are executed; this keeps the quick feedback loop green.
+- **Workflow Dispatch (manual trigger)**: same set of checks as above. As of 2025-10-19, `cargo-dist` validation is *not* executed here; packaging remains in the release workflow to avoid redundant failures.
+- **Release workflow (`release.yml`)**: runs the full packaging matrix (cargo-packager, installers, AppImage, etc.) and should be used when preparing artefacts for publication.
+
+> Note: `cargo-dist` was removed from the manual CI run after repeated failures caused by missing target definitions. Packaging is validated in `release.yml`; use that workflow to exercise installers before tagging.
+
 ## Build Diagnostics (2025-10-08)
 
 ### Successful checks

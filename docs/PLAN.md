@@ -68,26 +68,26 @@
 
 ## Phase 5 – Stretch Improvements
 - Core feature growth:
-  - [ ] Directory hashing & manifest export/import.
+  - [x] Directory hashing & manifest export/import (CLI support shipped; GUI enhancements deferred).
   - [ ] Batch comparison reports (JSON/CSV).
   - [ ] Plugin interface for custom algorithms / SDK bindings.
 - Observability & performance:
   - [x] Structured logging/telemetry toggle for CLI runs (added `--log-format`, Oct 2025).
-  - [ ] Regression benchmarks (criterion) for large files.
+  - [x] Regression benchmarks (criterion) for large files (Oct 2025 benches recorded under `logs/qa/`).
 - Distribution & automation:
-  - [ ] Automate reproducible builds (`cargo dist build --dry-run`) in CI.
+  - [ ] Automate reproducible builds (`cargo dist build --dry-run`) in CI and capture Debian package install verification.
   - [ ] Add winget/homebrew manifests.
 
 ### Implementation order (easy → hard)
-1. Structured logging / telemetry toggle (completed Oct 2025).
-2. Criterion regression benchmarks (added Oct 2025 via Criterion benches).
-3. Directory hashing & manifest export workflows.
-4. Batch comparison reports API.
-5. Plugin interface for additional runtimes.
+1. Directory hashing & manifest export workflows.
+2. Batch comparison reports API.
+3. Automate reproducible builds + package manifests (cargo dist dry-run, winget/homebrew).
+4. Plugin interface for additional runtimes.
 
 ### Migration roadmap
 - Track GTK3 → GTK4/egui-native in `docs/DEPENDENCY_MIGRATION.md`.
 - Replace `instant` crate once stable alternatives land.
+- Run the GTK4 + `instant` investigation spike by **2025-11-15** (capture findings and open the tracking issue before starting implementation).
 
 ## Lessons Learned & Guardrails
 - Allocate large IO buffers on heap (avoid Windows stack overflow, ref Oct 2025).
