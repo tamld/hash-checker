@@ -54,14 +54,8 @@ jobs:
         run: make rust-test
       - name: GUI smoke test (host)
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
-      - name: Install cargo-dist
-        run: cargo install cargo-dist@0.30.0 --locked
-      - name: cargo-dist manifest
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: ~/.cargo/bin/dist manifest --artifacts=all --target x86_64-unknown-linux-gnu --output-format json > dist-manifest.json
-      - name: cargo-dist build dry run
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: ~/.cargo/bin/dist build --artifacts=all --target x86_64-unknown-linux-gnu --dry-run
+      # Packaging validation is handled by the release workflow (cargo-packager).
+      # We keep CI focused on fmt/clippy/tests to preserve runtime when run manually.
       - name: Optional Vagrant GUI smoke
         if: env.VAGRANT_ENABLED == 'true'
         run: ./scripts/vagrant-gui-smoke.sh
