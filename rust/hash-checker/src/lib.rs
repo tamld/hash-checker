@@ -4,6 +4,14 @@ use std::{
     path::Path,
 };
 
+mod manifest;
+
+pub use manifest::{
+    apply_entry_path, detect_format_from_extension, generate_manifest, read_manifest,
+    relative_path_string, resolve_root, verify_manifest, write_manifest, Manifest, ManifestEntry,
+    ManifestFormat, VerificationReport,
+};
+
 use blake2::{Blake2b512, Blake2s256};
 use digest::Digest;
 use md5::Md5;
@@ -30,6 +38,21 @@ pub enum HashError {
     },
     #[error("path '{0}' is not a regular file")]
     NotAFile(String),
+    #[error("path '{0}' is not a directory")]
+    NotADirectory(String),
+    #[error("path '{0}' does not exist")]
+    PathNotFound(String),
+    #[error("unsupported manifest format '{0}'")]
+    UnsupportedManifestFormat(String),
+    #[error("failed to serialize manifest: {0}")]
+    ManifestSerialize(String),
+    #[error("failed to parse manifest: {0}")]
+    ManifestParse(String),
+    #[error("unsupported manifest version '{found}', expected {expected}")]
+    ManifestVersion {
+        expected: &'static str,
+        found: String,
+    },
     #[error(transparent)]
     Io(#[from] std::io::Error),
 }
