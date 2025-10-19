@@ -23,6 +23,13 @@
 
 Keep this document with the repo to standardise release expectations.
 
+## CI Modes (2025-10-19)
+- **Push / Pull Request**: `ci.yml` runs fmt, clippy, unit tests, Docker tests, and GUI smoke. No packaging steps are executed; this keeps the quick feedback loop green.
+- **Workflow Dispatch (manual trigger)**: same set of checks as above. As of 2025-10-19, `cargo-dist` validation is *not* executed here; packaging remains in the release workflow to avoid redundant failures.
+- **Release workflow (`release.yml`)**: runs the full packaging matrix (cargo-packager, installers, AppImage, etc.) and should be used when preparing artefacts for publication.
+
+> Note: `cargo-dist` was removed from the manual CI run after repeated failures caused by missing target definitions. Packaging is validated in `release.yml`; use that workflow to exercise installers before tagging.
+
 ## Build Diagnostics (2025-10-08)
 
 ### Successful checks
@@ -84,16 +91,17 @@ Keep this document with the repo to standardise release expectations.
 - Replaced `actions-rs/toolchain@v1` with `dtolnay/rust-toolchain@stable` across workflows to remove the deprecated `set-output` warning.
 - Added `brew list` guards before installing `gtk+3`/`pkg-config` so macOS logs no longer emit “pkgconf already installed” noise.
 
-### CI run modes
-- **Debug runs (job-specific):** When a matrix job fails, re-run only the affected job via `workflow_dispatch` or GitHub CLI, for example:
-  ```bash
-  gh workflow run CI \
-    --field run_linux=true \
-    --field run_macos=false \
-    --field run_windows=false
-  ```
-  Use these targeted runs to iterate quickly; they are not considered valid for releases or merges.
-- **Canonical runs (merge/release):** Pushes và pull request mặc định chạy đủ Linux, macOS, Windows. Để bỏ qua Linux cho PR thuần tài liệu, gắn nhãn `skip-linux-ci`; reviewer phải xác nhận trước khi merge. Nếu nhãn không hiện diện, Linux phải hoàn tất xanh.
+### CI run modes (2025-10-19)
+
+| Mode | Trigger | Purpose | Steps | Notes |
+| --- | --- | --- | --- | --- |
+| Push / PR | Automatic on push & pull request | Fast feedback cycle | fmt, clippy, unit tests, GUI tests, bench, Docker smoke | Packaging bỏ qua để giữ runtime < 10 phút; chỉ dùng nhãn `skip-linux-ci` cho PR doc-only |
+| Dispatch – fast | `workflow_dispatch` (defaults: `run_packaging=false`) | Rerun failed jobs quickly | Same set as Push / PR | Dùng khi cần rerun thủ công mà không rehearsal packaging |
+| Dispatch – packaging rehearsal | `workflow_dispatch` with `run_packaging=true` | Dress rehearsal trước khi tag release | Push / PR steps + `cargo dist manifest`, `cargo dist build --dry-run` | Ghi lại run URL + dist manifest vào issue release |
+| Release workflow | Tag push hoặc manual dispatch `release.yml` | Build & publish artefacts | Full packaging + signing | Nguồn artefact chính thức để phát hành |
+
+- **Debug runs (job-specific):** Khi một job matrix fail, chạy `gh workflow run CI --field run_linux=true --field run_macos=false --field run_windows=false` để lặp nhanh. Các run này không đủ điều kiện merge/release.
+- **Canonical runs (merge/release):** Trước khi merge nhánh chuẩn bị release, đảm bảo ít nhất một run “Dispatch – packaging rehearsal” xanh để `cargo-dist` được rehearsal.
 
 #### Sử dụng nhãn `skip-linux-ci` an toàn
 1. **Phạm vi tệp được phép:** chỉ áp dụng cho PR chỉnh sửa tài liệu hoặc metadata thuần văn bản (ví dụ `README.md`, `docs/**/*.md`, `CHANGELOG.md`). Nếu đụng tới `rust/**`, `scripts/**`, workflow `.yml`, hay bất kỳ mã nguồn/build script nào, *không* được gắn nhãn.

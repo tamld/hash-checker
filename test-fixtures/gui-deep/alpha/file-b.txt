@@ -1,0 +1,2 @@
+When scanning nested folders, Hash Checker should capture every entry.
+This fixture ensures the manifest tab stretches gracefully.
