@@ -88,7 +88,7 @@ pub fn generate_manifest(root: &Path, algorithm: &str, recursive: bool) -> HashR
             .strip_prefix(root)
             .map_err(|_| HashError::Canonicalize {
                 path: file.display().to_string(),
-                source: std::io::Error::new(std::io::ErrorKind::Other, "path prefix error"),
+                source: std::io::Error::other("path prefix error"),
             })?;
         let hash = compute_hash(&file, algorithm)?;
         let metadata = fs::metadata(&file)?;
@@ -159,7 +159,7 @@ pub fn verify_manifest(manifest: &Manifest, root: &Path) -> HashResult<Verificat
             .strip_prefix(root)
             .map_err(|_| HashError::Canonicalize {
                 path: file.display().to_string(),
-                source: std::io::Error::new(std::io::ErrorKind::Other, "path prefix error"),
+                source: std::io::Error::other("path prefix error"),
             })?;
         let key = to_manifest_path(rel);
         actual_map.insert(key, file);

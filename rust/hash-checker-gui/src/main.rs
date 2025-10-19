@@ -1782,8 +1782,7 @@ impl ManifestView {
                 detect_format_from_extension(&manifest_path).unwrap_or(ManifestFormat::Json);
             let file = File::open(&manifest_path);
             let manifest_result = file.and_then(|f| {
-                read_manifest(f, format)
-                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
+                read_manifest(f, format).map_err(|e| std::io::Error::other(e.to_string()))
             });
 
             let manifest = match manifest_result {
