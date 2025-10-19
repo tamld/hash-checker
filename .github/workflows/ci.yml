@@ -19,6 +19,10 @@ on:
         description: "Run the Windows job"
         type: boolean
         default: true
+      run_packaging:
+        description: "Run cargo-dist packaging rehearsal (Linux job only)"
+        type: boolean
+        default: false
 
 jobs:
   linux:
@@ -55,13 +59,16 @@ jobs:
       - name: GUI smoke test (host)
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
       - name: Install cargo-dist
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_packaging == 'true' }}
         run: cargo install cargo-dist@0.30.0 --locked
       - name: cargo-dist manifest
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_packaging == 'true' }}
         run: ~/.cargo/bin/dist manifest --host x86_64-unknown-linux-gnu --output-format json > dist-manifest.json
       - name: cargo-dist build dry run
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_packaging == 'true' }}
         run: ~/.cargo/bin/dist build --host x86_64-unknown-linux-gnu --dry-run
+      # Packaging validation is handled by the release workflow (cargo-packager).
+      # CI defaults stay fast; turn on run_packaging for dress rehearsals.
       - name: Optional Vagrant GUI smoke
         if: env.VAGRANT_ENABLED == 'true'
         run: ./scripts/vagrant-gui-smoke.sh

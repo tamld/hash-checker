@@ -33,7 +33,10 @@ Key interface states:
 ![Successful verification state](docs/assets/gui-match.png)
 ![Verification mismatch warning](docs/assets/gui-mismatch.png)
 ![High Contrast mode](docs/assets/gui-high-contrast.png)
-![Theme selector (Slate, Soft Light, High Contrast)](docs/assets/gui-theme-slate.png)
+![Folder Scan with manifest summary](docs/assets/gui-folder-scan.png)
+![Directory manifest details dialog](docs/assets/gui-folder-details.png)
+
+*Folder Scan screenshots illustrate a verification run with a deliberately introduced mismatch/missing/extra entry so the warning states are visible; a normal scan stays green until you perform an actual verify.*
 
 > Screenshot update workflow is documented in `docs/GUI_SCREENSHOT.md`.
 
@@ -101,6 +104,25 @@ hash-checker path/to/file.txt EXPECTED_HASH --log-format json   # JSON logs
 ```
 
 - Logs are written to `stderr` so `stdout` keeps the check result unchanged for legacy scripts/CI pipelines.
+
+## Directory Manifests (CLI)
+- Export a directory manifest (JSON by default, SHA-256 hashes, include subdirectories with `-r`):
+
+```bash
+hash-checker manifest export /path/to/folder -o folder.manifest.json -r
+```
+
+- Verify a manifest (format auto-detected from extension):
+
+```bash
+hash-checker manifest verify folder.manifest.json
+```
+
+- Handy flags:
+  - `--format csv|txt` to switch output format.
+  - `--algorithm sha512` to change the hashing algorithm.
+  - `--root /mnt/data` if verifying from a different directory than the one recorded.
+  - `--report-limit 5` to cap the mismatch/missing summary output.
 
 ## Benchmark
 - Sử dụng Criterion để theo dõi hiệu năng hashing:
