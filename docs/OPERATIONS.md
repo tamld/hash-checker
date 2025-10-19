@@ -1,5 +1,108 @@
 # Operations Guide
 
+## Developer Quick Reference
+
+### Clone & Workspace Layout
+```bash
+# Clone the public repository
+git clone https://github.com/tamld/hash-checker.git
+cd hash-checker
+
+# (Optional) work inside the assistant workspace layout
+cd local-scripts/hash-checker
+```
+
+> Most scripts/Make targets expect you to run them from the repository root (`hash-checker/` or `local-scripts/hash-checker/`). Update the remote when working from a fork.
+
+### Container Quick Start
+Prerequisites: Docker for build/test; Vagrant + VMware Fusion (optional) for headless GUI smoke tests.
+
+| Command | Purpose |
+| --- | --- |
+| `make rust-test` | Run Rust CLI unit/integration tests inside Docker |
+| `make rust-build` | Build Rust CLI release binary in Docker |
+| `make rust-gui-build` | Build Rust GUI release binary in Docker (installs GTK) |
+| `make rust-gui-smoke` | Launch Vagrant VM and run `cargo run -- --smoke-test` |
+| `make rust-build-temp` | Build CLI + GUI in Docker and copy artefacts to `/tmp/hash-checker-build` |
+| `make clean` | Remove build artefacts and prune Docker volumes |
+| `make cleanup-packaging` | Remove packaging staging directories (`dist/linux`, `target/packager`, `/tmp/hash-checker-*`) |
+
+> Recommendation: export `CARGO_TARGET_DIR` to an OS-specific temp path (for example `/tmp/hash-checker-target` or `%TEMP%\hash-checker-target`) so sync tools do not lock intermediate files. Clean up the directory or run `make clean` after finishing.
+
+### Host Builds (Rust Installed)
+```bash
+# CLI
+cargo build --release --manifest-path rust/hash-checker/Cargo.toml
+
+# GUI (ensure system GTK deps on Linux/macOS)
+cargo build --release --manifest-path rust/hash-checker-gui/Cargo.toml
+cargo run --release --manifest-path rust/hash-checker-gui/Cargo.toml -- --smoke-test
+
+# Equivalent Make targets
+make rust-build-host
+make rust-gui-build-host
+make rust-gui-smoke-host
+```
+
+### CLI Logging & Manifests
+- By default the CLI prints only the verification outcome. Use `--log-format text|json` when you need structured progress information; logs write to `stderr` so `stdout` stays script-friendly.
+- Export directory manifests with `hash-checker manifest export <path> -o <file> -r` (JSON default). Verify with `hash-checker manifest verify <file>`.
+- Helpful flags: `--format csv|txt`, `--algorithm <algo>`, `--root <path>` (when verifying from a different base directory), `--report-limit <n>` to cap mismatch summaries.
+
+### Benchmarks
+Run Criterion benchmarks to track hashing performance:
+```bash
+cargo bench --manifest-path rust/hash-checker/Cargo.toml
+```
+Benchmarks generate 1/10/50 MB samples and record SHA-256/512, BLAKE2s/B results in `target/criterion/` (HTML + CSV).
+
+### Installer Builds
+- Install `cargo-packager` once: `cargo install cargo-packager@0.11.7 --locked`.
+- From `rust/hash-checker-gui/` run `cargo packager --release --formats dmg` (macOS) or `cargo packager --release --formats deb appimage pacman` (Linux).
+- Windows CI publishes both the portable ZIP and NSIS installer. Packaging uses `docs/assets/icon-hash-checker.ico` for application branding.
+- macOS artefacts are currently unsigned; see Gatekeeper notes below or in the README.
+
+### Temporary Artefacts & Cleanup
+Use `make rust-build-temp` to stage CLI + GUI binaries under `/tmp/hash-checker-build`. Platform-specific helpers:
+```bash
+make rust-gui-dmg-temp        # -> /tmp/hash-checker-gui/*.dmg (macOS)
+make rust-linux-deb-temp      # -> /tmp/hash-checker-deb/*.deb (Linux build from mac host via cargo-packager)
+make rust-windows-zip-temp    # -> ${TMPDIR:-/tmp}/hash-checker-win/hash-checker-windows-portable.zip (%TEMP% on Windows)
+```
+Follow up with `make cleanup-packaging` to remove staging artefacts.
+
+### Verify Downloads
+- Each release publishes `SHA256SUMS`; download it alongside the artefact and validate with `shasum -a 256`, `Get-FileHash`, or the CLI.
+- For full platform instructions (including GPG and Authenticode verification) follow `docs/security/VERIFICATION_GUIDE.md`.
+- macOS builds remain unsigned; Gatekeeper bypass commands are documented below until notarisation is available.
+
+#### macOS Gatekeeper (Unsigned Builds)
+1. Mount the DMG from the release page.
+2. In Finder, right-click `Hash Checker.app` and choose **Open**.
+3. When the warning dialog appears, click **Open** again to confirm.
+
+Clear the quarantine flag manually after copying to `/Applications`:
+```bash
+xattr -d com.apple.quarantine "/Applications/Hash Checker.app"
+```
+
+### Local CI Gate
+- Run `make ci-linux-local` before pushing to execute fmt, clippy, tests, and Docker workflows.
+- Monthly maintenance: `make deps-refresh` updates dependencies, runs `cargo audit`/`cargo deny`, and refreshes cached toolchains. Capture logs under `logs/`.
+- See **CI Modes (2025-10-19)** for the mapping between local checks and GitHub Actions.
+
+### Documentation Index
+- Roadmap: `docs/PLAN.md`
+- Tasks: `docs/TASKS.md`
+- Backlog: `docs/BACKLOG.md`
+- Security roadmap: `docs/SECURITY_ROADMAP.md`
+- Threat model: `docs/security/THREAT_MODEL.md`
+- Verification guide: `docs/security/VERIFICATION_GUIDE.md`
+- Signing/credential playbooks: `docs/SIGNING.md`, `docs/security/CREDENTIAL_RUNBOOK.md`
+- GUI design: `docs/GUI_DECISION.md`, `docs/GUI_MVP_DESIGN.md`
+- Release operations: this file (`docs/OPERATIONS.md`)
+- Contributor conduct: `CODE_OF_CONDUCT.md`
+
 ## Release Checklist
 1. Ensure CI (`ci.yml`) is green on the target commit.
 2. Confirm the Release Readiness checklist in `docs/PLAN.md` is satisfied.
