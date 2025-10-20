@@ -50,28 +50,37 @@ make rust-gui-smoke-host
 - Helpful flags: `--format csv|txt`, `--algorithm <algo>`, `--root <path>` (when verifying from a different base directory), `--report-limit <n>` to cap mismatch summaries.
 
 ### Batch Comparison Reports
-- Define expected hashes in JSON or CSV and feed them to the new batch command:
+- Define expected hashes in JSON or CSV and feed them to the batch command:
 
   ```json
   [
     { "path": "dist/hash-checker", "expected": "sha256:<digest>" },
-    { "path": "README.md", "expected": "109788a70f52a60437d3c8867124ca72", "algorithm": "md5" }
+    { "path": "README.md", "expected": "1097…", "algorithm": "md5" }
   ]
   ```
 
-- Generate a report suitable for CI pipelines:
+- Run the CLI and capture a structured report:
 
   ```bash
   hash-checker batch --input hashes.json --output report.json --output-format json
-  # or CSV:
   hash-checker batch --input hashes.csv --input-format csv --output report.csv --output-format csv
   ```
 
-- Exit codes mirror manifest verification:
-  - `0` – all entries matched.
-  - `3` – mismatched or missing files detected.
-  - `2` – unrecoverable errors (I/O, unsupported algorithms).
-- Reports contain a summary block plus `entries[]` with `status` (`match`, `mismatch`, `missing`, `error`) and the computed hash when available.
+- Exit codes: `0` (all matched), `3` (mismatched/missing entries), `2` (errors such as unsupported algorithms or I/O failures).
+- Reports include a summary block plus `entries[]` with `status` (`match`, `mismatch`, `missing`, `error`) and the computed hash when applicable, making CI assertions straightforward.
+
+### Distribution Automation
+- Workflow **Distribution Dry Run** (`.github/workflows/dist-validation.yml`) runs weekly (Mon 06:00 UTC) and on demand:
+  - Job 1 installs `cargo-dist@0.30.0`, executes `cargo dist build --dry-run`, and uploads `dist-manifest.json` for inspection.
+  - Job 2 installs Debian deps, invokes `scripts/debian-smoke.sh`, and uploads the generated `.deb` plus CLI smoke logs.
+- Reproduce locally:
+
+  ```bash
+  sudo apt-get install libgtk-3-dev libasound2-dev xvfb
+  ./scripts/debian-smoke.sh
+  ```
+
+  The script builds the `.deb`, installs it (using `sudo` when available), and runs `hash-checker --version` plus `hash-checker-gui -- --smoke-test` (through `xvfb` when available). Logs are written under `logs/cli-snapshots/`.
 
 ### Benchmarks
 Run Criterion benchmarks to track hashing performance:
