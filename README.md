@@ -13,6 +13,7 @@ Hash Checker delivers reproducible workflows for validating file hashes on Windo
 ## Highlights
 - Supports SHA-2, SHA-1, MD5, and BLAKE2 families with automatic algorithm detection from hash prefixes.
 - Shared Rust core exposes both command-line and egui desktop interfaces.
+- Batch comparison reports for CI: feed JSON/CSV definitions to `hash-checker batch` and export structured results.
 - Directory manifest export/verify with JSON, CSV, and TXT outputs.
 - Container-first `make` targets keep builds reproducible across platforms, while host builds remain available.
 - Accessibility extras: keyboard shortcuts, clipboard integration, and Slate/High Contrast themes.
