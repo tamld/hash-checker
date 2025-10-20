@@ -19,6 +19,20 @@ Goal: provide a consistent set of screenshots for README/docs whenever the GUI c
 | `gui-high-contrast.png` | High contrast mode enabled | Highlight the toggle and dark color scheme |
 | `gui-theme-slate.png` | Theme selector overview | Highlight the Slate/Soft Light/High Contrast selector dialog |
 
+## Reference Gallery (public docs)
+
+These canonical shots power the single hero image in `README.md`. Keep the gallery up to date whenever UI tweaks land so downstream docs stay accurate.
+
+![Hash Checker Slate theme](assets/gui-main.png)
+*Slate theme (default) with copy-to-clipboard shortcut and status banner.*
+
+![Algorithm dropdown auto-selected from prefix](assets/gui-algorithm.png)
+![Successful verification state](assets/gui-match.png)
+![Verification mismatch warning](assets/gui-mismatch.png)
+![High Contrast mode](assets/gui-high-contrast.png)
+![Folder Scan with manifest summary](assets/gui-folder-scan.png)
+![Directory manifest details dialog](assets/gui-folder-details.png)
+
 ## Storage rules
 - Save files in `docs/assets/` and keep the naming as listed above.
 - Update README/docs references if filenames change.
