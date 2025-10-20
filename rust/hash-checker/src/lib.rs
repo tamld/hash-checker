@@ -4,8 +4,10 @@ use std::{
     path::Path,
 };
 
+mod batch;
 mod manifest;
 
+pub use batch::{run_batch, BatchEntry, BatchInput, BatchReport, BatchStatus, BatchSummary};
 pub use manifest::{
     apply_entry_path, detect_format_from_extension, generate_manifest, read_manifest,
     relative_path_string, resolve_root, verify_manifest, write_manifest, Manifest, ManifestEntry,

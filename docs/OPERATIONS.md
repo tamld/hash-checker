@@ -49,6 +49,30 @@ make rust-gui-smoke-host
 - Export directory manifests with `hash-checker manifest export <path> -o <file> -r` (JSON default). Verify with `hash-checker manifest verify <file>`.
 - Helpful flags: `--format csv|txt`, `--algorithm <algo>`, `--root <path>` (when verifying from a different base directory), `--report-limit <n>` to cap mismatch summaries.
 
+### Batch Comparison Reports
+- Define expected hashes in JSON or CSV and feed them to the new batch command:
+
+  ```json
+  [
+    { "path": "dist/hash-checker", "expected": "sha256:<digest>" },
+    { "path": "README.md", "expected": "109788a70f52a60437d3c8867124ca72", "algorithm": "md5" }
+  ]
+  ```
+
+- Generate a report suitable for CI pipelines:
+
+  ```bash
+  hash-checker batch --input hashes.json --output report.json --output-format json
+  # or CSV:
+  hash-checker batch --input hashes.csv --input-format csv --output report.csv --output-format csv
+  ```
+
+- Exit codes mirror manifest verification:
+  - `0` – all entries matched.
+  - `3` – mismatched or missing files detected.
+  - `2` – unrecoverable errors (I/O, unsupported algorithms).
+- Reports contain a summary block plus `entries[]` with `status` (`match`, `mismatch`, `missing`, `error`) and the computed hash when available.
+
 ### Benchmarks
 Run Criterion benchmarks to track hashing performance:
 ```bash
