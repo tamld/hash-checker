@@ -1,14 +1,16 @@
 use std::fs::File;
-use std::io::{self, Write};
+use std::io::{self, Read, Write};
 use std::io::{stderr, IsTerminal};
 use std::path::{Path, PathBuf};
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use hash_checker::{
     detect_format_from_extension, generate_manifest, read_manifest, relative_path_string,
-    resolve_root, supported_algorithms, verify_hash, verify_manifest, write_manifest, HashResult,
-    ManifestFormat, VerificationReport,
+    resolve_root, run_batch, supported_algorithms, verify_hash, verify_manifest, write_manifest,
+    BatchInput, BatchReport, BatchStatus, HashError, HashResult, ManifestFormat,
+    VerificationReport,
 };
+use serde::Deserialize;
 use tracing::{error, info, warn};
 
 #[derive(Parser, Debug)]
@@ -55,6 +57,7 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Commands {
     Manifest(ManifestCommand),
+    Batch(BatchArgs),
 }
 
 #[derive(Args, Debug)]
@@ -67,6 +70,39 @@ struct ManifestCommand {
 enum ManifestAction {
     Export(ManifestExportArgs),
     Verify(ManifestVerifyArgs),
+}
+
+#[derive(Args, Debug)]
+struct BatchArgs {
+    #[arg(
+        long = "input",
+        value_name = "PATH",
+        help = "Input file containing batch entries (JSON or CSV). Use '-' or omit to read from stdin."
+    )]
+    input: Option<PathBuf>,
+
+    #[arg(
+        long = "input-format",
+        value_enum,
+        default_value_t = BatchFormatArg::Json,
+        help = "Format of the input definition."
+    )]
+    input_format: BatchFormatArg,
+
+    #[arg(
+        long = "output",
+        value_name = "PATH",
+        help = "Write report to file instead of stdout."
+    )]
+    output: Option<PathBuf>,
+
+    #[arg(
+        long = "output-format",
+        value_enum,
+        default_value_t = BatchFormatArg::Json,
+        help = "Format of the generated report."
+    )]
+    output_format: BatchFormatArg,
 }
 
 #[derive(Args, Debug)]
@@ -114,6 +150,12 @@ enum ManifestFormatArg {
     Json,
     Csv,
     Txt,
+}
+
+#[derive(Copy, Clone, Debug, ValueEnum, PartialEq, Eq)]
+enum BatchFormatArg {
+    Json,
+    Csv,
 }
 
 impl ManifestFormatArg {
@@ -232,6 +274,7 @@ fn init_logging(format: LogFormat) {
 fn handle_command(command: Commands) -> HashResult<i32> {
     match command {
         Commands::Manifest(manifest) => handle_manifest_command(manifest),
+        Commands::Batch(args) => handle_batch_command(args),
     }
 }
 
@@ -243,6 +286,27 @@ fn handle_manifest_command(manifest: ManifestCommand) -> HashResult<i32> {
         }
         ManifestAction::Verify(args) => handle_manifest_verify(args),
     }
+}
+
+fn handle_batch_command(args: BatchArgs) -> HashResult<i32> {
+    let inputs = read_batch_inputs(&args)?;
+    if inputs.is_empty() {
+        return Err(HashError::ManifestParse(
+            "batch input is empty; provide at least one entry".to_string(),
+        ));
+    }
+
+    let report = run_batch(&inputs);
+    write_batch_report(&report, &args)?;
+    eprintln!(
+        "Batch summary: matched={}, mismatched={}, missing={}, errored={}",
+        report.summary.matched,
+        report.summary.mismatched,
+        report.summary.missing,
+        report.summary.errored
+    );
+
+    Ok(report.exit_code())
 }
 
 fn handle_manifest_export(args: ManifestExportArgs) -> HashResult<()> {
@@ -362,4 +426,150 @@ fn manifest_relative_to_root(manifest_path: &Path, root: &Path) -> Option<String
         .strip_prefix(root_canonical)
         .ok()
         .map(relative_path_string)
+}
+
+fn read_batch_inputs(args: &BatchArgs) -> HashResult<Vec<BatchInput>> {
+    let read_from_stdin = args
+        .input
+        .as_ref()
+        .map(|path| path == Path::new("-"))
+        .unwrap_or(args.input.is_none());
+
+    if read_from_stdin {
+        let stdin = io::stdin();
+        let handle = stdin.lock();
+        read_batch_inputs_from_reader(handle, args.input_format)
+    } else {
+        let path = args.input.as_ref().expect("input path present");
+        let file = File::open(path)?;
+        read_batch_inputs_from_reader(file, args.input_format)
+    }
+}
+
+fn read_batch_inputs_from_reader<R: Read>(
+    reader: R,
+    format: BatchFormatArg,
+) -> HashResult<Vec<BatchInput>> {
+    match format {
+        BatchFormatArg::Json => {
+            serde_json::from_reader(reader).map_err(|err| HashError::ManifestParse(err.to_string()))
+        }
+        BatchFormatArg::Csv => {
+            let mut rdr = csv::ReaderBuilder::new()
+                .trim(csv::Trim::All)
+                .from_reader(reader);
+
+            let mut inputs = Vec::new();
+            for row in rdr.deserialize::<CsvBatchRow>() {
+                let record: CsvBatchRow =
+                    row.map_err(|err| HashError::ManifestParse(err.to_string()))?;
+                inputs.push(BatchInput {
+                    path: PathBuf::from(record.path),
+                    expected: record.expected,
+                    algorithm: record.algorithm,
+                });
+            }
+            Ok(inputs)
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct CsvBatchRow {
+    path: String,
+    expected: String,
+    #[serde(default)]
+    algorithm: Option<String>,
+}
+
+fn write_batch_report(report: &BatchReport, args: &BatchArgs) -> HashResult<()> {
+    match args.output_format {
+        BatchFormatArg::Json => {
+            if let Some(path) = &args.output {
+                let file = File::create(path)?;
+                serde_json::to_writer_pretty(file, report)
+                    .map_err(|err| HashError::ManifestSerialize(err.to_string()))?;
+            } else {
+                let stdout = io::stdout();
+                let mut handle = stdout.lock();
+                serde_json::to_writer_pretty(&mut handle, report)
+                    .map_err(|err| HashError::ManifestSerialize(err.to_string()))?;
+                handle.write_all(b"\n")?;
+            }
+        }
+        BatchFormatArg::Csv => {
+            let write_target = match &args.output {
+                Some(path) => {
+                    let file = File::create(path)?;
+                    EitherWriter::File(file)
+                }
+                None => {
+                    let stdout = io::stdout();
+                    EitherWriter::Stdout(stdout)
+                }
+            };
+            write_batch_report_csv(report, write_target)?;
+        }
+    }
+    Ok(())
+}
+
+enum EitherWriter {
+    File(File),
+    Stdout(io::Stdout),
+}
+
+impl Write for EitherWriter {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        match self {
+            EitherWriter::File(file) => file.write(buf),
+            EitherWriter::Stdout(stdout) => {
+                let mut handle = stdout.lock();
+                handle.write(buf)
+            }
+        }
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        match self {
+            EitherWriter::File(file) => file.flush(),
+            EitherWriter::Stdout(stdout) => {
+                let mut handle = stdout.lock();
+                handle.flush()
+            }
+        }
+    }
+}
+
+fn write_batch_report_csv(report: &BatchReport, mut writer: EitherWriter) -> HashResult<()> {
+    let mut wtr = csv::WriterBuilder::new()
+        .has_headers(true)
+        .from_writer(&mut writer);
+
+    wtr.write_record(["path", "status", "expected", "actual", "algorithm", "error"])
+        .map_err(|err| HashError::ManifestSerialize(err.to_string()))?;
+
+    for entry in &report.entries {
+        let status = match entry.status {
+            BatchStatus::Match => "match",
+            BatchStatus::Mismatch => "mismatch",
+            BatchStatus::Missing => "missing",
+            BatchStatus::Error => "error",
+        };
+        wtr.write_record([
+            entry.path.as_str(),
+            status,
+            entry.expected.as_str(),
+            entry.actual.as_deref().unwrap_or(""),
+            entry.algorithm.as_deref().unwrap_or(""),
+            entry.error.as_deref().unwrap_or(""),
+        ])
+        .map_err(|err| HashError::ManifestSerialize(err.to_string()))?;
+    }
+
+    wtr.flush()
+        .map_err(|err| HashError::ManifestSerialize(err.to_string()))?;
+    drop(wtr);
+    writer.flush()?;
+    Ok(())
 }
