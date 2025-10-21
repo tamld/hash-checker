@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/tamld/hash-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/tamld/hash-checker/actions/workflows/ci.yml)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![Rust](https://img.shields.io/badge/Rust-1.83%2B-orange?logo=rust)
+![Rust](https://img.shields.io/badge/Rust-1.88%2B-orange?logo=rust)
 
 > Cross-platform integrity checker with a shared Rust core powering CLI and egui desktop apps.
 
@@ -14,6 +14,7 @@ Hash Checker delivers reproducible workflows for validating file hashes on Windo
 - Supports SHA-2, SHA-1, MD5, and BLAKE2 families with automatic algorithm detection from hash prefixes.
 - Shared Rust core exposes both command-line and egui desktop interfaces.
 - Batch comparison reports for CI: feed JSON/CSV definitions to `hash-checker batch` and export structured results.
+- Linux builds now rely on the XDG desktop portal backend—no more GTK runtime dependency for file dialogs.
 - Directory manifest export/verify with JSON, CSV, and TXT outputs.
 - Container-first `make` targets keep builds reproducible across platforms, while host builds remain available.
 - Accessibility extras: keyboard shortcuts, clipboard integration, and Slate/High Contrast themes.
@@ -22,6 +23,7 @@ Hash Checker delivers reproducible workflows for validating file hashes on Windo
 - Clone: `git clone https://github.com/tamld/hash-checker.git && cd hash-checker` (agents may work from `local-scripts/hash-checker/` inside the workspace layout).
 - Container workflow: `make rust-test`, `make rust-gui-build`, `make rust-gui-smoke`, and `make cleanup-packaging`. See `docs/OPERATIONS.md` for the full command matrix.
 - Host build: `cargo build --release --manifest-path rust/hash-checker/Cargo.toml` plus the GUI variant (`rust/hash-checker-gui/`) or the equivalent `make` targets documented in `docs/OPERATIONS.md`.
+- Linux GUI runs via the XDG desktop portal. Install `xdg-desktop-portal` (and a backend such as `xdg-desktop-portal-gtk`) if your distro does not enable it by default.
 - Local gate: run `make ci-linux-local` before pushing to exercise fmt, clippy, tests, and Docker workflows.
 
 ## Documentation

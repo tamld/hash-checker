@@ -197,7 +197,7 @@ fn main() {
         info!("Listing supported algorithms");
         println!("Available algorithms:");
         for algo in supported_algorithms() {
-            println!("- {}", algo);
+            println!("- {algo}");
         }
         return;
     }
@@ -236,12 +236,12 @@ fn main() {
         Ok((false, computed)) => {
             warn!(file = %file.display(), computed = %computed, "Hashes do not match");
             eprintln!("Hashes do not match ❌");
-            eprintln!("Computed: {}", computed);
+            eprintln!("Computed: {computed}");
             std::process::exit(3);
         }
         Err(err) => {
             error!(file = %file.display(), error = %err, "Verification failed");
-            eprintln!("Verification failed: {}", err);
+            eprintln!("Verification failed: {err}");
             std::process::exit(1);
         }
     }
@@ -407,7 +407,7 @@ fn print_report(report: &VerificationReport, limit: usize) {
     if !report.extra.is_empty() {
         println!("Extra files on disk ({}):", report.extra.len());
         for path in report.extra.iter().take(limit) {
-            println!("  - {}", path);
+            println!("  - {path}");
         }
         if report.extra.len() > limit {
             println!("  … and {} more extra entries.", report.extra.len() - limit);
