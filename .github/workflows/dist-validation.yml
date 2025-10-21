@@ -22,19 +22,21 @@ jobs:
 
       - name: Install cargo-dist
         run: |
-          cargo install cargo-dist@0.29.0 --locked
+          cargo install cargo-dist@0.30.0 --locked
           ln -sfn "$HOME/.cargo/bin/dist" "$HOME/.cargo/bin/cargo-dist"
 
-      - name: Cargo dist dry-run
+      - name: Cargo dist plan
         run: |
-          cargo dist build --dry-run
-          cargo dist manifest --host x86_64-unknown-linux-gnu --output-format json > dist-manifest.json
+          dist plan --output-format json > dist-plan.json
+          dist manifest --artifacts all --output-format json --no-local-paths > dist-manifest.json
 
       - name: Upload dist manifest
         uses: actions/upload-artifact@v4
         with:
-          name: dist-manifest
-          path: dist-manifest.json
+          name: dist-plan
+          path: |
+            dist-plan.json
+            dist-manifest.json
 
   debian_smoke:
     runs-on: ubuntu-latest
