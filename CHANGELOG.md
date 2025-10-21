@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 - SignPath signing integration for Windows artefacts.
 - Light-theme palette follow-up adjustments based on tester feedback.
+### Changed
+- Linux GUI now relies on the XDG desktop portal via `rfd` 0.15.4; GTK3 runtime dependency removed.
+- Minimum supported Rust version increased to 1.88.0 to support the upgraded `eframe`/`egui` stack.
 
 ## [0.1.5] - 2025-10-17
 ### Added

@@ -9,6 +9,7 @@ only highlights the key signals and where to dig deeper.
 ## Snapshot
 - GUI polish landed on `main` (theme presets, prefixed hash copy); QA log for the refreshed screenshots is stored under `logs/qa/theme-copy-verification-20251015.md`, and assets were updated again on 2025-10-16.
 - Release automation now builds and verifies the macOS universal DMG inside `release.yml`; the local script remains available for manual runs.
+- Linux GUI now ships with the XDG desktop portal backend (no GTK3 runtime); CI run [18692925441](https://github.com/tamld/hash-checker/actions/runs/18692925441) confirmed dialogs on GitHub-hosted Linux, and MSRV has been raised to Rust 1.88.0.
 - Linux CI job now runs on pushes and pull requests again; use the `skip-linux-ci` label only for doc-only PRs per the updated guardrail in `docs/OPERATIONS.md`.
 - CLI no longer depends on the unmaintained `atty` crate; terminal detection now uses `std::io::IsTerminal`, keeping `cargo audit` clean.
 - Release v0.1.5 (2025-10-17) captures the guardrail updates, CLI logging improvements, and dependency refresh.
