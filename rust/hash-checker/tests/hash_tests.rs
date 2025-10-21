@@ -88,7 +88,7 @@ fn verify_hash_infers_blake2b() {
 fn verify_hash_accepts_prefixed_digest() {
     let file = write_sample_file();
     let digest = compute_hash(file.path(), "sha256").expect("hash");
-    let prefixed = format!("sha256:{}", digest);
+    let prefixed = format!("sha256:{digest}");
     let (matches, computed) = verify_hash(file.path(), &prefixed, None).expect("verify");
     assert!(matches);
     assert_eq!(computed, digest);
@@ -98,7 +98,7 @@ fn verify_hash_accepts_prefixed_digest() {
 fn verify_hash_rejects_unknown_prefix() {
     let file = write_sample_file();
     let digest = compute_hash(file.path(), "sha256").expect("hash");
-    let prefixed = format!("sha999:{}", digest);
+    let prefixed = format!("sha999:{digest}");
     let err = verify_hash(file.path(), &prefixed, None).expect_err("expected failure");
     assert!(matches!(err, HashError::UnsupportedAlgorithm(_)));
 }

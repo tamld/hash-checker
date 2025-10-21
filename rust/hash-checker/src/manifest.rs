@@ -261,7 +261,7 @@ fn write_manifest_csv<W: Write>(manifest: &Manifest, mut writer: W) -> HashResul
     writeln!(&mut writer, "# algorithm={}", manifest.algorithm)?;
     writeln!(&mut writer, "# recursive={}", manifest.recursive)?;
     if let Some(root) = &manifest.root {
-        writeln!(&mut writer, "# root={}", root)?;
+        writeln!(&mut writer, "# root={root}")?;
     }
 
     let mut csv_writer = csv::WriterBuilder::new()
@@ -380,7 +380,7 @@ fn write_manifest_plain<W: Write>(manifest: &Manifest, mut writer: W) -> HashRes
     writeln!(&mut writer, "# algorithm={}", manifest.algorithm)?;
     writeln!(&mut writer, "# recursive={}", manifest.recursive)?;
     if let Some(root) = &manifest.root {
-        writeln!(&mut writer, "# root={}", root)?;
+        writeln!(&mut writer, "# root={root}")?;
     }
     for entry in &manifest.entries {
         writeln!(

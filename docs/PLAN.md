@@ -69,13 +69,13 @@
 ## Phase 5 – Stretch Improvements
 - Core feature growth:
   - [x] Directory hashing & manifest export/import (CLI support shipped; GUI enhancements deferred).
-  - [ ] Batch comparison reports (JSON/CSV).
+  - [x] Batch comparison reports (JSON/CSV).
   - [ ] Plugin interface for custom algorithms / SDK bindings.
 - Observability & performance:
   - [x] Structured logging/telemetry toggle for CLI runs (added `--log-format`, Oct 2025).
   - [x] Regression benchmarks (criterion) for large files (Oct 2025 benches recorded under `logs/qa/`).
 - Distribution & automation:
-  - [ ] Automate reproducible builds (`cargo dist build --dry-run`) in CI and capture Debian package install verification.
+  - [x] Automate reproducible builds (`cargo dist build --dry-run`) in CI and capture Debian package install verification.
   - [ ] Add winget/homebrew manifests.
 
 ### Implementation order (easy → hard)

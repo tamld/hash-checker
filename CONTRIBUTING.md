@@ -18,7 +18,7 @@ process we follow so changes land smoothly and stay traceable.
 
 ## Development Environment
 
-- Hash Checker targets **Rust 1.83+**. Make sure `rustup` or the Docker-based
+- Hash Checker targets **Rust 1.88+**. Make sure `rustup` or the Docker-based
   workflow uses that toolchain.
 - The recommended local gate is:
 
