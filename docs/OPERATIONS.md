@@ -73,7 +73,7 @@ make rust-gui-smoke-host
 
 ### Distribution Automation
 - Workflow **Distribution Dry Run** (`.github/workflows/dist-validation.yml`) runs weekly (Mon 06:00 UTC) and on demand:
-  - Job 1 installs `cargo-dist@0.30.0`, executes `cargo dist build --dry-run`, and uploads `dist-manifest.json` for inspection.
+  - Job 1 installs `cargo-dist@0.30.0`, runs `dist plan --output-format json`, captures `dist-manifest.json`, và lưu cả hai artefact để review.
   - Job 2 installs Debian deps, invokes `scripts/debian-smoke.sh`, and uploads the generated `.deb` plus CLI smoke logs.
 - Reproduce locally:
 
@@ -83,6 +83,18 @@ make rust-gui-smoke-host
   ```
 
   The script builds the `.deb`, installs it (using `sudo` when available), and runs `hash-checker --version` plus `hash-checker-gui -- --smoke-test` (through `xvfb` when available). Logs are written under `logs/cli-snapshots/`.
+
+- Build toàn bộ matrix artefact trên macOS (yêu cầu Zig, `cargo-xwin`, `cargo-zigbuild`, `rust-src` và ưu tiên `~/.cargo/bin` trong `PATH`):
+
+  ```bash
+  brew install zig
+  cargo install cargo-zigbuild@0.18.2 --locked
+  cargo install cargo-xwin@0.17.0 --locked
+  rustup component add rust-src
+  PATH="$HOME/.cargo/bin:$PATH" dist build --artifacts=local
+  ```
+
+  Lệnh trên tạo đủ bộ `tar.xz`/`zip` cho macOS (x86_64 + arm64), Linux và Windows dưới `target/distrib/`. Nếu dùng `brew` cargo (không phải rustup), preferring `~/.cargo/bin` như trên là bắt buộc để tránh thiếu `rust-std` cross-target.
 
 ### Benchmarks
 Run Criterion benchmarks to track hashing performance:
@@ -235,7 +247,7 @@ Keep this document with the repo to standardise release expectations.
 | --- | --- | --- | --- | --- |
 | Push / PR | Automatic on push & pull request | Fast feedback cycle | fmt, clippy, unit tests, GUI tests, bench, Docker smoke | Packaging bỏ qua để giữ runtime < 10 phút; chỉ dùng nhãn `skip-linux-ci` cho PR doc-only |
 | Dispatch – fast | `workflow_dispatch` (defaults: `run_packaging=false`) | Rerun failed jobs quickly | Same set as Push / PR | Dùng khi cần rerun thủ công mà không rehearsal packaging |
-| Dispatch – packaging rehearsal | `workflow_dispatch` with `run_packaging=true` | Dress rehearsal trước khi tag release | Push / PR steps + `cargo dist manifest`, `cargo dist build --dry-run` | Ghi lại run URL + dist manifest vào issue release |
+| Dispatch – packaging rehearsal | `workflow_dispatch` with `run_packaging=true` | Dress rehearsal trước khi tag release | Push / PR steps + `dist plan`, `dist manifest` | Ghi lại run URL + dist manifest vào issue release |
 | Release workflow | Tag push hoặc manual dispatch `release.yml` | Build & publish artefacts | Full packaging + signing | Nguồn artefact chính thức để phát hành |
 
 - **Debug runs (job-specific):** Khi một job matrix fail, chạy `gh workflow run CI --field run_linux=true --field run_macos=false --field run_windows=false` để lặp nhanh. Các run này không đủ điều kiện merge/release.

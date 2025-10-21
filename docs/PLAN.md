@@ -75,13 +75,13 @@
   - [x] Structured logging/telemetry toggle for CLI runs (added `--log-format`, Oct 2025).
   - [x] Regression benchmarks (criterion) for large files (Oct 2025 benches recorded under `logs/qa/`).
 - Distribution & automation:
-  - [x] Automate reproducible builds (`cargo dist build --dry-run`) in CI and capture Debian package install verification.
+  - [x] Automate reproducible builds (`dist plan`) in CI and capture Debian package install verification.
   - [ ] Add winget/homebrew manifests.
 
 ### Implementation order (easy → hard)
 1. Directory hashing & manifest export workflows.
 2. Batch comparison reports API.
-3. Automate reproducible builds + package manifests (cargo dist dry-run, winget/homebrew).
+3. Automate reproducible builds + package manifests (`dist plan`, winget/homebrew).
 4. Plugin interface for additional runtimes.
 
 ### Migration roadmap
