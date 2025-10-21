@@ -10,9 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.88.0
       - name: Install dependencies
         run: |
-          rustup update stable
           cargo install cargo-audit --locked
           cargo install cargo-deny --locked
       - name: Run make deps-refresh

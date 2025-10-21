@@ -12,11 +12,13 @@ maintained in [`docs/PLAN.md`](PLAN.md); historical summaries live in
 ## Ready backlog (pull next)
 - [x] Criterion-based regression benchmarks for large files (see Criterion benches).
 - [x] Directory hashing + manifest export/import workflows (CLI support shipped in issue #20; GUI follow-up backlogged).
-- [ ] Batch comparison reports API for CI.
-- [ ] Automate reproducible build smoke (`cargo dist build --dry-run`) and Debian installer verification in CI.
-- [ ] GTK4/`instant` migration spike (due 2025-11-15): audit GTK3 usage, evaluate alternatives, open tracking issue.
+- [x] Batch comparison reports API for CI. (Issue #21)
+- [x] Automate reproducible build smoke (`dist plan`) and Debian installer verification in CI. (Issue #22)
+- [x] GTK4/`instant` migration spike (due 2025-11-15): audit GTK3 usage, evaluate alternatives, open tracking issue. (Issue #23)
 - [x] Build GUI manifest deep-tree harness + golden artefacts (see docs/GUI_MANIFEST_TEST_PLAN.md).
 - [x] Adjust manifest table layout + control widths to satisfy GUI_MANIFEST_TEST_PLAN assumptions (A3/A4).
+- [ ] Adopt rfd xdg-portal backend to drop GTK3 dependency (Issue #34).
+- [ ] Upgrade eframe/egui stack to remove `instant` and bump MSRV (Issue #35).
 
 ## Deferred / blocked
 - [ ] SignPath onboarding (awaiting OSS credentials and secrets).
