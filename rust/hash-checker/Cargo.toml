@@ -5,6 +5,7 @@ edition = "2021"
 authors = ["tamld <tamld@users.noreply.github.com>"]
 description = "Cross-platform hash verification utility implemented in Rust."
 license = "MIT"
+repository = "https://github.com/tamld/hash-checker"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }

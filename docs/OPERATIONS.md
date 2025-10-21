@@ -1,6 +1,8 @@
 # Operations Guide
 
 ## Developer Quick Reference
+> Minimum supported Rust version (MSRV): **1.88.0**
+
 
 ### Clone & Workspace Layout
 ```bash
@@ -21,7 +23,7 @@ Prerequisites: Docker for build/test; Vagrant + VMware Fusion (optional) for hea
 | --- | --- |
 | `make rust-test` | Run Rust CLI unit/integration tests inside Docker |
 | `make rust-build` | Build Rust CLI release binary in Docker |
-| `make rust-gui-build` | Build Rust GUI release binary in Docker (installs GTK) |
+| `make rust-gui-build` | Build Rust GUI release binary in Docker (ensures XDG desktop portal dependencies) |
 | `make rust-gui-smoke` | Launch Vagrant VM and run `cargo run -- --smoke-test` |
 | `make rust-build-temp` | Build CLI + GUI in Docker and copy artefacts to `/tmp/hash-checker-build` |
 | `make clean` | Remove build artefacts and prune Docker volumes |
@@ -34,7 +36,7 @@ Prerequisites: Docker for build/test; Vagrant + VMware Fusion (optional) for hea
 # CLI
 cargo build --release --manifest-path rust/hash-checker/Cargo.toml
 
-# GUI (ensure system GTK deps on Linux/macOS)
+# GUI (ensure XDG desktop portal on Linux; install pkg-config on macOS)
 cargo build --release --manifest-path rust/hash-checker-gui/Cargo.toml
 cargo run --release --manifest-path rust/hash-checker-gui/Cargo.toml -- --smoke-test
 
@@ -71,16 +73,28 @@ make rust-gui-smoke-host
 
 ### Distribution Automation
 - Workflow **Distribution Dry Run** (`.github/workflows/dist-validation.yml`) runs weekly (Mon 06:00 UTC) and on demand:
-  - Job 1 installs `cargo-dist@0.30.0`, executes `cargo dist build --dry-run`, and uploads `dist-manifest.json` for inspection.
+  - Job 1 installs `cargo-dist@0.30.0`, runs `dist plan --output-format json`, captures `dist-manifest.json`, và lưu cả hai artefact để review.
   - Job 2 installs Debian deps, invokes `scripts/debian-smoke.sh`, and uploads the generated `.deb` plus CLI smoke logs.
 - Reproduce locally:
 
   ```bash
-  sudo apt-get install libgtk-3-dev libasound2-dev xvfb
+  sudo apt-get install libasound2-dev xdg-desktop-portal xvfb
   ./scripts/debian-smoke.sh
   ```
 
   The script builds the `.deb`, installs it (using `sudo` when available), and runs `hash-checker --version` plus `hash-checker-gui -- --smoke-test` (through `xvfb` when available). Logs are written under `logs/cli-snapshots/`.
+
+- Build toàn bộ matrix artefact trên macOS (yêu cầu Zig, `cargo-xwin`, `cargo-zigbuild`, `rust-src` và ưu tiên `~/.cargo/bin` trong `PATH`):
+
+  ```bash
+  brew install zig
+  cargo install cargo-zigbuild@0.18.2 --locked
+  cargo install cargo-xwin@0.17.0 --locked
+  rustup component add rust-src
+  PATH="$HOME/.cargo/bin:$PATH" dist build --artifacts=local
+  ```
+
+  Lệnh trên tạo đủ bộ `tar.xz`/`zip` cho macOS (x86_64 + arm64), Linux và Windows dưới `target/distrib/`. Nếu dùng `brew` cargo (không phải rustup), preferring `~/.cargo/bin` như trên là bắt buộc để tránh thiếu `rust-std` cross-target.
 
 ### Benchmarks
 Run Criterion benchmarks to track hashing performance:
@@ -173,7 +187,7 @@ Keep this document with the repo to standardise release expectations.
 - `cargo clippy --all-targets -- -D warnings` on both crates.
 - `cargo test` (CLI crate) and `make rust-test` inside Docker.
 - `cargo run --release -- --smoke-test` for the GUI crate.
-- `cargo packager --release --formats deb` inside `rust:1.83` Docker after icon fix.
+- `cargo packager --release --formats deb` inside `rust:1.88` Docker after icon fix.
 
 ### Common failure modes
 - `cargo packager` rejects legacy keys such as `[package.metadata.packager.macos].icons` and `[package.metadata.packager.windows].icon-path`; consolidate under the root `icons` array.
@@ -204,7 +218,7 @@ Keep this document with the repo to standardise release expectations.
 - macOS builds publish a universal (Intel + Apple Silicon) DMG; retain `scripts/macos-universal-dmg.sh` for local smoke tests or incident response.
 
 ### Runner & environment strategy
-- **Linux runner**: primary automation host. Execute `make ci-linux-local` and other checks inside Docker images (e.g. `rust:1.83`) so the host OS stays clean and reproducible.
+- **Linux runner**: primary automation host. Execute `make ci-linux-local` and other checks inside Docker images (e.g. `rust:1.88`) so the host OS stays clean and reproducible.
 - **macOS runner**: dedicated macOS environment (GitHub-hosted or self-managed). Install build deps via Homebrew inside each job; run GUI smoke tests natively.
 - **Windows runner**: required for native GUI smoke, NSIS packaging, and SignPath submissions. Cross-compiling from Linux is acceptable for CLI builds but still validate on Windows.
 - **Isolation**: each job defines its own `CARGO_TARGET_DIR`/temp directories and archives logs under `logs/` to avoid cross-contamination.
@@ -224,8 +238,8 @@ Keep this document with the repo to standardise release expectations.
 - Secrets: store `SIGNPATH_ORG`, `SIGNPATH_PROJECT`, and API tokens in GitHub Actions; review their validity regularly.
 
 ### CI warning mitigation (2025-10-08)
-- Replaced `actions-rs/toolchain@v1` with `dtolnay/rust-toolchain@stable` across workflows to remove the deprecated `set-output` warning.
-- Added `brew list` guards before installing `gtk+3`/`pkg-config` so macOS logs no longer emit “pkgconf already installed” noise.
+- Pinned GitHub Actions to Rust 1.88.0 via `dtolnay/rust-toolchain@master` to keep CI in lockstep with the MSRV.
+- Removed legacy GTK installation steps; Linux now depends on the XDG desktop portal and macOS only installs `pkg-config` when missing.
 
 ### CI run modes (2025-10-19)
 
@@ -233,7 +247,7 @@ Keep this document with the repo to standardise release expectations.
 | --- | --- | --- | --- | --- |
 | Push / PR | Automatic on push & pull request | Fast feedback cycle | fmt, clippy, unit tests, GUI tests, bench, Docker smoke | Packaging bỏ qua để giữ runtime < 10 phút; chỉ dùng nhãn `skip-linux-ci` cho PR doc-only |
 | Dispatch – fast | `workflow_dispatch` (defaults: `run_packaging=false`) | Rerun failed jobs quickly | Same set as Push / PR | Dùng khi cần rerun thủ công mà không rehearsal packaging |
-| Dispatch – packaging rehearsal | `workflow_dispatch` with `run_packaging=true` | Dress rehearsal trước khi tag release | Push / PR steps + `cargo dist manifest`, `cargo dist build --dry-run` | Ghi lại run URL + dist manifest vào issue release |
+| Dispatch – packaging rehearsal | `workflow_dispatch` with `run_packaging=true` | Dress rehearsal trước khi tag release | Push / PR steps + `dist plan`, `dist manifest` | Ghi lại run URL + dist manifest vào issue release |
 | Release workflow | Tag push hoặc manual dispatch `release.yml` | Build & publish artefacts | Full packaging + signing | Nguồn artefact chính thức để phát hành |
 
 - **Debug runs (job-specific):** Khi một job matrix fail, chạy `gh workflow run CI --field run_linux=true --field run_macos=false --field run_windows=false` để lặp nhanh. Các run này không đủ điều kiện merge/release.
@@ -255,7 +269,7 @@ Keep this document with the repo to standardise release expectations.
 - Keep sensitive planning notes under `docs/private/` (gitignored) so public releases contain only sanitized documentation.
 
 ### Local Linux CI workflow
-- Run `make ci-linux-local` before committing or pushing. This command launches `scripts/ci-linux-local.sh`, which spins up a Docker container (`rust:1.83`) and executes `cargo fmt`, `cargo clippy`, and `cargo test` for both CLI and GUI crates.
+- Run `make ci-linux-local` before committing or pushing. This command launches `scripts/ci-linux-local.sh`, which spins up a Docker container (`rust:1.88`) and executes `cargo fmt`, `cargo clippy`, and `cargo test` for both CLI and GUI crates.
 - Logs are written to `logs/ci-linux-<timestamp>.log`. Keep the most recent log until the change lands on `main` so troubleshooting has an audit trail.
 - Environment overrides:
   - `CI_LINUX_IMAGE` – alternative container name/tag.

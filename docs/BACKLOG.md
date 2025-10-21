@@ -12,6 +12,7 @@
 - Directory hashing with manifest export/import (JSON/CSV).
 - Cloud integration (OneDrive, Google Drive) through the plugin architecture.
 - SDK bindings (Node/other runtimes) consuming the Rust core library.
+- Optional file/folder encryption module built atop the existing hash workflows (scope to be clarified post v0.1.7).
 
 ## Improvements
 - Performance tuning for large files (async IO, multi-thread hashing).

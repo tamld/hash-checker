@@ -20,8 +20,9 @@ use std::{
 
 use eframe::{egui, App, Frame, NativeOptions};
 use egui::{
-    vec2, Align, Color32, FontFamily, FontId, Frame as EguiFrame, IconData, Id, Key,
-    KeyboardShortcut, Layout, Modifiers, RichText, TextStyle, ViewportBuilder, ViewportId,
+    output::OutputCommand, vec2, Align, Color32, FontFamily, FontId, Frame as EguiFrame, IconData,
+    Id, Key, KeyboardShortcut, Layout, Modifiers, Popup, RichText, StrokeKind, TextStyle,
+    ViewportBuilder, ViewportId,
 };
 use hash_checker::{
     compute_hash, detect_format_from_extension, generate_manifest, read_manifest, resolve_root,
@@ -73,12 +74,20 @@ fn responsive_multiplier(width: f32) -> f32 {
     }
 }
 
+fn margin_symmetric(x: f32, y: f32) -> egui::Margin {
+    egui::Margin::from(vec2(x, y))
+}
+
+fn margin_all(v: f32) -> egui::Margin {
+    egui::Margin::from(v)
+}
+
 fn configure_typography(ctx: &egui::Context, scale: f32) {
     ctx.style_mut(|style| {
         style.spacing.item_spacing = vec2(BASE_SPACING * scale, BASE_SPACING * scale);
         style.spacing.button_padding = vec2(14.0 * scale, 10.0 * scale);
-        style.spacing.window_margin = egui::style::Margin::symmetric(18.0 * scale, 16.0 * scale);
-        style.spacing.menu_margin = egui::style::Margin::same(10.0 * scale);
+        style.spacing.window_margin = margin_symmetric(18.0 * scale, 16.0 * scale);
+        style.spacing.menu_margin = margin_all(10.0 * scale);
         style.spacing.interact_size = vec2(0.0, 38.0 * scale);
 
         style.text_styles.insert(
@@ -287,8 +296,8 @@ impl HashCheckerApp {
         ui.heading("Hash Checker (Rust GUI)");
         ui.add_space(spacing);
 
-        egui::Frame::none()
-            .inner_margin(egui::style::Margin::symmetric(12.0 * scale, 0.0))
+        egui::Frame::new()
+            .inner_margin(margin_symmetric(12.0 * scale, 0.0))
             .show(ui, |ui| {
                 ui.spacing_mut().item_spacing = vec2(spacing, spacing);
                 ui.horizontal(|ui| {
@@ -328,10 +337,10 @@ impl HashCheckerApp {
                         .unwrap_or_else(|| "auto".to_string());
                     let combo_id = Id::new("file_algorithm_combo");
                     if self.force_open_algorithm_popup {
-                        ctx.memory_mut(|mem| mem.open_popup(combo_id));
+                        Popup::open_id(ctx, combo_id);
                         self.force_open_algorithm_popup = false;
                     }
-                    egui::ComboBox::from_id_source(combo_id)
+                    egui::ComboBox::from_id_salt(combo_id)
                         .width(combo_width)
                         .selected_text(current)
                         .show_ui(ui, |combo| {
@@ -401,7 +410,7 @@ impl HashCheckerApp {
         egui::Frame::group(&ctx.style())
             .fill(ui.visuals().extreme_bg_color.gamma_multiply(1.05))
             .stroke(egui::Stroke::new(0.0, Color32::TRANSPARENT))
-            .inner_margin(egui::style::Margin::symmetric(16.0 * scale, 12.0 * scale))
+            .inner_margin(margin_symmetric(16.0 * scale, 12.0 * scale))
             .show(ui, |ui| {
                 ui.set_width(ui.available_width());
                 ui.spacing_mut().item_spacing = vec2(spacing, spacing);
@@ -430,8 +439,8 @@ impl HashCheckerApp {
                             .last_algorithm_used
                             .clone()
                             .unwrap_or_else(|| self.resolve_algorithm().to_ascii_uppercase());
-                        let formatted = format!("{}:{}", algo, value);
-                        ctx.output_mut(|o| o.copied_text = formatted);
+                        let formatted = format!("{algo}:{value}");
+                        ctx.output_mut(|out| out.commands.push(OutputCommand::CopyText(formatted)));
                         self.set_status("Hash copied to clipboard.", StatusKind::Info);
                     }
                 });
@@ -519,7 +528,7 @@ impl App for HashCheckerApp {
 impl HashCheckerApp {
     fn paint(&mut self, ctx: &egui::Context) {
         self.manifest.poll_job();
-        let screen_width = ctx.screen_rect().width();
+        let screen_width = ctx.viewport_rect().width();
         let spacing_scale = responsive_multiplier(screen_width);
         let visuals = self.theme.selected_theme().visuals();
         ctx.set_visuals(visuals);
@@ -533,13 +542,8 @@ impl HashCheckerApp {
 
         egui::CentralPanel::default().show(ctx, |panel_ui| {
             let horizontal_margin = 24.0 * spacing_scale;
-            egui::Frame::none()
-                .inner_margin(egui::style::Margin {
-                    left: horizontal_margin,
-                    right: horizontal_margin,
-                    top: 0.0,
-                    bottom: 0.0,
-                })
+            egui::Frame::new()
+                .inner_margin(margin_symmetric(horizontal_margin, 0.0))
                 .show(panel_ui, |inner_ui| {
                     with_constrained_ui(inner_ui, MAX_CONTENT_WIDTH * spacing_scale, |ui| {
                         ui.set_width(ui.available_width());
@@ -585,7 +589,7 @@ impl HashCheckerApp {
                     ctx.request_repaint();
                 }
                 SnapshotStage::RequestCapture => {
-                    ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot);
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(Default::default()));
                     request.stage = SnapshotStage::AwaitImage;
                     ctx.request_repaint();
                 }
@@ -645,7 +649,7 @@ impl HashCheckerApp {
         }
         self.active_tab = scenario.active_tab();
         if matches!(scenario, SnapshotScenario::FileAlgorithmDropdown) {
-            ctx.memory_mut(|mem| mem.open_popup(Id::new("file_algorithm_combo")));
+            Popup::open_id(ctx, Id::new("file_algorithm_combo"));
         }
     }
 
@@ -878,7 +882,7 @@ impl HashCheckerApp {
     }
 
     fn theme_selector(&mut self, ui: &mut egui::Ui) {
-        egui::ComboBox::from_id_source("theme_selector")
+        egui::ComboBox::from_id_salt("theme_selector")
             .width(120.0)
             .selected_text(self.selected_theme().name())
             .show_ui(ui, |combo| {
@@ -910,8 +914,7 @@ impl HashCheckerApp {
                 let supported = supported_prefixes().join(", ");
                 self.set_status(
                     &format!(
-                        "Unsupported hash prefix '{}'. Supported prefixes: {}.",
-                        prefix, supported
+                        "Unsupported hash prefix '{prefix}'. Supported prefixes: {supported}."
                     ),
                     StatusKind::Warning,
                 );
@@ -968,13 +971,13 @@ impl HashCheckerApp {
                 let width = options.width;
                 let height = options.height;
                 jobs.push_back(SnapshotRequest::new(
-                    parent.join(format!("{}-file.png", stem)),
+                    parent.join(format!("{stem}-file.png")),
                     width,
                     height,
                     SnapshotScenario::FileDefault,
                 ));
                 jobs.push_back(SnapshotRequest::new(
-                    parent.join(format!("{}-manifest.png", stem)),
+                    parent.join(format!("{stem}-manifest.png")),
                     width,
                     height,
                     SnapshotScenario::ManifestSummary,
@@ -1221,7 +1224,7 @@ impl ManifestView {
 
     fn render_controls(&mut self, ctx: &egui::Context, ui: &mut egui::Ui, scale: f32) {
         let spacing_scale = scale;
-        let padding = egui::style::Margin::symmetric(16.0 * spacing_scale, 14.0 * spacing_scale);
+        let padding = margin_symmetric(16.0 * spacing_scale, 14.0 * spacing_scale);
 
         egui::Frame::group(&ctx.style())
             .fill(ui.visuals().extreme_bg_color)
@@ -1250,8 +1253,7 @@ impl ManifestView {
                             .max(240.0);
                     row.add_sized(
                         vec2(path_width, 0.0),
-                        egui::Label::new(RichText::new(folder_display.clone()).monospace())
-                            .wrap(true),
+                        egui::Label::new(RichText::new(folder_display.clone()).monospace()).wrap(),
                     );
                     row.add_space(BASE_SPACING * spacing_scale);
                     if row
@@ -1272,7 +1274,7 @@ impl ManifestView {
                     row.label("Algorithm:");
                     row.add_space(BASE_SPACING * spacing_scale);
                     let dropdown_width = 180.0 * spacing_scale;
-                    egui::ComboBox::from_id_source("manifest_algorithm_selector")
+                    egui::ComboBox::from_id_salt("manifest_algorithm_selector")
                         .width(dropdown_width)
                         .selected_text(&self.algorithms[self.algorithm_index])
                         .show_ui(row, |combo| {
@@ -1328,7 +1330,7 @@ impl ManifestView {
                     row.label("Format:");
                     row.add_space(BASE_SPACING * spacing_scale);
                     let dropdown_width = 180.0 * spacing_scale;
-                    egui::ComboBox::from_id_source("manifest_format_selector")
+                    egui::ComboBox::from_id_salt("manifest_format_selector")
                         .width(dropdown_width)
                         .selected_text(Self::format_label(self.export_format_index))
                         .show_ui(row, |combo| {
@@ -1343,7 +1345,7 @@ impl ManifestView {
         EguiFrame::group(ui.style())
             .fill(Color32::from_rgb(34, 38, 46))
             .stroke(egui::Stroke::new(1.0, Color32::from_rgb(70, 78, 92)))
-            .inner_margin(LARGE_SPACING)
+            .inner_margin(margin_all(LARGE_SPACING))
             .show(ui, |ui| {
                 ui.vertical_centered(|ui| {
                     ui.add_space(LARGE_SPACING);
@@ -1380,10 +1382,10 @@ impl ManifestView {
     }
 
     fn render_error(&self, ui: &mut egui::Ui, err: &ManifestError) {
-        EguiFrame::none()
+        EguiFrame::new()
             .fill(Color32::from_rgb(90, 34, 34))
             .stroke(egui::Stroke::new(2.0, Color32::from_rgb(200, 80, 80)))
-            .inner_margin(LARGE_SPACING)
+            .inner_margin(margin_all(LARGE_SPACING))
             .show(ui, |ui| {
                 ui.label(RichText::new("There was a problem").strong());
                 ui.label(&err.message);
@@ -1414,10 +1416,10 @@ impl ManifestView {
                 Color32::from_rgb(96, 110, 150),
             ),
         };
-        EguiFrame::none()
+        EguiFrame::new()
             .fill(fill)
             .stroke(egui::Stroke::new(1.0, stroke))
-            .inner_margin(egui::style::Margin::same(BASE_SPACING))
+            .inner_margin(margin_all(BASE_SPACING))
             .show(ui, |ui| {
                 ui.label(RichText::new(&banner.text).strong());
             });
@@ -1425,9 +1427,9 @@ impl ManifestView {
 
     fn render_skeleton(&self, ui: &mut egui::Ui) {
         let rows = 5;
-        EguiFrame::none()
+        EguiFrame::new()
             .fill(Color32::from_rgb(30, 34, 40))
-            .inner_margin(egui::style::Margin::same(BASE_SPACING))
+            .inner_margin(margin_all(BASE_SPACING))
             .show(ui, |ui| {
                 for _ in 0..rows {
                     ui.horizontal(|ui| {
@@ -1449,6 +1451,7 @@ impl ManifestView {
             rect,
             2.0,
             egui::Stroke::new(1.0, Color32::from_rgb(66, 72, 80)),
+            StrokeKind::Outside,
         );
         ui.allocate_space(rect.size());
     }
@@ -1511,17 +1514,20 @@ impl ManifestView {
                             RichText::new(format!("Saved list: {}", path.display()))
                                 .text_style(TextStyle::Small),
                         )
-                        .wrap(true),
+                        .wrap(),
                     );
                 }
                 row.separator();
                 let root_text = format!("Root: {}", data.root.display());
                 let root_label = egui::Label::new(RichText::new(root_text.clone()).monospace())
-                    .wrap(true)
+                    .wrap()
                     .sense(egui::Sense::click());
                 let response = row.add(root_label);
                 if response.clicked() {
-                    ctx.output_mut(|out| out.copied_text = root_text.clone());
+                    ctx.output_mut(|out| {
+                        out.commands
+                            .push(OutputCommand::CopyText(root_text.clone()))
+                    });
                 }
                 response.on_hover_text("Click to copy full root path");
             });
@@ -1548,7 +1554,7 @@ impl ManifestView {
                 1.0,
                 ui.visuals().widgets.inactive.bg_fill.gamma_multiply(0.6),
             ))
-            .inner_margin(egui::style::Margin::same(BASE_SPACING * scale))
+            .inner_margin(margin_all(BASE_SPACING * scale))
             .show(ui, |panel| {
                 panel.set_width(panel.available_width());
                 panel.vertical(|col| {
@@ -1654,7 +1660,7 @@ impl ManifestView {
                             row_ui.add_sized(
                                 vec2(path_width, 0.0),
                                 egui::Label::new(RichText::new(&row.path).monospace().size(14.0))
-                                    .wrap(true),
+                                    .wrap(),
                             );
 
                             let expected_label = match row.expected.as_ref() {
@@ -1663,7 +1669,7 @@ impl ManifestView {
                             };
                             row_ui.add_sized(
                                 vec2(hash_width, 0.0),
-                                egui::Label::new(expected_label).wrap(true),
+                                egui::Label::new(expected_label).wrap(),
                             );
 
                             let actual_label = match row.actual.as_ref() {
@@ -1672,13 +1678,13 @@ impl ManifestView {
                             };
                             row_ui.add_sized(
                                 vec2(hash_width, 0.0),
-                                egui::Label::new(actual_label).wrap(true),
+                                egui::Label::new(actual_label).wrap(),
                             );
 
                             let (text, color) = row.state.label_and_color();
                             row_ui.add_sized(
                                 vec2(state_width, 0.0),
-                                egui::Label::new(text.color(color)).wrap(true),
+                                egui::Label::new(text.color(color)).wrap(),
                             );
                         });
                     }
@@ -2247,6 +2253,7 @@ impl SnapshotOptions {
     }
 }
 
+#[derive(Clone)]
 struct ManifestCliOptions {
     dir: PathBuf,
     recursive: bool,
@@ -2435,35 +2442,14 @@ fn main() -> eframe::Result<()> {
         }
     }
 
-    let mut app = HashCheckerApp::new();
-
-    if let Some(manifest_cli) = &cli.manifest {
-        let algorithm = manifest_cli.algorithm.as_deref().unwrap_or("sha256");
-        match app.preload_manifest_scan(&manifest_cli.dir, manifest_cli.recursive, algorithm) {
-            Ok(ready) => {
-                if let Some(report_path) = &manifest_cli.report_path {
-                    match write_manifest_report(report_path, &ready) {
-                        Ok(()) => println!("Manifest report written to {}", report_path.display()),
-                        Err(err) => eprintln!("Failed to write manifest report: {err}"),
-                    }
-                }
-            }
-            Err(err) => {
-                eprintln!("Failed to preload manifest: {err}");
-                std::process::exit(1);
-            }
-        }
-    }
-
-    if let Some(snapshot_opts) = cli.snapshot.clone() {
-        app.enable_snapshot(snapshot_opts.clone());
-    }
+    let manifest_cli = cli.manifest.clone();
+    let snapshot_opts = cli.snapshot.clone();
 
     let mut options = NativeOptions::default();
     if let Some(icon) = load_app_icon() {
         options.viewport = options.viewport.with_icon(icon);
     }
-    if let Some(snapshot_opts) = &cli.snapshot {
+    if let Some(snapshot_opts) = &snapshot_opts {
         options.viewport = options.viewport.with_inner_size(vec2(
             snapshot_opts.width as f32,
             snapshot_opts.height as f32,
@@ -2471,7 +2457,45 @@ fn main() -> eframe::Result<()> {
         options.viewport = options.viewport.with_resizable(true);
     }
 
-    eframe::run_native("Hash Checker", options, Box::new(move |_| Box::new(app)))
+    eframe::run_native(
+        "Hash Checker",
+        options,
+        Box::new(move |_cc| {
+            let mut app = HashCheckerApp::new();
+
+            if let Some(manifest_cli) = manifest_cli.clone() {
+                let algorithm = manifest_cli.algorithm.as_deref().unwrap_or("sha256");
+                match app.preload_manifest_scan(
+                    &manifest_cli.dir,
+                    manifest_cli.recursive,
+                    algorithm,
+                ) {
+                    Ok(ready) => {
+                        if let Some(report_path) = &manifest_cli.report_path {
+                            match write_manifest_report(report_path, &ready) {
+                                Ok(()) => {
+                                    println!("Manifest report written to {}", report_path.display())
+                                }
+                                Err(err) => eprintln!("Failed to write manifest report: {err}"),
+                            }
+                        }
+                    }
+                    Err(err) => {
+                        eprintln!("Failed to preload manifest: {err}");
+                        std::process::exit(1);
+                    }
+                }
+            }
+
+            if let Some(snapshot_opts) = snapshot_opts.clone() {
+                app.enable_snapshot(snapshot_opts);
+            }
+
+            Ok::<Box<dyn App>, Box<dyn std::error::Error + Send + Sync>>(
+                Box::new(app) as Box<dyn App>
+            )
+        }),
+    )
 }
 
 fn load_app_icon() -> Option<IconData> {

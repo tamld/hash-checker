@@ -5,7 +5,7 @@ ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 LOG_DIR="${CI_LINUX_LOG_DIR:-$ROOT_DIR/logs}"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 LOG_FILE="$LOG_DIR/ci-linux-$TIMESTAMP.log"
-IMAGE="${CI_LINUX_IMAGE:-rust:1.83}"
+IMAGE="${CI_LINUX_IMAGE:-rust:1.88}"
 
 mkdir -p "$LOG_DIR"
 
@@ -23,7 +23,7 @@ run_in_container() {
       mkdir -p \"\$TARGET_DIR\"; \
       export CARGO_TARGET_DIR=\"\$TARGET_DIR\"; \
       rustup component add rustfmt clippy >/dev/null; \
-      apt-get update >/dev/null && apt-get install -y --no-install-recommends pkg-config libgtk-3-dev >/dev/null; \
+      apt-get update >/dev/null && apt-get install -y --no-install-recommends pkg-config libasound2-dev >/dev/null; \
       cargo clean --manifest-path rust/hash-checker/Cargo.toml >/dev/null 2>&1 || true; \
       cargo clean --manifest-path rust/hash-checker-gui/Cargo.toml >/dev/null 2>&1 || true; \
       cargo fmt --manifest-path rust/hash-checker/Cargo.toml --check; \
