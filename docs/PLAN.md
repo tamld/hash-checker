@@ -74,6 +74,7 @@
 - Observability & performance:
   - [x] Structured logging/telemetry toggle for CLI runs (added `--log-format`, Oct 2025).
   - [x] Regression benchmarks (criterion) for large files (Oct 2025 benches recorded under `logs/qa/`).
+  - [ ] Automate GUI snapshot harness & telemetry capture (Issue #33).
 - Distribution & automation:
   - [x] Automate reproducible builds (`dist plan`) in CI and capture Debian package install verification.
   - [ ] Add winget/homebrew manifests.
@@ -102,6 +103,7 @@ Progress is tracked via `docs/TASKS.md`, with backlog items in `docs/BACKLOG.md`
 - [ ] Finalise SignPath rollout (secrets, verification docs).
 - [ ] Publish credential/runbook documentation (rotations, emergency).
 - [ ] Maintenance cadence: monthly deps-refresh, quarterly Vagrant smoke.
+- [ ] Formalise dependency refresh policy (cargo outdated/audit reporting in release notes).
 - [ ] Enforce branch protection for release workflows.
 - [ ] Define contributor onboarding (SECURITY.md update, templates).
 ## Release readiness checklist

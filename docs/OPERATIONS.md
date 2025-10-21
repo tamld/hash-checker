@@ -135,7 +135,7 @@ xattr -d com.apple.quarantine "/Applications/Hash Checker.app"
 
 ### Local CI Gate
 - Run `make ci-linux-local` before pushing to execute fmt, clippy, tests, and Docker workflows.
-- Monthly maintenance: `make deps-refresh` updates dependencies, runs `cargo audit`/`cargo deny`, and refreshes cached toolchains. Capture logs under `logs/`.
+- Monthly maintenance: `make deps-refresh` updates dependencies, runs `cargo outdated --workspace --exit-code 1 --root-deps-only` (report) plus `cargo audit`/`cargo deny`, and refreshes cached toolchains. Capture logs under `logs/` and link the report in the monthly maintenance ticket.
 - See **CI Modes (2025-10-19)** for the mapping between local checks and GitHub Actions.
 
 ### Documentation Index
@@ -299,7 +299,7 @@ Keep this document with the repo to standardise release expectations.
 
 ## Maintenance Automation
 - Workflow `.github/workflows/cargo-dist-maintenance.yml` runs monthly to verify the latest `cargo-dist` via `cargo install --locked`.
-- Workflow `.github/workflows/deps-refresh.yml` executes `make deps-refresh`, runs `cargo audit`/`cargo deny`, refreshes the toolchain (`rustup update`, `docker pull`, `cargo-packager`), and stores logs in the workflow artefact.
+- Workflow `.github/workflows/deps-refresh.yml` executes `make deps-refresh`, runs `cargo outdated` (report mode) + `cargo audit`/`cargo deny`, refreshes the toolchain (`rustup update`, `docker pull`, `cargo-packager`), and stores logs in the workflow artefact for traceability.
 - Workflow `.github/workflows/vagrant-smoke-reminder.yml` triggers every quarter (and on demand) to open a reminder issue for manual Vagrant smoke testing.
 - If any workflow fails, open an issue, attach the artefact (`cargo-dist-install-log` or `deps-refresh-log`), fix the pipeline, and update maintenance notes.
 
