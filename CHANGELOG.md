@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SignPath signing integration for Windows artefacts.
 - Light-theme palette follow-up adjustments based on tester feedback.
 
-## [0.1.6] - 2025-10-22
+## [0.1.7] - 2025-10-22
 ### Experimental
 - Added optional `gtk4-native` feature (Linux) to begin wiring GTK4 file dialogs behind a feature flag.
 ### Changed
