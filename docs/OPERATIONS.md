@@ -44,6 +44,17 @@ cargo run --release --manifest-path rust/hash-checker-gui/Cargo.toml -- --smoke-
 make rust-build-host
 make rust-gui-build-host
 make rust-gui-smoke-host
+
+#### GTK4-native (tùy chọn, Linux)
+- Tính năng đang được thử nghiệm qua feature `gtk4-native`. Vì môi trường local (macOS) không có GTK4, hãy bật/tắt và kiểm tra trên runner Linux (GitHub Actions) hoặc VM dành riêng.
+- Cài đặt gói cần thiết trước khi build:
+  ```bash
+  sudo apt-get update
+  sudo apt-get install libgtk-4-dev libadwaita-1-dev libglib2.0-dev
+  cargo check --manifest-path rust/hash-checker-gui/Cargo.toml --features gtk4-native
+  ```
+- Khi chạy trong CI, thêm bước cài gói trên runner Ubuntu và dùng `cargo run --release --manifest-path rust/hash-checker-gui/Cargo.toml --features gtk4-native -- --smoke-test`.
+- Flatpak và môi trường sandbox vẫn phải sử dụng portal (feature mặc định). Snapshots/logs GTK4 cần lưu dưới `logs/qa/gtk4-<date>.md`.
 ```
 
 ### CLI Logging & Manifests

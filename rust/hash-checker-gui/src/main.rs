@@ -30,7 +30,7 @@ use hash_checker::{
     ManifestFormat, VerificationReport,
 };
 use image::RgbaImage;
-use rfd::FileDialog;
+mod dialog;
 use serde::Serialize;
 use serde_json::to_writer_pretty;
 
@@ -317,7 +317,7 @@ impl HashCheckerApp {
                         .add_sized(button_size, egui::Button::new("Browse…"))
                         .clicked()
                     {
-                        if let Some(path) = FileDialog::new().pick_file() {
+                        if let Some(path) = dialog::pick_file() {
                             if let Some(path_str) = path.to_str() {
                                 self.file_path = path_str.to_owned();
                                 self.computed_hash = None;
@@ -1263,7 +1263,7 @@ impl ManifestView {
                         )
                         .clicked()
                     {
-                        if let Some(path) = FileDialog::new().pick_folder() {
+                        if let Some(path) = dialog::pick_folder() {
                             self.selected_dir = Some(path);
                         }
                     }
@@ -1740,7 +1740,7 @@ impl ManifestView {
             ManifestFormat::Plain => "hash-checker-manifest.txt",
         };
 
-        if let Some(path) = FileDialog::new().set_file_name(suggested_name).save_file() {
+        if let Some(path) = dialog::save_file_with_name(suggested_name) {
             let file_result = File::create(&path);
             match file_result {
                 Ok(file) => {
@@ -1769,10 +1769,7 @@ impl ManifestView {
         if matches!(self.state, ManifestState::Loading(_)) {
             return;
         }
-        let manifest_path = match FileDialog::new()
-            .add_filter("Manifest", &["json", "csv", "txt", "mf"])
-            .pick_file()
-        {
+        let manifest_path = match dialog::pick_manifest_file() {
             Some(path) => path,
             None => return,
         };
