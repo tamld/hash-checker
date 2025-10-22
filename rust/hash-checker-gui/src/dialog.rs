@@ -28,7 +28,7 @@ mod backend {
 mod backend {
     use super::*;
     use gio::prelude::*;
-    use gio::{File, ListStore};
+    use gio::File;
     use glib::MainContext;
     use glib::MainContextExtManual;
     use glib::{self, BoolError};
@@ -52,17 +52,7 @@ mod backend {
     }
 
     pub fn pick_manifest_file() -> Option<PathBuf> {
-        with_custom_dialog(|dialog| {
-            let list: ListStore = ListStore::new::<FileFilter>();
-            let filter = FileFilter::new();
-            filter.set_name(Some("Manifest"));
-            for ext in ["json", "csv", "txt", "mf"] {
-                filter.add_pattern(&format!("*.{}", ext));
-            }
-            list.append(&filter);
-            dialog.set_filters(Some(&list));
-            dialog.open_future(None::<&gtk::Window>)
-        })
+        with_dialog(|dialog| dialog.open_future(None::<&gtk::Window>))
     }
 
     fn with_dialog<F, Fut>(configure: F) -> Option<PathBuf>
