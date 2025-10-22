@@ -28,7 +28,6 @@ mod backend {
 mod backend {
     use super::*;
     use gtk::gio::File;
-    use gtk::glib::prelude::MainContextExtManual;
     use gtk::glib::{self, BoolError, MainContext};
     use gtk::prelude::*;
     use gtk::FileDialog as GtkFileDialog;
