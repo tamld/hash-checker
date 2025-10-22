@@ -15,6 +15,7 @@ Hash Checker delivers reproducible workflows for validating file hashes on Windo
 - Shared Rust core exposes both command-line and egui desktop interfaces.
 - Batch comparison reports for CI: feed JSON/CSV definitions to `hash-checker batch` and export structured results.
 - Linux builds now rely on the XDG desktop portal backend—no more GTK runtime dependency for file dialogs.
+- Experimental GTK4-native dialog mode (Linux) is available via the `gtk4-native` feature flag; see `docs/OPERATIONS.md` for prerequisites.
 - Directory manifest export/verify with JSON, CSV, and TXT outputs.
 - Container-first `make` targets keep builds reproducible across platforms, while host builds remain available.
 - Accessibility extras: keyboard shortcuts, clipboard integration, and Slate/High Contrast themes.

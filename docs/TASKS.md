@@ -21,6 +21,7 @@ maintained in [`docs/PLAN.md`](PLAN.md); historical summaries live in
 - [x] Upgrade eframe/egui stack to remove `instant` and bump MSRV (Issue #35).
 - [ ] Automate GUI snapshot harness & telemetry logs (Issue #33).
 - [ ] Formalise dependency refresh workflow (cargo outdated/audit reporting).
+- [ ] Implement GTK4-native dialog backend behind feature flag (Issue #39).
 
 ## Deferred / blocked
 - [ ] SignPath onboarding (awaiting OSS credentials and secrets).

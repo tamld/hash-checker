@@ -51,7 +51,7 @@ This document tracks the plan to migrate away from unmaintained GTK3 bindings (`
 ### Proposed staged roadmap
 1. **Short term (v0.1.7)** – Update to `rfd` ≥0.15.4 with features `default-features = false, features = ["xdg-portal"]` to remove GTK runtime dependencies. Update Docker/CI images to include `xdg-desktop-portal`, document requirement in README.
 2. **Medium term (v0.1.8)** – Raise MSRV to 1.88, upgrade `eframe`/`egui`/`winit`. Record API adjustments (e.g. `AppCreator` changes) and verify packaging scripts.
-3. **Follow-up** – Evaluate GTK4-native dialogs once upstream exposes stable support; otherwise remain on portal route.
+3. **Follow-up** – Evaluate GTK4-native dialogs once upstream exposes stable support; tham khảo thêm kế hoạch chi tiết trong `docs/GTK4_MIGRATION_PLAN.md`.
 
 ### Open follow-up work
 - Issue #33 tracks automation of GUI snapshot/telemetry harness (supports future GTK migration tests).
