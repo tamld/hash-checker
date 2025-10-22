@@ -27,13 +27,10 @@ mod backend {
 #[cfg(all(feature = "gtk4-native", target_os = "linux"))]
 mod backend {
     use super::*;
-    use gio::prelude::*;
-    use gio::File;
-    use glib::MainContext;
-    use glib::MainContextExtManual;
-    use glib::{self, BoolError};
+    use gtk::gio::File;
+    use gtk::glib::{self, BoolError, MainContext, MainContextExtManual};
     use gtk::prelude::*;
-    use gtk::{FileDialog as GtkFileDialog, FileFilter};
+    use gtk::FileDialog as GtkFileDialog;
     use tracing::warn;
 
     pub fn pick_file() -> Option<PathBuf> {
@@ -75,9 +72,9 @@ mod backend {
         let dialog = GtkFileDialog::builder().modal(true).build();
         let ctx = MainContext::default();
         let guard = match ctx.acquire() {
-            Some(guard) => guard,
-            None => {
-                warn!("failed to acquire GTK main context");
+            Ok(guard) => guard,
+            Err(err) => {
+                warn!("failed to acquire GTK main context: {err}");
                 return None;
             }
         };
