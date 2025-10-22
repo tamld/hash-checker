@@ -38,6 +38,6 @@
 
 ## Deliverables
 - Nhật ký research (`logs/gtk4/20251022-research.md`).
-- Prototype/PR minh chứng.
+- Prototype/PR minh chứng với CI Linux run 18707819836 (smoke portal + `cargo check --features gtk4-native`).
 - Cập nhật tài liệu (README, docs/DEPENDENCY_MIGRATION.md, CHANGELOG, guides).
 - Bảng kiểm thử và gói packaging đã thông qua.
