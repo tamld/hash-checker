@@ -27,9 +27,11 @@ mod backend {
 #[cfg(all(feature = "gtk4-native", target_os = "linux"))]
 mod backend {
     use super::*;
-    use gtk::gio::{self, File, ListStore};
-    use gtk::glib::MainContextExtManual;
-    use gtk::glib::{self, MainContext};
+    use gio::prelude::*;
+    use gio::{File, ListStore};
+    use glib::MainContext;
+    use glib::MainContextExtManual;
+    use glib::{self, BoolError};
     use gtk::prelude::*;
     use gtk::{FileDialog as GtkFileDialog, FileFilter};
     use tracing::warn;
@@ -51,11 +53,11 @@ mod backend {
 
     pub fn pick_manifest_file() -> Option<PathBuf> {
         with_custom_dialog(|dialog| {
-            let list: ListStore = ListStore::new(FileFilter::static_type());
+            let list: ListStore = ListStore::new::<FileFilter>();
             let filter = FileFilter::new();
             filter.set_name(Some("Manifest"));
             for ext in ["json", "csv", "txt", "mf"] {
-                filter.add_suffix(ext);
+                filter.add_pattern(&format!("*.{}", ext));
             }
             list.append(&filter);
             dialog.set_filters(Some(&list));
@@ -68,7 +70,7 @@ mod backend {
         F: FnOnce(&GtkFileDialog) -> Fut,
         Fut: std::future::Future<Output = Result<Option<File>, glib::Error>>,
     {
-        with_custom_dialog(|dialog| configure(dialog))
+        with_custom_dialog(configure)
     }
 
     fn with_custom_dialog<F, Fut>(configure: F) -> Option<PathBuf>
@@ -82,7 +84,15 @@ mod backend {
         }
         let dialog = GtkFileDialog::builder().modal(true).build();
         let ctx = MainContext::default();
-        let result = ctx.with_thread_default(|| ctx.block_on(configure(&dialog)));
+        let guard = match ctx.acquire() {
+            Some(guard) => guard,
+            None => {
+                warn!("failed to acquire GTK main context");
+                return None;
+            }
+        };
+        let result = ctx.block_on(configure(&dialog));
+        drop(guard);
         match result {
             Ok(Some(file)) => file.path().map(PathBuf::from),
             Ok(None) => None,
@@ -93,7 +103,7 @@ mod backend {
         }
     }
 
-    fn ensure_gtk_init() -> Result<(), glib::Error> {
+    fn ensure_gtk_init() -> Result<(), BoolError> {
         if gtk::is_initialized() {
             Ok(())
         } else {
