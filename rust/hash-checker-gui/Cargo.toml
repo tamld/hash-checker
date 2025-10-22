@@ -7,6 +7,10 @@ description = "egui-based desktop interface for the Hash Checker tool."
 license = "MIT"
 repository = "https://github.com/tamld/hash-checker"
 
+[features]
+default = []
+gtk4-native = ["gtk"]
+
 [dependencies]
 hash-checker = { path = "../hash-checker" }
 eframe = { version = "0.33", default-features = false, features = ["glow", "default_fonts", "wayland", "x11"] }
@@ -15,6 +19,8 @@ rfd = { version = "0.15.4", default-features = false, features = ["xdg-portal", 
 image = { version = "0.24", default-features = false, features = ["png"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tracing = "0.1"
+gtk = { package = "gtk4", version = "0.8", optional = true, features = ["v4_10"] }
 
 [dev-dependencies]
 assert_cmd = "2"
