@@ -56,7 +56,7 @@ mod backend {
     fn with_dialog<F, Fut>(configure: F) -> Option<PathBuf>
     where
         F: FnOnce(&GtkFileDialog) -> Fut,
-        Fut: std::future::Future<Output = Result<Option<File>, glib::Error>>,
+        Fut: std::future::Future<Output = Result<File, glib::Error>>,
     {
         with_custom_dialog(configure)
     }
@@ -64,7 +64,7 @@ mod backend {
     fn with_custom_dialog<F, Fut>(configure: F) -> Option<PathBuf>
     where
         F: FnOnce(&GtkFileDialog) -> Fut,
-        Fut: std::future::Future<Output = Result<Option<File>, glib::Error>>,
+        Fut: std::future::Future<Output = Result<File, glib::Error>>,
     {
         if let Err(err) = ensure_gtk_init() {
             warn!("failed to initialise GTK4 dialog: {err}");
@@ -82,8 +82,7 @@ mod backend {
         let result = ctx.block_on(configure(&dialog));
         drop(guard);
         match result {
-            Ok(Some(file)) => file.path().map(PathBuf::from),
-            Ok(None) => None,
+            Ok(file) => file.path().map(PathBuf::from),
             Err(err) => {
                 warn!("GTK4 dialog error: {err}");
                 None
