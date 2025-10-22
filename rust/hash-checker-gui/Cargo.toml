@@ -9,7 +9,7 @@ repository = "https://github.com/tamld/hash-checker"
 
 [features]
 default = []
-gtk4-native = ["gtk", "glib", "gio"]
+gtk4-native = ["gtk"]
 
 [dependencies]
 hash-checker = { path = "../hash-checker" }
@@ -21,8 +21,6 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = "0.1"
 gtk = { package = "gtk4", version = "0.8", optional = true }
-glib = { version = "0.18", optional = true }
-gio = { version = "0.18", optional = true }
 
 [dev-dependencies]
 assert_cmd = "2"
