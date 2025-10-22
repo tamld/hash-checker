@@ -61,6 +61,12 @@ jobs:
         run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
       - name: GTK4-native compile check
         run: cargo check --manifest-path rust/hash-checker-gui/Cargo.toml --features gtk4-native
+      - name: GTK4-native smoke test (dbus session)
+        run: |
+          dbus-run-session -- bash -lc '
+            GSK_RENDERER=vulkan \
+            cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release --features gtk4-native -- --smoke-test
+          '
       - name: Install cargo-dist
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_packaging == 'true' }}
         run: cargo install cargo-dist@0.30.0 --locked
