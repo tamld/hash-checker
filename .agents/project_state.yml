@@ -1,6 +1,6 @@
 project:
   name: hash-checker
-  last_updated: 2025-10-22
+  last_updated: 2025-10-23
   signpath:
     status: pending
     blocking: waiting_for_oss_subscription
@@ -62,3 +62,40 @@ project:
     doc: docs/reports/package_distribution_roadmap.md
     status: pending_future_phase
     note: roadmap for PPA, Homebrew, WinGet, Chocolatey deployment once CI/signing stable
+  upcoming_work:
+    - issue: 47
+      title: "Dependabot: bump glib to >=0.20.0"
+      priority: high
+      target_date: 2025-10-24
+      owner: codex
+      status: in_review
+      plan: >
+        Branch `fix/glib-upgrade-issue47` updating gtk4 to 0.10.1 (glib 0.21.3). Local CLI tests pass; CI run 18743487218 (`ci.yml`) validated portal + gtk4-native smoke.
+        Next step: prepare PR referencing Issues #43/#47 and tag @codex.
+    - issue: 43
+      title: "Track gtk4/glib upgrade for RUSTSEC-2024-0429"
+      priority: high
+      target_date: 2025-10-24
+      owner: codex
+      status: in_review
+      plan: >
+        Audit captured via logs/qa/glib-upgrade-20251023.md (gtk4 tree shows glib v0.21.3). CI evidence: run 18743487218.
+        Remaining: update docs/security references in PR and close issues once merged.
+    - issue: 48
+      title: "Rename macOS DMG artefact to hash-checker.dmg"
+      priority: medium
+      target_date: 2025-10-25
+      owner: codex
+      status: in_progress
+      plan: >
+        Update release.yml, scripts/macos-universal-dmg.sh, docs/OPERATIONS.md; record dry-run output in logs/release-history/,
+        and request @codex review once CI validates packaging.
+      notes: "Local dry run 2025-10-23 produced dist/macos-universal/hash-checker.dmg; logs copied under logs/local-test/macos-universal-20251023-154732."
+    - issue: 33
+      title: "[Tooling] Automate GUI snapshot harness and telemetry logs"
+      priority: low
+      target_date: 2025-10-29
+      owner: codex
+      plan: >
+        Draft automation design in specs/33/, prototype CLI harness, run smoke demo, and open PR tagged with @codex after earlier
+        release-impacting issues land.

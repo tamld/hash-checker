@@ -32,10 +32,10 @@ This document tracks the plan to migrate away from unmaintained GTK3 bindings (`
 
 ## 2025-10 Investigation Summary
 
-### GTK3 dependency surface
-- The GUI crate does not call GTK APIs directly; dependencies arrive via `rfd 0.11.4` whose default feature set enables `gtk3`, `glib-sys`, and `gobject-sys` on Linux/BSD. `cargo tree --target x86_64-unknown-linux-gnu -i gtk-sys` confirms the only inbound edge is `hash-checker-gui → rfd → gtk-sys` (with `gtk-sys` pulling `gdk-sys`/`atk-sys`).
-- Upstream `rfd` v0.15.4 flips the default features to `xdg-portal` + `async-std`, keeping `gtk3` available but opt-in. Migrating to ≥0.15 allows us to drop GTK entirely by disabling the `gtk3` feature and enabling `xdg-portal`.
-- GTK4 support in `rfd` is tracked upstream but not yet stabilised. If native GTK4 dialogs are required, they will arrive through the `gtk-sys` 0.18+ family once the crate exposes a `gtk4` feature flag. Until then, the recommended path is to adopt `xdg-portal` and depend on the host portal service.
+### GTK surface
+- The GUI crate keeps the portal backend (`rfd 0.15.4` with `default-features = false, features = ["xdg-portal", "async-std"]`) for the default build, avoiding GTK3/gtk-sys entirely.
+- An opt-in `gtk4-native` feature now depends on `gtk4 0.10.1`, pulling `glib 0.21.3` and the `gtk4` 4.10+ stack to address RUSTSEC-2024-0429. `cargo tree --features gtk4-native -p hash-checker-gui -i glib` shows the new dependency edge ending at `glib v0.21.3`.
+- GTK4 support in `rfd` is still pending upstream; native dialogs are implemented locally via `gtk4::FileDialog` behind the feature flag. Portal remains the recommended default path for packaged builds.
 - Packaging considerations:
   - Flatpak / modern desktops already ship `xdg-desktop-portal`; older GTK-only environments will require installing `xdg-desktop-portal` + a backend (e.g. `xdg-desktop-portal-gtk`).
   - Our Docker CI images must include the portal services or skip GUI snapshot steps when unavailable. Document the requirement in release notes once we switch.
