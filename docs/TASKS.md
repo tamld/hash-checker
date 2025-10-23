@@ -19,6 +19,7 @@ maintained in [`docs/PLAN.md`](PLAN.md); historical summaries live in
 - [x] Adjust manifest table layout + control widths to satisfy GUI_MANIFEST_TEST_PLAN assumptions (A3/A4).
 - [x] Adopt rfd xdg-portal backend to drop GTK3 dependency (Issue #34).
 - [x] Upgrade eframe/egui stack to remove `instant` and bump MSRV (Issue #35).
+- [ ] Rename macOS DMG artefact to `hash-checker.dmg` (currently emitted as `Hash.Checker.dmg`).
 - [ ] Automate GUI snapshot harness & telemetry logs (Issue #33).
 - [ ] Formalise dependency refresh workflow (cargo outdated/audit reporting).
 - [ ] Implement GTK4-native dialog backend behind feature flag (Issue #39).

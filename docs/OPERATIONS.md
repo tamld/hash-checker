@@ -1,5 +1,7 @@
 # Operations Guide
 
+> Multi-agent workflow: this project adopts the global `policy/multi_agent_delivery`. Use CARE specs under `specs/`, keep `.agents/branch_progress.yml` current, run `.agents/scripts/validate_handoff.sh` before handoffs, and record entries in `.agents/metrics_log.yml` after each PR.
+
 ## Developer Quick Reference
 > Minimum supported Rust version (MSRV): **1.88.0**
 
