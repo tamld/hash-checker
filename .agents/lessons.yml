@@ -1,0 +1,24 @@
+- date: 2025-10-22
+  category: environment
+  description: Project lacks a native Linux desktop environment; GTK4 verification must rely on GitHub Actions runners or Vagrant setups instead of the macOS host.
+  prevention:
+    checklist:
+      - Document that local smoke tests requiring portal/GTK4 should run in CI or dedicated VM.
+      - When planning feature work, reserve time for remote runner validation instead of assuming host-side testing.
+      - Capture CI artefacts (logs/screenshots) as evidence before closing GTK-related tasks.
+- date: 2025-10-22
+  category: collaboration
+  description: When offloading research or long-form analysis to Perplexity or Gemini, always prepare a structured task brief first.
+  prevention:
+    checklist:
+      - Capture the problem statement, current repo context, and desired deliverables before invoking Perplexity or Gemini.
+      - List specific questions, required citations, and any constraints (platform, tooling, deadlines) in the brief.
+      - Archive the returned sources/citations and logs so Codex can reuse them without re-querying.
+- date: 2025-10-22
+  category: delivery
+  description: Apply LL-012/LL-013/LL-014 for Codex cloud tasks—separate research vs implementation, cite evidence, and complete branch_progress before handoff.
+  prevention:
+    checklist:
+      - Keep Codex Ask/Code sessions separate; save research into `specs/<ticket>/notes.md`.
+      - Update `.agents/brainstorm_*.yml` with questioner/responder metadata plus file:line or commit evidence.
+      - Maintain `.agents/branch_progress.yml` and validate via script before marking backlog status `Ready for handoff`.

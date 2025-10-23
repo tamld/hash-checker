@@ -1,0 +1,86 @@
+agent_guide:
+  purpose: "Provide project-specific guardrails and onboarding steps for Hash Checker agents."
+  sources_of_truth:
+    - "Global MCP workspace (laws, guardrails, templates) via `GLOBAL_MCP`."
+    - "Repository documents: README.md, docs/PLAN.md, docs/BACKLOG.md, docs/GOALS.md, docs/TASKS.md, docs/SECURITY_ROADMAP.md, docs/GUI_DECISION.md, docs/GUI_MVP_DESIGN.md."
+    - "Policy reference: `policy/multi_agent_delivery` (SoT)."
+  startup_checklist:
+    - "Run `$GLOBAL_MCP/tools/bootstrap_orchestrator.sh --print-summary`."
+    - "Review repo docs in order: README.md → docs/PLAN.md → docs/BACKLOG.md → docs/TASKS.md."
+    - "Record open TODO/backlog items from the same docs before acting."
+    - "Check `.agents/metrics_log.yml` for last update; add entry when work finishes."
+  law_tiers:
+    hard:
+      - id: "LAW-REFLECT-001"
+        statement: "Before significant actions or recommendations, pause if work goes beyond available context or conflicts with the active task; confirm with the user before proceeding."
+        enforcement: "Never execute or recommend conflicting work without documented confirmation from the user; log the confirmation path in the final report."
+      - id: "LAW-HASH-001"
+        statement: "All status claims must reference verifiable artefacts (issue numbers, logs, screenshots, or test output) stored in the repository and linked in the session report."
+        enforcement: "If evidence is missing, halt hand-off, capture artefacts under `logs/` or `.agents/`, and update the report before closing the task."
+    soft:
+      - id: "POLICY-COLLAB-001"
+        statement: "Keep shared context fresh by updating backlog entries, `.agents/` files, and GitHub issues as soon as work shifts."
+        expectation: "Treat `.agents/` as the single source of truth; stale context must be refreshed before starting new execution."
+      - id: "POLICY-PRESENTATION-001"
+        statement: "Preserve polished presentation in GUI/CLI outputs."
+        expectation: "Capture before/after screenshots or log snippets for layout/text changes and reference them in reports."
+      - id: "POLICY-MULTI-AGENT"
+        statement: "Follow `policy/multi_agent_delivery` for CARE specs, handoffs, metrics, and verifiable communication (LL-012/LL-013/LL-014)."
+        expectation: "Before tagging @codex or handing off work, ensure spec, handoff, branch_progress.yml, and metrics log entries are complete."
+  workflow_communication:
+    language:
+      dialogue: "Vietnamese"
+      artefacts: "English (code/comments/commits)" 
+    notes:
+      - "Project stack is Rust; changes target Rust crates and supporting infrastructure."
+      - "Use direct commits when `workflow.mode = light`; prefer PRs for large changes or when review/CI is needed."
+      - "Keep responses concise; batch findings and always check guardrails first."
+      - "Maintain a private checklist (tests/docs/language) for repeatability."
+      - "Don't tell—prove it: every claim needs evidence (issue IDs, logs, screenshots, or test output) captured in the report or linked `.agents/` files."
+      - "Presentation guardrail: keep GUI/CLI outputs tidy—store before/after screenshots or log excerpts when adjusting layout, text, or menu structure."
+      - "Avoid stray artefacts; route build outputs to temp directories (`CARGO_TARGET_DIR`) and clean before exit."
+      - "Prefer minimal, reversible changes; short plan preambles before shell/tool use."
+      - "Follow global guardrails: MAIN-PROTECT-001, CI-PATH-001, SECRET-SHIELD-001, GLOBAL-MEM-PR-001."
+      - "Only apply `skip-linux-ci` when PR touches docs/metadata; verify with `git diff --stat` first."
+      - "Operational principle: "MVP first, better later"—secure working flow with logs before polishing."
+      - "Branch naming: multi-agent branches use `feature/<domain>-<ticket>-a<author>-r<runner>`; solo work may omit suffix."
+      - "Marker commit `chore: claim task #X` on first push; use `docs: prepare handoff` / `docs: acknowledge handoff` around handoff transitions."
+      - "Tag `@codex` in PRs for cloud execution (`@codex review`, `@codex fix comments`, `@codex <instruction>`); link spec + handoff + evidence in the same thread."
+  branch_pr_process:
+    issue_first: "Open or reference a GitHub issue before starting work; link the issue in PR body."
+    branch_naming:
+      - "feature/<descriptor>"
+      - "fix/<descriptor>"
+      - "chore/<descriptor>"
+    expectations:
+      - "Run `make ci-linux-local` and capture artefacts before opening a PR."
+      - "Push branch, create PR against `main`, and wait for all required checks (linux/macos/windows) plus any packaging rehearsal when applicable."
+      - "Delete merged branches (`git fetch --prune` or `gh pr merge --delete-branch`) to keep the repo tidy."
+  core_principles:
+    - "Language: when speaking with humans use Vietnamese; keep all artefacts (code, docs, comments, commit messages) in English."
+    - "Documentation format: respond with Markdown only when a human explicitly asks; prefer JSON/YAML for agent-facing plans, tasks, and backlog updates to keep structure clear."
+    - "Workflow rhythm: every change follows Plan → Execute → Update; always reflect new work in docs/backlog so other agents can resume without rereading the whole repo."
+    - "`.agents/` is the agent source of truth—read and update these YAML/JSON files to avoid hallucination and to preserve session context (directory is gitignored for safety)."
+    - "Track assumptions: log alternative approaches and verification steps; test ideas before treating them as settled, and leave TODO/backlog entries when validation remains."
+    - "Backlog discipline: tie every task to a GitHub issue or documented backlog item, and update the evidence trail (logs, checklists) when closing work."
+  lessons_reference:
+    - "LL-012: Separate Codex Ask/Code sessions; document research output before execution."
+    - "LL-013: Every multi-agent response must cite evidence (file:line, commit, backlog)."
+    - "LL-014: Handoff requires completed branch_progress.yml and validation."
+  session_lifecycle:
+    - "Plan – run bootstrap if needed, list steps, confirm guardrails."
+    - "Execute – follow plan, run required tests/CI, capture traceable commands/logs."
+    - "Document & Report – update human-facing docs when behaviour changes; sync operational notes in `.agents/` (YAML/JSON); validate `.agents/branch_progress.yml` (script) before handoff; log entry in `.agents/metrics_log.yml`; close with report template."
+  testing_expectations:
+    - "`make rust-test` (Docker) for unit/integration."
+    - "`make rust-gui-build` for GUI build validation when required."
+    - "`make rust-gui-smoke` (Vagrant) for GUI smoke tests."
+    - "For packaging, reference README and use `cargo packager --release --formats <fmt>`."
+  reporting_template:
+    - "Sources scanned: [...]"
+    - "Laws/Policies summary: [...]"
+    - "TODO/Backlog found: [...]"
+    - "Conflicts: [none | details]"
+    - "Proposed resolution: [...]"
+  escalation:
+    - "If repo instructions conflict with global laws, stop and request human confirmation (LAW-REFLECT-001)."

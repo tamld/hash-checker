@@ -1,0 +1,125 @@
+# Branch Progress Template (LL-014 compliance)
+# Copy this to your feature branch as `.agents/branch_progress.yml`.
+
+branch: "feature/<domain>-<ticket>-<agent>"
+task_id: <ticket_number>
+owner_current: "<Agent Name>"
+workflow_state: "authored"  # authored | ready_for_runner | in_progress | blocked | review | done
+started_at: "YYYY-MM-DDTHH:MM:SSZ"
+last_updated: "YYYY-MM-DDTHH:MM:SSZ"
+
+context:
+  why_this_approach: |
+    Brief explanation of chosen solution and alternatives considered.
+  trade_offs:
+    - decision: "Key decision point"
+      chosen: "Selected option"
+      rationale: "Reasoning"
+      evidence: "Link to discussion/brainstorm"
+  attempted_but_failed:
+    - approach: "What was tried"
+      reason: "Why it failed"
+      evidence: "Commit SHA or notes"
+  known_issues:
+    - "Describe known issue"
+  dependencies:
+    - external: "External dependency"
+    - internal: "Internal module/file"
+
+roles:
+  author:
+    agent: "<Author>"
+    status: "Spec complete"
+    handoff_at: "YYYY-MM-DDTHH:MM:SSZ"
+  runner:
+    agent: "<Runner>"
+    status: "Not started"
+    started_at: null
+
+handoff_ready: false
+handoff_checklist:
+  environment_setup:
+    - "Step 1"
+  how_to_resume:
+    - "1. Checkout branch"
+    - "2. Read branch_progress.yml"
+  critical_files:
+    - path: "path/to/file"
+      note: "Purpose"
+  credentials_needed:
+    - "Describe credential access"
+  local_state:
+    - "Describe local state"
+
+milestones:
+  - timestamp: "YYYY-MM-DDTHH:MM:SSZ"
+    action: "Action performed"
+    evidence:
+      - file: "path:line"
+      - commit: "SHA"
+    status: "Done"
+
+next_steps:
+  - "Next action"
+
+blockers:
+  - issue: "Describe blocker"
+    waiting_for: "Dependency"
+    mitigation: "Workaround"
+
+verification:
+  unit_tests:
+    - command: "cargo test --manifest-path rust/hash-checker/Cargo.toml"
+      expected: "All CLI tests pass"
+      evidence: "CI link or local log"
+  integration_tests:
+    - command: "make rust-gui-build"
+      expected: "GUI builds successfully"
+      evidence: "Artefact path or CI log"
+  regression_checks:
+    - check: "Packager scripts"
+      command: "make rust-build"
+      expected: "No regressions"
+  manual_qa:
+    - scenario: "Run GUI smoke test"
+      expected: "Smoke output matches baseline"
+      tested: false
+      blocker: "Waiting for VM"
+
+rollback:
+  safe_point: "commit SHA"
+  revert_steps:
+    - "git revert ..."
+  dependencies_affected:
+    - "List"
+  communication:
+    - "Notify via PR/Slack"
+
+communication:
+  discussions:
+    - location: "PR #id"
+      participants: ["Agent A"]
+      key_decisions:
+        - "Decision summary"
+  if_stuck:
+    - "Post question in PR"
+  previous_handoffs:
+    - from: "Agent"
+      to: "Agent"
+      at: "YYYY-MM-DDTHH:MM:SSZ"
+      reason: "Why"
+      handoff_doc: ".agents/branch_progress.yml"
+
+metrics:
+  estimated_effort: "X hours"
+  actual_effort_so_far: "Y hours"
+  time_breakdown:
+    - phase: "Research"
+      duration: "N minutes"
+  handoff_latency:
+    - from: "Spec complete"
+      to: "Runner start"
+      hours: null
+
+questions_for_review:
+  - "Question for reviewer"

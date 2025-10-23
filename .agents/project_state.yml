@@ -1,0 +1,64 @@
+project:
+  name: hash-checker
+  last_updated: 2025-10-22
+  signpath:
+    status: pending
+    blocking: waiting_for_oss_subscription
+    checklist: docs/security/SIGNPATH_CHECKLIST.md
+  releases:
+    macos_universal_dmg:
+      status: completed
+      note: GH Actions run 18581962926 (2025-10-17) published universal DMG in v0.1.5; retain logs under logs/local-test/.
+      run_id: 18581962926
+  smoke_tests:
+    vagrant:
+      automation_level: reminder_only
+      rationale: >-
+        Cloud runners lack nested virtualization; requires operator on VMware-capable host.
+      playbook: docs/vagrant/VALIDATION_PLAYBOOK.md
+      reminder_workflow: .github/workflows/vagrant-smoke-reminder.yml
+  screenshots:
+    pending: []
+    last_refresh_log: logs/qa/theme-copy-verification-20251016.md
+    checklist: docs/GUI_SCREENSHOT.md
+  stretch_goals:
+    phase: 5
+    items:
+      directory_manifest:
+        description: export TXT/CSV/JSON manifests for folder hashing
+        status: cli_shipped_issue_20
+        notes: CLI manifest export/verify landed via issue #20; GUI workflow pending.
+      batch_reports:
+        description: multi-file comparison for QA/CI pipelines
+      plugin_api:
+        description: embed core hashing in Node/WASI or custom algorithms
+      telemetry:
+        description: structured progress/error events (see docs/security/TELEMETRY_NOTES.md)
+      benchmarks:
+        description: criterion-based performance guardrails
+  migration:
+    gtk_strategy:
+      options:
+        - gtk4_libadwaita
+        - wgpu_tao_stack
+      next_step: capture GTK4 smoke artefacts (CI log 18707819836) and schedule packaging updates for GTK4 dependencies.
+      status: ci_validated
+      notes: >
+        Branch upgrade/gui-stack-issue34-35 bumps to rfd 0.15.4 (portal) và eframe/egui 0.33 với MSRV 1.88.
+        Linux portal smoke verified via GitHub Actions run 18692925441 (2025-10-21) trên nhánh qa/portal-smoke-20251021; log lưu ở logs/ci-linux-20251022-004214.log.
+        GTK4 feature-flag build + smoke (dbus-run-session) thành công qua GitHub Actions run 18708523500 (2025-10-22); tiếp tục lưu smoke logs dưới logs/qa/gtk4/.
+        Nhật ký research GTK4 mở tại logs/gtk4/20251022-research.md; kế hoạch chi tiết nằm trong docs/GTK4_MIGRATION_PLAN.md.
+
+  release_debt:
+    reproducible_build_check:
+      status: completed
+      notes: Automated via .github/workflows/dist-validation.yml (v0.1.6).
+
+  features:
+    auto_hash_prefix:
+      status: shipped
+      note: supports prefixes such as sha256:<digest> for auto detection
+  distribution_plan:
+    doc: docs/reports/package_distribution_roadmap.md
+    status: pending_future_phase
+    note: roadmap for PPA, Homebrew, WinGet, Chocolatey deployment once CI/signing stable
