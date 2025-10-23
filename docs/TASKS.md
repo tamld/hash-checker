@@ -19,10 +19,12 @@ maintained in [`docs/PLAN.md`](PLAN.md); historical summaries live in
 - [x] Adjust manifest table layout + control widths to satisfy GUI_MANIFEST_TEST_PLAN assumptions (A3/A4).
 - [x] Adopt rfd xdg-portal backend to drop GTK3 dependency (Issue #34).
 - [x] Upgrade eframe/egui stack to remove `instant` and bump MSRV (Issue #35).
-- [ ] Rename macOS DMG artefact to `hash-checker.dmg` (currently emitted as `Hash.Checker.dmg`).
+- [ ] Rename macOS DMG artefact to `hash-checker.dmg` (Issue #48; branch `feature/dmg-rename-issue48-a1`).
 - [ ] Automate GUI snapshot harness & telemetry logs (Issue #33).
 - [ ] Formalise dependency refresh workflow (cargo outdated/audit reporting).
-- [ ] Implement GTK4-native dialog backend behind feature flag (Issue #39).
+- [x] Implement GTK4-native dialog backend behind feature flag (Issue #39 / PR #40; evidence: logs/qa/gtk4-20251022-ci.md).
+- [x] Track gtk4/glib upgrade for RUSTSEC-2024-0429 (Issue #43). _Resolved via PR pending review (`fix/glib-upgrade-issue47`, CI run 18743487218)._
+- [x] Bump glib crate to >=0.20.0 (Dependabot #47). _Resolved together with Issue #43 (same PR)._
 
 ## Deferred / blocked
 - [ ] SignPath onboarding (awaiting OSS credentials and secrets).
