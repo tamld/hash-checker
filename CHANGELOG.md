@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 - SignPath signing integration for Windows artefacts.
 - Light-theme palette follow-up adjustments based on tester feedback.
+### Security
+- Bumped the optional GTK4 backend to `gtk4` 0.10.1 / `glib` 0.21.3 to resolve RUSTSEC-2024-0429 (Issues #43/#47).
+### Changed
+- Standardised macOS DMG artefact name to `hash-checker.dmg` across local scripts and release workflow (Issue #48).
 
 ## [0.1.7] - 2025-10-22
 ### Experimental

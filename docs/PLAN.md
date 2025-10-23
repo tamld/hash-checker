@@ -44,6 +44,7 @@
 - [x] Document the build-from-source pathway and keep parity with packaged artefacts.
 - [x] Integrate optional Vagrant headless smoke tests for Windows and Linux packaging jobs.
 - [x] Add `cargo-dist` (or an equivalent tool) to automate release notes and distribution.
+- [ ] Align macOS DMG artefact naming across local scripts and release workflow (Issue #48; branch `feature/dmg-rename-issue48-a1`).
 
 ### Closure roadmap (target: 2025-10-22)
 1. (Completed) Stabilised Linux packaging + nightly Debian job.
@@ -59,6 +60,7 @@
 - [x] Integrate `cargo audit` and `cargo deny` into CI.
 - [x] Publish verification guide for end users (`docs/security/VERIFICATION_GUIDE.md`).
 - [ ] Automate Windows signing via SignPath (pending secrets).
+- [x] Track gtk4/glib upgrade for RUSTSEC-2024-0429 (Issue #43; aligns with Dependabot #47). _Addressed in branch `fix/glib-upgrade-issue47`; CI run 18743487218 validated portal + gtk4-native paths, PR pending review._
 - [x] Ship macOS universal DMG in release workflow (CI now produces the universal artefact).
 - [x] Record Vagrant validation steps (`docs/vagrant/VALIDATION_PLAYBOOK.md`).
 - [x] Monthly dependency refresh cadence (`deps-refresh.yml`).
@@ -87,8 +89,8 @@
 
 ### Migration roadmap
 - Track GTK3 → GTK4/egui-native in `docs/DEPENDENCY_MIGRATION.md`.
-- Replace `instant` crate once stable alternatives land.
-- Run the GTK4 + `instant` investigation spike by **2025-11-15** (capture findings and open the tracking issue before starting implementation).
+- Replace `instant` crate once stable alternatives land — completed via Issue #35 / PR #36 on 2025-10-21.
+- Run the GTK4 + `instant` investigation spike by **2025-11-15** — completed on 2025-10-21 (Issue #23; logs/gtk4/20251022-research.md).
 
 ## Lessons Learned & Guardrails
 - Allocate large IO buffers on heap (avoid Windows stack overflow, ref Oct 2025).
