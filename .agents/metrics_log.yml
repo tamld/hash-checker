@@ -1,0 +1,12 @@
+# Multi-Agent Metrics Log (temporary until automation)
+# Update after each PR merge or weekly when idle.
+# Fields: date (UTC ISO8601), branch, pr_number, handoff_latency_hours, ci_result, codex_iterations, notes
+
+entries:
+  - date: "2025-10-22T00:00:00Z"
+    branch: "feature/example-setup"
+    pr_number: null
+    handoff_latency_hours: null
+    ci_result: "success"
+    codex_iterations: 0
+    notes: "Baseline entry"
