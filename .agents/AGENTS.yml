@@ -43,9 +43,13 @@ agent_guide:
       - "Follow global guardrails: MAIN-PROTECT-001, CI-PATH-001, SECRET-SHIELD-001, GLOBAL-MEM-PR-001."
       - "Only apply `skip-linux-ci` when PR touches docs/metadata; verify with `git diff --stat` first."
       - "Operational principle: "MVP first, better later"—secure working flow with logs before polishing."
+      - "Multi-session rule: every active task must have `.agents/branch_progress.yml` present and in sync with the current branch; create it from the template on claim and update `workflow_state` at each handoff."
+      - "Log or update the corresponding entry in `.agents/metrics_log.yml` when a session starts, hands off, or completes to keep the dashboard authoritative."
+      - "When clarifications are needed, extend `.agents/` records (project_state, lessons, templates) instead of inventing new tracking folders (e.g. `.gittree/`)."
       - "Branch naming: multi-agent branches use `feature/<domain>-<ticket>-a<author>-r<runner>`; solo work may omit suffix."
       - "Marker commit `chore: claim task #X` on first push; use `docs: prepare handoff` / `docs: acknowledge handoff` around handoff transitions."
       - "Tag `@codex` in PRs for cloud execution (`@codex review`, `@codex fix comments`, `@codex <instruction>`); link spec + handoff + evidence in the same thread."
+      - "After review, delegate merge to Codex (`@codex once CI is green ... merge`) to avoid idle waiting; ensure artefacts and metrics are updated first."
   branch_pr_process:
     issue_first: "Open or reference a GitHub issue before starting work; link the issue in PR body."
     branch_naming:
@@ -68,9 +72,9 @@ agent_guide:
     - "LL-013: Every multi-agent response must cite evidence (file:line, commit, backlog)."
     - "LL-014: Handoff requires completed branch_progress.yml and validation."
   session_lifecycle:
-    - "Plan – run bootstrap if needed, list steps, confirm guardrails."
-    - "Execute – follow plan, run required tests/CI, capture traceable commands/logs."
-    - "Document & Report – update human-facing docs when behaviour changes; sync operational notes in `.agents/` (YAML/JSON); validate `.agents/branch_progress.yml` (script) before handoff; log entry in `.agents/metrics_log.yml`; close with report template."
+    - "Plan – run bootstrap if needed, list steps, confirm guardrails; if `.agents/branch_progress.yml` is missing, copy the template and register the session in `.agents/metrics_log.yml`."
+    - "Execute – follow plan, keep branch_progress milestones up to date, run required tests/CI, capture traceable commands/logs."
+    - "Document & Report – update human-facing docs when behaviour changes; sync operational notes in `.agents/` (YAML/JSON); validate `.agents/branch_progress.yml` (script) before handoff; refresh `.agents/metrics_log.yml`; close with report template."
   testing_expectations:
     - "`make rust-test` (Docker) for unit/integration."
     - "`make rust-gui-build` for GUI build validation when required."

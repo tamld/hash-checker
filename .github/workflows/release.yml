@@ -185,6 +185,9 @@ jobs:
         run: |
           source "$HOME/.cargo/env"
           make macos-dmg-universal
+      - name: Assert DMG name
+        run: |
+          test -f dist/macos-universal/hash-checker.dmg
       - name: Verify DMG architecture
         run: |
           set -euo pipefail

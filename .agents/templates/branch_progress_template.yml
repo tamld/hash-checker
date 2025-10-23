@@ -2,11 +2,18 @@
 # Copy this to your feature branch as `.agents/branch_progress.yml`.
 
 branch: "feature/<domain>-<ticket>-<agent>"
+session_label: "codex-session-<n>"  # short alias to differentiate parallel runs
 task_id: <ticket_number>
 owner_current: "<Agent Name>"
 workflow_state: "authored"  # authored | ready_for_runner | in_progress | blocked | review | done
 started_at: "YYYY-MM-DDTHH:MM:SSZ"
 last_updated: "YYYY-MM-DDTHH:MM:SSZ"
+
+related_sessions:
+  - branch: null
+    issue: null
+    status: null
+    note: "Reference other active sessions touching this area (remove if none)."
 
 context:
   why_this_approach: |

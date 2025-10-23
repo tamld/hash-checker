@@ -22,6 +22,7 @@ Updated: 2025-10-19
 ## Quy tắc cập nhật
 1. **Trước khi mở PR hoặc merge**: chạy `make ci-linux-local`, cập nhật run ID trong `ci_guidelines.yml` (hoặc lessons nếu là bug fix).
 2. **Sau mỗi sự cố CI**: thêm mục mới vào `lessons.yml` (trigger, impact, evidence, checklist).
-3. **Chi tiết kỹ thuật / kế hoạch** chỉ ghi trong `.agents/`; `docs/` chỉ giữ whitebook cho người đọc bên ngoài.
-4. **Ngôn ngữ**: YAML/JSON trong `.agents/` dùng tiếng Anh cho trường dữ liệu, nhưng phần giải thích có thể kèm tiếng Việt khi cần; mọi trao đổi với người dùng vẫn dùng tiếng Việt.
-5. **Chứng cứ**: luôn dẫn đường dẫn chính xác (log, ảnh, run URL) để kiểm chứng.
+3. **Khi claim task mới**: sao chép `templates/branch_progress_template.yml` thành `.agents/branch_progress.yml`, điền `session_label`, cập nhật `related_sessions`, rồi thêm/điều chỉnh dòng tương ứng trong `metrics_log.yml`.
+4. **Chi tiết kỹ thuật / kế hoạch** chỉ ghi trong `.agents/`; `docs/` chỉ giữ whitebook cho người đọc bên ngoài.
+5. **Ngôn ngữ**: YAML/JSON trong `.agents/` dùng tiếng Anh cho trường dữ liệu, nhưng phần giải thích có thể kèm tiếng Việt khi cần; mọi trao đổi với người dùng vẫn dùng tiếng Việt.
+6. **Chứng cứ**: luôn dẫn đường dẫn chính xác (log, ảnh, run URL) để kiểm chứng.

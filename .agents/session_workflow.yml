@@ -5,12 +5,15 @@ session_workflow:
         - "Run `make clean` (repository root) to remove previous build artefacts and Docker volumes."
         - "Read `.agents/agent_guide.yml`, `.agents/gui_manifest_todo.yml`, and issue #24 before making any changes."
         - "If work ties to a new ticket, create `specs/<ticket>/plan.md` from template and draft handoff.md."
+        - "Ensure `.agents/branch_progress.yml` exists (copy from template if absent) and fill in branch/session metadata before making code changes."
+        - "Record or update the matching entry in `.agents/metrics_log.yml` to note that the session has started."
     - step: "Build & Test"
       actions:
         - "Build DMG via `CARGO_TARGET_DIR=/tmp/hash-checker-target make macos-dmg-universal`."
         - "Record DMG output path and mount it using `hdiutil attach`."
         - "Execute `cargo test` for `rust/hash-checker` (and GUI tests when available)."
         - "When preparing handoff, run `.agents/scripts/validate_handoff.sh <branch>` to ensure branch_progress completeness."
+        - "Update milestones in `.agents/branch_progress.yml` as each verification step completes."
     - step: "Deliverables"
       actions:
         - "Report DMG path, mount point, and quick run commands:"
