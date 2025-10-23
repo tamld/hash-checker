@@ -9,6 +9,7 @@ only highlights the key signals and where to dig deeper.
 ## Snapshot
 - GUI polish landed on `main` (theme presets, prefixed hash copy); QA log for the refreshed screenshots is stored under `logs/qa/theme-copy-verification-20251015.md`, and assets were updated again on 2025-10-16.
 - Release automation now builds and verifies the macOS universal DMG inside `release.yml`; the local script remains available for manual runs.
+- MacOS artefact naming unified to `hash-checker.dmg` (Issue #48, PR #50); release run 18744537700 validated the new packaging guard.
 - Linux CI job now runs on pushes and pull requests again; use the `skip-linux-ci` label only for doc-only PRs per the updated guardrail in `docs/OPERATIONS.md`.
 - CLI no longer depends on the unmaintained `atty` crate; terminal detection now uses `std::io::IsTerminal`, keeping `cargo audit` clean.
 - Release v0.1.5 (2025-10-17) captures the guardrail updates, CLI logging improvements, and dependency refresh.
