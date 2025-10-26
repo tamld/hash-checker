@@ -80,6 +80,7 @@ secrets/
 !/.agents/brainstorms/
 /.agents/brainstorms/*
 !/.agents/brainstorms/*.yml
+!/.agents/brainstorms/*.md
 !/.agents/records/
 /.agents/records/*
 !/.agents/records/*.md
