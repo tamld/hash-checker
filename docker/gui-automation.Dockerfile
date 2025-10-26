@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install Python analysis tools
 COPY scripts/requirements-automation.txt /tmp/
-RUN pip3 install --no-cache-dir -r /tmp/requirements-automation.txt
+RUN pip3 install --no-cache-dir --break-system-packages -r /tmp/requirements-automation.txt
 
 # Set up Rust environment
 ENV CARGO_HOME=/usr/local/cargo
