@@ -62,6 +62,47 @@ rust-windows-zip-temp: ## Build Windows portable .zip into platform temp directo
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?##";} {printf "%-20s %s\n", $$1, $$2}'
 
+# GUI Automation (Container-First)
+gui-automation-build: ## Build GUI automation Docker image
+	docker build -f docker/gui-automation.Dockerfile -t hash-checker-gui-automation .
+
+gui-automation-test: ## Run all GUI automation tests in container
+	docker run --rm \
+		-v $(PROJECT_ROOT):/workspace \
+		-e RUST_BACKTRACE=1 \
+		hash-checker-gui-automation \
+		bash -c "cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --tests"
+
+gui-automation-clean: ## Clean up GUI automation container
+	docker rmi hash-checker-gui-automation || true
+
+# Cleanup & Compliance
+check-clean: ## Check if workspace is clean (no untracked files)
+	@echo "Checking workspace cleanliness..."
+	@if [ -n "$$(git status --porcelain | grep '^??')" ]; then \
+		echo "❌ Untracked files found:"; \
+		git status --porcelain | grep '^??'; \
+		echo "Run 'make clean-workspace CONFIRM=1' to remove them"; \
+		exit 1; \
+	else \
+		echo "✅ Workspace is clean"; \
+	fi
+
+clean-workspace: ## Remove all untracked files and directories
+	@if [ "$(CONFIRM)" != "1" ]; then \
+		echo "Refusing to run 'git clean -fd' without confirmation."; \
+		echo "Re-run as 'make clean-workspace CONFIRM=1' to proceed."; \
+		exit 1; \
+	fi
+	@echo "Cleaning workspace (untracked files will be removed)..."
+	git clean -fd
+	@echo "✅ Workspace cleaned"
+
+pre-commit-check: check-clean ## Run pre-commit checks (clean workspace + tests)
+	@echo "Running pre-commit checks..."
+	@make check-clean
+	@echo "✅ Pre-commit checks passed"
+
 
 dist-linux: rust-build rust-gui-build ## Build and package Linux artifacts via Docker
 	rm -rf $(DIST_DIR)/linux

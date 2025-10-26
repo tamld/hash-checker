@@ -1,0 +1,121 @@
+name: GUI Automation Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'rust/hash-checker-gui/**'
+      - 'docker/gui-automation.Dockerfile'
+      - 'scripts/analyze_telemetry.py'
+      - 'scripts/check_performance_regression.py'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'rust/hash-checker-gui/**'
+      - 'docker/gui-automation.Dockerfile'
+      - 'scripts/analyze_telemetry.py'
+      - 'scripts/check_performance_regression.py'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of test to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - unit
+          - integration
+          - performance
+
+jobs:
+  gui-automation:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test_type: [unit, integration, performance]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build GUI automation container
+      run: |
+        docker build -f docker/gui-automation.Dockerfile -t hash-checker-gui-automation .
+        
+    - name: Run unit tests
+      if: |
+        matrix.test_type == 'unit' &&
+        (
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.test_type == 'unit' ||
+          github.event.inputs.test_type == 'all'
+        )
+      run: |
+        docker run --rm \
+          -v ${{ github.workspace }}:/workspace \
+          -e RUST_BACKTRACE=1 \
+          hash-checker-gui-automation \
+          bash -c "cd /workspace && cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --lib"
+          
+    - name: Run integration tests
+      if: |
+        matrix.test_type == 'integration' &&
+        (
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.test_type == 'integration' ||
+          github.event.inputs.test_type == 'all'
+        )
+      run: |
+        docker run --rm \
+          -v ${{ github.workspace }}:/workspace \
+          -e RUST_BACKTRACE=1 \
+          hash-checker-gui-automation \
+          bash -c "cd /workspace && cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --tests"
+          
+    - name: Run performance tests
+      if: |
+        matrix.test_type == 'performance' &&
+        (
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.test_type == 'performance' ||
+          github.event.inputs.test_type == 'all'
+        )
+      run: |
+        docker run --rm \
+          -v ${{ github.workspace }}:/workspace \
+          -e RUST_BACKTRACE=1 \
+          hash-checker-gui-automation \
+          bash -c "cd /workspace && cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --tests -- --ignored"
+          
+    - name: Generate telemetry report
+      if: always()
+      run: |
+        # Create sample telemetry log for testing
+        mkdir -p logs/gui-manifest
+        echo '{"type":"performance","duration_ms":150,"operation":"manifest_scan"}' > logs/gui-manifest/telemetry.log
+        echo '{"type":"ui_state","state":"loading","timestamp":"2025-10-25T10:00:00Z"}' >> logs/gui-manifest/telemetry.log
+        
+        # Run analysis
+        docker run --rm \
+          -v ${{ github.workspace }}:/workspace \
+          hash-checker-gui-automation \
+          bash -c "cd /workspace && python3 scripts/analyze_telemetry.py logs/gui-manifest/telemetry.log"
+          
+    - name: Upload test artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: gui-test-results-${{ matrix.test_type }}
+        path: |
+          logs/
+          *.md
+        retention-days: 7
+        
+    - name: Clean up container
+      if: always()
+      run: |
+        docker rmi hash-checker-gui-automation || true
