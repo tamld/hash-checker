@@ -86,3 +86,8 @@ secrets/
 !/.agents/workflows/
 /.agents/workflows/*
 !/.agents/workflows/README.md
+!/.agents/workflows/*.md
+!/.agents/workflows/templates/
+/.agents/workflows/templates/*
+!/.agents/workflows/templates/*.md
+!/.agents/workflows/templates/*.yml
