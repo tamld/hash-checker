@@ -79,6 +79,29 @@ check_container_approach() {
     return 0
 }
 
+check_dual_purpose() {
+    log_info "Checking dual purpose framework..."
+    
+    # Check if dual purpose framework files exist
+    if [ ! -f ".agents/AGENTS.md" ]; then
+        log_error "AGENTS.md missing. Dual purpose framework requires this file."
+        return 1
+    fi
+    
+    if [ ! -f ".agents/dual_purpose_framework.md" ]; then
+        log_error "dual_purpose_framework.md missing. Dual purpose framework requires this file."
+        return 1
+    fi
+    
+    # Check if dual purpose is being followed in current session
+    if [ ! -f ".agents/lessons_learned_multi_agent.md" ]; then
+        log_warn "lessons_learned_multi_agent.md missing. Consider documenting learnings."
+    fi
+    
+    log_info "✅ Dual purpose framework verified"
+    return 0
+}
+
 run_pre_commit_checks() {
     log_info "Running pre-commit checks..."
     
@@ -91,6 +114,12 @@ run_pre_commit_checks() {
     # Check container approach
     if ! check_container_approach; then
         log_error "Container-first approach not followed."
+        return 1
+    fi
+    
+    # Check dual purpose framework
+    if ! check_dual_purpose; then
+        log_error "Dual purpose framework not followed."
         return 1
     fi
     
@@ -126,7 +155,7 @@ show_help() {
 main() {
     case "${1:-check}" in
         check)
-            check_workspace_clean && check_container_approach
+            check_workspace_clean && check_container_approach && check_dual_purpose
             ;;
         clean)
             clean_workspace
