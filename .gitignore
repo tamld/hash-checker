@@ -77,6 +77,8 @@ secrets/
 !/.agents/backlog/
 /.agents/backlog/*
 !/.agents/backlog/README.md
+!/.agents/backlog/*.yml
+!/.agents/backlog/*.md
 !/.agents/brainstorms/
 /.agents/brainstorms/*
 !/.agents/brainstorms/*.yml
