@@ -1,0 +1,13 @@
+# Python dependencies for GUI automation analysis scripts
+# Install: pip install -r scripts/requirements-automation.txt
+
+# JSON/data processing
+# (using stdlib json module, no external deps needed)
+
+# Future: if we need image comparison
+# Pillow>=10.0.0
+# opencv-python-headless>=4.8.0
+
+# Future: if we need statistical analysis
+# numpy>=1.24.0
+# pandas>=2.0.0
