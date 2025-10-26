@@ -73,9 +73,16 @@ secrets/
 !/.agents/lessons_learned/
 /.agents/lessons_learned/*
 !/.agents/lessons_learned/README.md
+!/.agents/lessons_learned/*.md
 !/.agents/backlog/
 /.agents/backlog/*
 !/.agents/backlog/README.md
+!/.agents/brainstorms/
+/.agents/brainstorms/*
+!/.agents/brainstorms/*.yml
+!/.agents/records/
+/.agents/records/*
+!/.agents/records/*.md
 !/.agents/workflows/
 /.agents/workflows/*
 !/.agents/workflows/README.md

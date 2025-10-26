@@ -71,7 +71,7 @@ gui-automation-test: ## Run all GUI automation tests in container
 		-v $(PROJECT_ROOT):/workspace \
 		-e RUST_BACKTRACE=1 \
 		hash-checker-gui-automation \
-		bash -c "cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --all"
+		bash -c "cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --tests"
 
 gui-automation-clean: ## Clean up GUI automation container
 	docker rmi hash-checker-gui-automation || true
@@ -82,14 +82,19 @@ check-clean: ## Check if workspace is clean (no untracked files)
 	@if [ -n "$$(git status --porcelain | grep '^??')" ]; then \
 		echo "❌ Untracked files found:"; \
 		git status --porcelain | grep '^??'; \
-		echo "Run 'make clean-workspace' to remove them"; \
+		echo "Run 'make clean-workspace CONFIRM=1' to remove them"; \
 		exit 1; \
 	else \
 		echo "✅ Workspace is clean"; \
 	fi
 
 clean-workspace: ## Remove all untracked files and directories
-	@echo "Cleaning workspace..."
+	@if [ "$(CONFIRM)" != "1" ]; then \
+		echo "Refusing to run 'git clean -fd' without confirmation."; \
+		echo "Re-run as 'make clean-workspace CONFIRM=1' to proceed."; \
+		exit 1; \
+	fi
+	@echo "Cleaning workspace (untracked files will be removed)..."
 	git clean -fd
 	@echo "✅ Workspace cleaned"
 

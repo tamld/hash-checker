@@ -2,14 +2,16 @@
 """
 Performance Regression Check Script
 Purpose: Compare current performance metrics against baseline golden master
-Usage: python3 scripts/check_performance_regression.py [current_metrics] [baseline_metrics]
+Usage:
+    python3 scripts/check_performance_regression.py CURRENT BASELINE
+    python3 scripts/check_performance_regression.py CURRENT BASELINE --tolerance 0.05 --output logs/performance/report.md
 """
 
+import argparse
 import json
-import sys
-from pathlib import Path
-from typing import Dict, Any, List
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict
 
 def load_metrics(file_path: Path) -> Dict[str, Any]:
     """Load performance metrics from JSON file."""
@@ -145,14 +147,26 @@ Tolerance: {results['tolerance'] * 100}%
 
 def main():
     """Main function."""
-    if len(sys.argv) < 3:
-        print("Usage: python3 scripts/check_performance_regression.py [current_metrics] [baseline_metrics]")
-        print("Example: python3 scripts/check_performance_regression.py current.json baseline.json")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Compare performance metrics against a baseline.")
+    parser.add_argument("current", type=Path, help="Path to JSON file with current metrics")
+    parser.add_argument("baseline", type=Path, help="Path to JSON file with baseline metrics")
+    parser.add_argument(
+        "--tolerance",
+        type=float,
+        default=0.1,
+        help="Allowed percentage delta before flagging regression (default: 0.1 => 10%%)",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="Optional output file for the markdown report (default: logs/performance/performance_regression_report.md)",
+    )
+    args = parser.parse_args()
     
-    current_file = Path(sys.argv[1])
-    baseline_file = Path(sys.argv[2])
-    tolerance = float(sys.argv[3]) if len(sys.argv) > 3 else 0.1
+    current_file = args.current
+    baseline_file = args.baseline
+    tolerance = args.tolerance
+    output_file = args.output or Path("logs/performance/performance_regression_report.md")
     
     try:
         # Load metrics
@@ -166,7 +180,7 @@ def main():
         report = generate_markdown_report(results)
         
         # Output
-        output_file = Path("performance_regression_report.md")
+        output_file.parent.mkdir(parents=True, exist_ok=True)
         output_file.write_text(report)
         print(f"Performance regression report written to: {output_file}")
         

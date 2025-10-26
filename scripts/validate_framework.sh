@@ -29,6 +29,15 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+have_python_module() {
+    local module="$1"
+    python3 - <<PY >/dev/null 2>&1
+import importlib.util
+import sys
+sys.exit(0 if importlib.util.find_spec("${module}") else 1)
+PY
+}
+
 # Validation counters
 TOTAL_TESTS=0
 PASSED_TESTS=0
@@ -105,14 +114,19 @@ validate_scripts() {
     run_test "Performance script execution" "python3 scripts/check_performance_regression.py test_current.json test_baseline.json 2>/dev/null || true"
     
     # Cleanup test files
-    rm -f logs/gui-manifest/test.log test_current.json test_baseline.json performance_regression_report.md
+    rm -f logs/gui-manifest/test.log test_current.json test_baseline.json logs/performance/performance_regression_report.md
+    rmdir logs/performance 2>/dev/null || true
 }
 
 validate_ci() {
     log_info "=== Validating CI Workflow ==="
     
     # Test YAML syntax
-    run_test "CI workflow YAML syntax" "python3 -c 'import yaml; yaml.safe_load(open(\".github/workflows/gui-automation.yml\"))'"
+    if have_python_module "yaml"; then
+        run_test "CI workflow YAML syntax" "python3 -c 'import yaml; yaml.safe_load(open(\".github/workflows/gui-automation.yml\"))'"
+    else
+        log_warning "Skipping YAML syntax check (PyYAML not installed)"
+    fi
     
     # Test workflow triggers
     run_test "CI workflow triggers" "grep -q 'on:' .github/workflows/gui-automation.yml"

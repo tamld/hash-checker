@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        test-type: [unit, integration, performance]
+        test_type: [unit, integration, performance]
     
     steps:
     - name: Checkout code
@@ -47,7 +47,13 @@ jobs:
         docker build -f docker/gui-automation.Dockerfile -t hash-checker-gui-automation .
         
     - name: Run unit tests
-      if: matrix.test-type == 'unit' || github.event.inputs.test_type == 'unit' || github.event.inputs.test_type == 'all'
+      if: |
+        matrix.test_type == 'unit' &&
+        (
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.test_type == 'unit' ||
+          github.event.inputs.test_type == 'all'
+        )
       run: |
         docker run --rm \
           -v ${{ github.workspace }}:/workspace \
@@ -56,22 +62,34 @@ jobs:
           bash -c "cd /workspace && cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --lib"
           
     - name: Run integration tests
-      if: matrix.test-type == 'integration' || github.event.inputs.test_type == 'integration' || github.event.inputs.test_type == 'all'
+      if: |
+        matrix.test_type == 'integration' &&
+        (
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.test_type == 'integration' ||
+          github.event.inputs.test_type == 'all'
+        )
       run: |
         docker run --rm \
           -v ${{ github.workspace }}:/workspace \
           -e RUST_BACKTRACE=1 \
           hash-checker-gui-automation \
-          bash -c "cd /workspace && cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --test '*'"
+          bash -c "cd /workspace && cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --tests"
           
     - name: Run performance tests
-      if: matrix.test-type == 'performance' || github.event.inputs.test_type == 'performance' || github.event.inputs.test_type == 'all'
+      if: |
+        matrix.test_type == 'performance' &&
+        (
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.test_type == 'performance' ||
+          github.event.inputs.test_type == 'all'
+        )
       run: |
         docker run --rm \
           -v ${{ github.workspace }}:/workspace \
           -e RUST_BACKTRACE=1 \
           hash-checker-gui-automation \
-          bash -c "cd /workspace && cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --test '*' -- --ignored"
+          bash -c "cd /workspace && cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --tests -- --ignored"
           
     - name: Generate telemetry report
       if: always()
@@ -91,7 +109,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: gui-test-results-${{ matrix.test-type }}
+        name: gui-test-results-${{ matrix.test_type }}
         path: |
           logs/
           *.md

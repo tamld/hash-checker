@@ -48,14 +48,17 @@ check_workspace_clean() {
 }
 
 clean_workspace() {
-    log_info "Cleaning workspace..."
-    
-    # Remove untracked files
+    local force_flag="$1"
+
+    if [ "$force_flag" != "--force" ] && [ "${CLEAN_CONFIRM}" != "1" ]; then
+        log_error "Refusing to run destructive clean."
+        log_info "Set CLEAN_CONFIRM=1 or run '$0 clean --force' if you are absolutely sure."
+        log_info "Manual alternative: review 'git status' and clean specific files."
+        return 1
+    fi
+
+    log_warn "Running 'git clean -fd'. This will delete ALL untracked files."
     git clean -fd
-    
-    # Reset any uncommitted changes to core files
-    git checkout -- rust/hash-checker-gui/src/main.rs 2>/dev/null || true
-    
     log_info "✅ Workspace cleaned"
 }
 
@@ -142,7 +145,7 @@ show_help() {
     echo ""
     echo "Commands:"
     echo "  check       Check workspace cleanliness and container approach"
-    echo "  clean       Clean workspace (remove untracked files)"
+    echo "  clean       Clean workspace (remove untracked files) – requires CLEAN_CONFIRM=1 or '--force'"
     echo "  pre-commit  Run full pre-commit checks"
     echo "  help        Show this help message"
     echo ""
@@ -153,12 +156,15 @@ show_help() {
 }
 
 main() {
-    case "${1:-check}" in
+    local command="${1:-check}"
+    local subarg="${2:-}"
+
+    case "${command}" in
         check)
             check_workspace_clean && check_container_approach && check_dual_purpose
             ;;
         clean)
-            clean_workspace
+            clean_workspace "${subarg}"
             ;;
         pre-commit)
             run_pre_commit_checks

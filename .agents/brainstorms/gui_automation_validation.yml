@@ -1,0 +1,43 @@
+meta:
+  created: 2025-10-26
+  owner: platform-team
+  status: open
+  related_branch: feature/gui-automation-harness-issue56
+  objective: "Define the next evolution of GUI automation after the stabilization pass."
+
+problem_statement:
+  summary: >
+    Current branch replaces invalid tests and workflows, but lacks true headless coverage
+    and automated verification of telemetry/validation tooling.
+  risks:
+    - "CI matrix still unproven on hosted runners."
+    - "No regression guards for scripts/analyze_telemetry.py and validate_framework.sh."
+    - "Headless-mode CLI contract undefined, preventing meaningful GUI automation."
+
+goals:
+  - "Publish a real headless CLI spec for hash-checker-gui."
+  - "Add integration tests that exercise telemetry and compliance scripts."
+  - "Run GUI workflow in CI (draft PR) to collect baseline timings."
+
+deliverables:
+  - name: "Headless CLI RFC"
+    notes: "Capture required flags, exit codes, and artefact outputs."
+  - name: "Telemetry script unit tests"
+    notes: "pytest or python unittest covering happy path + malformed lines."
+  - name: "CI dry-run report"
+    notes: "Document timings + cache behaviour for gui-automation workflow."
+
+evidence_required:
+  - "Cargo test suite passes with new headless scenarios."
+  - "Python tests for scripts/analyze_telemetry.py and check_performance_regression.py."
+  - "GitHub Actions run link demonstrating workflow success."
+
+next_steps:
+  - "Assign owner for RFC drafting."
+  - "Create issues for telemetry/compliance script unit tests."
+  - "Schedule workflow dry-run early next sprint."
+
+notes: >
+  This brainstorm tracks the follow-up work necessary to move from 'stabilised scaffolding'
+  to a production-ready GUI automation harness. Update status and deliverables as items are
+  completed.

@@ -1,6 +1,8 @@
 # Python dependencies for GUI automation analysis scripts
 # Install: pip install -r scripts/requirements-automation.txt
 
+PyYAML>=6.0
+
 # JSON/data processing
 # (using stdlib json module, no external deps needed)
 
