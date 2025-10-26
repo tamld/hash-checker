@@ -9,7 +9,7 @@ process we follow so changes land smoothly and stay traceable.
    so decisions and evidence stay linked. Reference the issue number in branch
    names and commits. Use the templates under `.github/ISSUE_TEMPLATE/`.
 2. **Create a topic branch.** Favour `feature/<descriptor>`, `fix/<descriptor>`,
-   or `docs/<descriptor>` as documented in `.agents/AGENTS.yml`.
+   or `docs/<descriptor>` as documented in `.agents/AGENTS.md`.
 3. **Keep public docs high level.** Detailed runbooks, RCA notes, or secrets
    belong in the git-ignored `.agents/` workspace. Public files (`docs/`, `README.md`,
    etc.) should stay user-facing and free of sensitive information.

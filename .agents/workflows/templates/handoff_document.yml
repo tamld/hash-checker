@@ -1,0 +1,293 @@
+# AI Agent Handoff Document
+# Purpose: Transfer work from one agent to another with full context
+
+from: <agent-name>
+to: <target-agent-name>
+task: "<Task description>"
+github_issue: <N>
+branch: <branch-name>
+pr: <PR-N or null>
+handoff_date: YYYY-MM-DD
+
+# =============================================================================
+# COMPLETED WORK
+# =============================================================================
+
+completed:
+  - ✅ <Completed item 1>
+  - ✅ <Completed item 2>
+  - ✅ <Completed item 3>
+
+# =============================================================================
+# REMAINING WORK
+# =============================================================================
+
+remaining:
+  - ⏳ <In-progress item>: <Status details>
+  - ❌ <Not started item 1>
+  - ❌ <Not started item 2>
+  - ❌ <Not started item 3>
+
+# =============================================================================
+# TECHNICAL NOTES
+# =============================================================================
+
+technical_notes:
+  architecture: |
+    <Describe the architecture you implemented>
+    
+  key_decisions:
+    - decision: "<What you decided>"
+      rationale: "<Why>"
+      alternatives: "<What else you considered>"
+      
+  dependencies_added:
+    - name: "<crate/package>"
+      version: "<version>"
+      reason: "<Why needed>"
+      
+  file_structure: |
+    <Show structure of files created/modified>
+    
+  patterns_established:
+    - pattern: "<Pattern name>"
+      location: "<Where used>"
+      usage: "<How to use>"
+
+# =============================================================================
+# KNOWN ISSUES & CONCERNS
+# =============================================================================
+
+concerns:
+  - concern: "<Issue 1>"
+    impact: "H/M/L"
+    suggestion: "<How to handle>"
+    
+  - concern: "<Issue 2>"
+    impact: "H/M/L"
+    suggestion: "<How to handle>"
+
+known_bugs:
+  - bug: "<Bug description>"
+    location: "<File:line>"
+    workaround: "<Temporary fix>"
+    tracking: "<Issue # or TODO comment>"
+
+technical_debt:
+  - debt: "<What's not ideal>"
+    reason: "<Why it exists>"
+    refactor_plan: "<How to improve later>"
+
+# =============================================================================
+# FILES MODIFIED
+# =============================================================================
+
+files_modified:
+  created:
+    - path: "<file-path>"
+      purpose: "<What it does>"
+      
+  modified:
+    - path: "<file-path>"
+      changes: "<Summary of changes>"
+      
+  deleted:
+    - path: "<file-path>"
+      reason: "<Why removed>"
+
+# =============================================================================
+# TESTING
+# =============================================================================
+
+test_commands:
+  unit_tests: |
+    cargo test --package <package> --lib <test-name>
+    
+  integration_tests: |
+    cargo test --package <package> --test <test-name>
+    
+  manual_test: |
+    cargo run --package <package> -- <flags>
+    
+test_coverage:
+  unit: "<percentage or description>"
+  integration: "<percentage or description>"
+  gaps: "<What's not tested>"
+
+test_results:
+  - test: "<test name>"
+    status: "pass/fail"
+    notes: "<Any notes>"
+
+# =============================================================================
+# DECISIONS MADE (Architecture & Design)
+# =============================================================================
+
+decisions_made:
+  - decision: "<Decision 1>"
+    rationale: "<Why>"
+    impact: "<What it affects>"
+    
+  - decision: "<Decision 2>"
+    rationale: "<Why>"
+    impact: "<What it affects>"
+
+# =============================================================================
+# PLATFORM-SPECIFIC NOTES
+# =============================================================================
+
+platform_notes:
+  linux: |
+    <Any Linux-specific considerations>
+    
+  macos: |
+    <Any macOS-specific considerations>
+    
+  windows: |
+    <Any Windows-specific considerations>
+
+# =============================================================================
+# PERFORMANCE NOTES
+# =============================================================================
+
+performance:
+  benchmarks_run: <yes/no>
+  results: |
+    <Performance measurements>
+    
+  concerns:
+    - concern: "<Performance issue>"
+      impact: "<How bad>"
+      
+  optimizations_applied:
+    - optimization: "<What you did>"
+      improvement: "<Result>"
+
+# =============================================================================
+# DOCUMENTATION STATUS
+# =============================================================================
+
+documentation:
+  code_comments: "<adequate/needs-work>"
+  api_docs: "<complete/incomplete>"
+  user_docs: "<updated/needs-update>"
+  examples: "<provided/needed>"
+
+# =============================================================================
+# NEXT STEPS (For Receiving Agent)
+# =============================================================================
+
+next_steps:
+  1. "<First thing to do>"
+  2. "<Second thing>"
+  3. "<Third thing>"
+  4. "<etc>"
+
+recommended_order:
+  priority: "high/medium/low"
+  sequence: |
+    1. Start with <X> because <reason>
+    2. Then do <Y> because <reason>
+    3. Finally <Z>
+
+# =============================================================================
+# COMPLETION CRITERIA
+# =============================================================================
+
+completion_criteria:
+  - [ ] <Criterion 1>
+  - [ ] <Criterion 2>
+  - [ ] <Criterion 3>
+  - [ ] All tests pass
+  - [ ] Documentation complete
+  - [ ] CI green
+  - [ ] PR ready for review
+
+# =============================================================================
+# ESTIMATED REMAINING EFFORT
+# =============================================================================
+
+estimated_remaining: "<X-Y hours>"
+
+complexity_assessment: "simple/moderate/complex"
+
+blockers:
+  - blocker: "<What's blocking>"
+    resolution: "<How to unblock>"
+
+# =============================================================================
+# QUESTIONS FOR RECEIVING AGENT
+# =============================================================================
+
+questions_for_receiver:
+  - question: "<Question 1>"
+    context: "<Why asking>"
+    
+  - question: "<Question 2>"
+    context: "<Why asking>"
+
+# =============================================================================
+# CONTACT & HANDOFF MEETING
+# =============================================================================
+
+contact_for_questions: "<agent-name or 'review git log'>"
+
+handoff_meeting_notes: |
+  <If discussed synchronously, capture notes here>
+
+pair_programming_available: <yes/no>
+
+# =============================================================================
+# VALIDATION CHECKLIST (For Receiving Agent)
+# =============================================================================
+
+receiving_agent_checklist:
+  - [ ] Read this document thoroughly
+  - [ ] Checkout branch and verify it builds
+  - [ ] Run all test commands listed above
+  - [ ] Review all modified files
+  - [ ] Understand architecture decisions
+  - [ ] Identify any gaps or concerns
+  - [ ] Comment on issue with reception notes
+  - [ ] Update this file with your progress
+
+# =============================================================================
+# HANDOFF QUALITY SELF-ASSESSMENT
+# =============================================================================
+
+handoff_quality:
+  completeness: "1-5 (5=excellent)"
+  clarity: "1-5 (5=excellent)"
+  documentation: "1-5 (5=excellent)"
+  
+  self_review:
+    - "<What I did well in this handoff>"
+    - "<What could be improved>"
+
+# =============================================================================
+# METADATA
+# =============================================================================
+
+metadata:
+  created_by: "<agent-name>"
+  created_date: "YYYY-MM-DD"
+  last_updated: "YYYY-MM-DD"
+  version: "1.0"
+  
+  commits:
+    first: "<commit-hash>"
+    last: "<commit-hash>"
+    count: <N>
+    
+  time_spent: "<X hours>"
+  sessions: <N>
+
+# =============================================================================
+# END OF HANDOFF DOCUMENT
+# =============================================================================
+
+# Note to receiving agent:
+# - Update 'remaining' section as you complete items
+# - Add your own notes under a new section if needed
+# - Keep this document updated for traceability
+# - Delete this template section after filling in
