@@ -99,3 +99,5 @@ secrets/
 !/.agents/workflows/templates/*.md
 !/.agents/workflows/templates/*.yml
 backups/
+!/.agents/handoffs/
+!/.agents/handoffs/*.md
