@@ -15,27 +15,35 @@ problem_statement:
     - "Headless-mode CLI contract undefined, preventing meaningful GUI automation."
 
 goals:
-  - "Publish a real headless CLI spec for hash-checker-gui."
-  - "Add integration tests that exercise telemetry and compliance scripts."
-  - "Run GUI workflow in CI (draft PR) to collect baseline timings."
+  - "Publish a real headless CLI spec for hash-checker-gui (Phase A)."
+  - "Add unit tests for telemetry/compliance scripts and run the GUI workflow in CI (Phase B)."
 
-deliverables:
-  - name: "Headless CLI RFC"
-    notes: "Capture required flags, exit codes, and artefact outputs."
-  - name: "Telemetry script unit tests"
-    notes: "pytest or python unittest covering happy path + malformed lines."
-  - name: "CI dry-run report"
-    notes: "Document timings + cache behaviour for gui-automation workflow."
-
-evidence_required:
-  - "Cargo test suite passes with new headless scenarios."
-  - "Python tests for scripts/analyze_telemetry.py and check_performance_regression.py."
-  - "GitHub Actions run link demonstrating workflow success."
+phases:
+  - id: "Phase A"
+    focus: "Specification + CLI proof"
+    deliverables:
+      - name: "Headless CLI RFC"
+        notes: "Capture required flags, exit codes, artefact outputs; agreed by tech lead."
+      - name: "CLI smoke tests aligned to RFC"
+        notes: "Extend gui_cli_smoke.rs (or equivalent) to cover headless contract."
+    evidence_required:
+      - "cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --tests (log attached)."
+      - "RFC stored under docs/ or .agents/records with reviewer sign-off."
+  - id: "Phase B"
+    focus: "Tooling + CI verification"
+    deliverables:
+      - name: "Telemetry/Performance script unit tests"
+        notes: "pytest/unittest covering happy path + malformed input."
+      - name: "GUI workflow dry-run report"
+        notes: "GitHub Actions run link, timings, cache hit observations."
+    evidence_required:
+      - "pytest (or equivalent) log for scripts/analyze_telemetry.py and check_performance_regression.py."
+      - "Actions run URL + summary appended to .agents/records/gui_automation_harness_issue56.md."
 
 next_steps:
-  - "Assign owner for RFC drafting."
-  - "Create issues for telemetry/compliance script unit tests."
-  - "Schedule workflow dry-run early next sprint."
+  - "Assign owner + due date for Phase A RFC (Codex đề xuất, Cursor thực thi)."
+  - "Create issues for Phase B tooling tests + CI dry-run (link vào backlog)."
+  - "Update .agents/records/gui_automation_harness_issue56.md khi mỗi phase hoàn thành."
 
 notes: >
   This brainstorm tracks the follow-up work necessary to move from 'stabilised scaffolding'
