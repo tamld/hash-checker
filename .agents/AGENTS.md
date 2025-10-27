@@ -163,6 +163,29 @@ Before marking a task complete:
 
 ---
 
+## Operating Principles (Kim Chỉ Nam)
+
+**All AAs must read**: `.agents/OPERATING_PRINCIPLES.md`
+
+This document contains 7 core operating principles extracted from real experience:
+1. Simplicity is earned, not given
+2. Root cause > Symptoms
+3. Reality > Hypothesis
+4. Constraints reveal truth
+5. Self-correction is strength
+6. Wisdom compounds
+7. Evolution > Revolution
+
+**Key Philosophy**: 
+- Principles > Rules
+- Compass > Map  
+- Understanding > Documentation
+- Wisdom > Knowledge
+
+**Living Document**: Evolves with experience, not static rules.
+
+---
+
 ## Multi-Agent Coordination
 
 ### Agent Registry
