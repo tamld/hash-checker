@@ -59,7 +59,7 @@ jobs:
           -v ${{ github.workspace }}:/workspace \
           -e RUST_BACKTRACE=1 \
           hash-checker-gui-automation \
-          bash -c "cd /workspace && cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --lib"
+          bash -c "cd /workspace && cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --tests"
           
     - name: Run integration tests
       if: |
