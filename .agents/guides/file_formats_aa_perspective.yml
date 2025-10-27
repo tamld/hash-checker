@@ -1,0 +1,543 @@
+# File Format Guide: AA Operations Perspective
+# Focus: Maximum AA autonomy, self-documentation, automation-ready
+
+schema_version: "1.0"
+last_updated: "2025-10-27T17:30:00Z"
+purpose: "Guide AAs to choose file formats that maximize autonomy and automation"
+
+# =============================================================================
+# DECISION FRAMEWORK: AA-First Perspective
+# =============================================================================
+
+decision_criteria:
+  primary_question: "Can AA operate autonomously with this format?"
+  
+  must_have:
+    - schema_embedded: "File includes its own schema/structure definition"
+    - validation_possible: "Can validate syntax without external tools"
+    - self_documenting: "Format itself explains expected content"
+    - script_parseable: "Standard tools can parse (yq, jq, grep)"
+    - diff_friendly: "Git diffs show meaningful changes"
+  
+  nice_to_have:
+    - comments_supported: "Can add inline guidance for future AAs"
+    - human_readable: "Human can review AA's work"
+    - IDE_support: "Syntax highlighting, autocomplete available"
+    - streaming_capable: "Can process incrementally (logs)"
+
+# =============================================================================
+# FORMAT COMPARISON: AA Autonomy Perspective
+# =============================================================================
+
+formats:
+  
+  # ---------------------------------------------------------------------------
+  # YAML: Best for AA Operations
+  # ---------------------------------------------------------------------------
+  yaml:
+    verdict: "RECOMMENDED for structured AA operations"
+    autonomy_score: 95/100
+    
+    aa_can_do_autonomously:
+      - read: "Parse with yq, python yaml, any scripting language"
+      - write: "Generate valid YAML reliably (AA strong at this)"
+      - validate: "yamllint --strict file.yml"
+      - query: "yq '.tasks[] | select(.status==\"pending\")' tasks.yml"
+      - update: "yq -i '.tasks[0].status = \"completed\"' tasks.yml"
+      - merge: "yq merge file1.yml file2.yml"
+      - convert: "yq -o json tasks.yml > tasks.json"
+    
+    self_documentation:
+      schema_location: "Embed schema in file comments"
+      example: |
+        # Schema: Task tracking
+        # Fields:
+        #   - id: string (unique, format: phase[1-9]-[a-z-]+)
+        #   - status: enum [pending, in_progress, completed, cancelled]
+        #   - assignee: string | null (AA name: cursor|codex|gemini)
+        tasks:
+          - id: phase1-fix-main
+            status: in_progress
+            assignee: cursor
+    
+    automation_examples:
+      claim_task: |
+        # AA claims first pending task
+        task_id=$(yq '.tasks[] | select(.status=="pending") | .id' tasks.yml | head -1)
+        yq -i ".tasks[] | select(.id==\"$task_id\") | .status = \"in_progress\" | .assignee = \"cursor\"" tasks.yml
+      
+      check_blockers: |
+        # Check if any task has blockers
+        blockers=$(yq '.tasks[] | select(.blockers | length > 0) | .id' tasks.yml)
+        if [ -n "$blockers" ]; then echo "Blocked: $blockers"; fi
+      
+      generate_report: |
+        # Generate status report
+        echo "Pending: $(yq '.tasks[] | select(.status=="pending") | .id' tasks.yml | wc -l)"
+        echo "In Progress: $(yq '.tasks[] | select(.status=="in_progress") | .id' tasks.yml | wc -l)"
+        echo "Completed: $(yq '.tasks[] | select(.status=="completed") | .id' tasks.yml | wc -l)"
+    
+    pros_aa_perspective:
+      - "AA can read/write without external context"
+      - "Schema can be embedded in file (comments)"
+      - "Validation scriptable (yamllint)"
+      - "Query/update scriptable (yq)"
+      - "Git diffs show exact changes"
+      - "Comments guide future AAs"
+    
+    cons_aa_perspective:
+      - "Indentation errors possible (but yamllint catches)"
+      - "Large nested structures harder than JSON"
+      - "No streaming (must load full file)"
+    
+    best_for:
+      - "Task tracking (tasks.yml)"
+      - "Lock registry (locks.yml)"
+      - "Configuration (config.yml)"
+      - "AA registry (agents.yml)"
+      - "Workflow specs (workflow.yml)"
+
+  # ---------------------------------------------------------------------------
+  # JSONL: Best for AA Logging/Events
+  # ---------------------------------------------------------------------------
+  jsonl:
+    verdict: "RECOMMENDED for append-only AA operations"
+    autonomy_score: 90/100
+    
+    aa_can_do_autonomously:
+      - read: "grep, jq, awk (line-by-line)"
+      - write: "echo '{json}' >> events.jsonl (simple append)"
+      - validate: "cat events.jsonl | jq -c . >/dev/null (validates each line)"
+      - query: "grep 'cursor' events.jsonl | jq '.action'"
+      - filter: "jq -c 'select(.aa==\"cursor\")' events.jsonl"
+      - aggregate: "jq -s 'group_by(.action) | map({action: .[0].action, count: length})' events.jsonl"
+    
+    self_documentation:
+      schema_location: "First line of file (special comment record)"
+      example: |
+        {"_schema": "aa_event", "version": "1.0", "fields": {"timestamp": "ISO8601", "aa": "string", "action": "string", "target": "string"}}
+        {"timestamp": "2025-10-27T15:00:00Z", "aa": "cursor", "action": "claim_task", "target": "phase1-fix-main"}
+        {"timestamp": "2025-10-27T15:05:00Z", "aa": "cursor", "action": "acquire_lock", "target": ".agents/tasks.yml"}
+    
+    automation_examples:
+      log_action: |
+        # AA logs every action
+        log_event() {
+          echo "{\"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"aa\": \"cursor\", \"action\": \"$1\", \"target\": \"$2\"}" >> .agents/active/events.jsonl
+        }
+        log_event "claim_task" "phase1-fix-main"
+      
+      detect_conflict: |
+        # Check if 2 AAs touched same file recently
+        file="tasks.yml"
+        actors=$(tail -100 events.jsonl | jq -r "select(.target==\"$file\") | .aa" | sort -u | wc -l)
+        if [ "$actors" -gt 1 ]; then echo "WARNING: Multiple AAs editing $file"; fi
+      
+      generate_timeline: |
+        # Generate AA activity timeline
+        jq -r '[.timestamp, .aa, .action, .target] | @tsv' events.jsonl | column -t
+    
+    pros_aa_perspective:
+      - "AA can append without reading entire file"
+      - "Crash-safe (partial writes OK)"
+      - "Streaming processing (tail -f)"
+      - "Self-documenting (schema in first line)"
+      - "Easy to grep/filter"
+      - "Perfect audit trail"
+    
+    cons_aa_perspective:
+      - "Not valid JSON (needs line-by-line parsing)"
+      - "No comments (schema must be first record)"
+      - "Harder to edit (append-only nature)"
+    
+    best_for:
+      - "AA event logs (events.jsonl)"
+      - "Audit trail (who did what when)"
+      - "Metrics collection (time-series)"
+      - "Error logs (failures.jsonl)"
+
+  # ---------------------------------------------------------------------------
+  # Markdown: Best for AA Documentation
+  # ---------------------------------------------------------------------------
+  markdown:
+    verdict: "RECOMMENDED for human-AA communication"
+    autonomy_score: 70/100
+    
+    aa_can_do_autonomously:
+      - read: "Native (AAs parse markdown well)"
+      - write: "Native (AAs generate markdown easily)"
+      - validate: "markdownlint file.md"
+      - query: "grep -A5 '^## ' file.md (extract sections)"
+      - extract_code: "sed -n '/```bash/,/```/p' file.md"
+      - check_links: "markdown-link-check file.md"
+    
+    self_documentation:
+      schema_location: "Template header or frontmatter"
+      example: |
+        ---
+        template: task_delegation
+        version: 1.0
+        required_sections: [Objective, Context, Success Criteria, Timeline]
+        ---
+        
+        # Task Delegation: Phase 2
+        
+        ## Objective
+        Create COORDINATION_RULES.md with 3 simple rules
+        
+        ## Context
+        See .agents/guides/coordination.md for background
+        
+        ## Success Criteria
+        - [ ] Exactly 3 rules
+        - [ ] Each rule <50 words
+        - [ ] Examples provided
+    
+    automation_examples:
+      validate_structure: |
+        # Check if markdown has required sections
+        required_sections=("Objective" "Context" "Success Criteria")
+        for section in "${required_sections[@]}"; do
+          grep -q "## $section" file.md || echo "Missing section: $section"
+        done
+      
+      extract_checklist: |
+        # Extract uncompleted checklist items
+        grep '- \[ \]' file.md
+      
+      generate_toc: |
+        # Generate table of contents
+        grep '^##' file.md | sed 's/## /- /'
+    
+    pros_aa_perspective:
+      - "AA can generate rich documentation easily"
+      - "Mixed content (text, code, tables, lists)"
+      - "Human-readable for review"
+      - "Frontmatter can define schema"
+      - "Code blocks can be extracted/executed"
+    
+    cons_aa_perspective:
+      - "No strict schema (hard to validate)"
+      - "Inconsistent formatting across AAs"
+      - "Hard to parse programmatically"
+      - "No type safety"
+      - "Verbose for structured data"
+    
+    best_for:
+      - "Guides (how-to documentation)"
+      - "Handoffs (narrative context)"
+      - "Lessons learned (analysis + examples)"
+      - "Task delegation specs (mixed content)"
+
+  # ---------------------------------------------------------------------------
+  # JSON: Best for Tool Output
+  # ---------------------------------------------------------------------------
+  json:
+    verdict: "RECOMMENDED for tool-AA integration"
+    autonomy_score: 85/100
+    
+    aa_can_do_autonomously:
+      - read: "jq . file.json"
+      - write: "Generate reliably (strict format)"
+      - validate: "jq . file.json >/dev/null"
+      - query: "jq '.results[] | select(.status==\"failed\")' results.json"
+      - update: "jq '.status = \"completed\"' file.json > temp.json && mv temp.json file.json"
+      - schema_check: "jsonschema -i file.json schema.json"
+    
+    self_documentation:
+      schema_location: "Separate schema.json file or $schema field"
+      example: |
+        {
+          "$schema": "task_result_v1.json",
+          "task_id": "phase1-fix-main",
+          "status": "completed",
+          "duration_seconds": 1800,
+          "tests_run": 42,
+          "tests_passed": 42,
+          "artifacts": ["pr_url", "commit_sha"]
+        }
+    
+    automation_examples:
+      validate_schema: |
+        # Validate JSON against schema
+        jsonschema -i results.json schemas/task_result.json
+      
+      merge_results: |
+        # Merge multiple JSON files
+        jq -s 'add' result1.json result2.json > merged.json
+      
+      extract_failures: |
+        # Extract failed tests for retry
+        jq '.tests[] | select(.status=="failed") | .name' results.json > failed_tests.txt
+    
+    pros_aa_perspective:
+      - "AA generates valid JSON reliably"
+      - "Universal tool support"
+      - "Schema validation (jsonschema)"
+      - "Type-safe"
+      - "Perfect for API responses"
+    
+    cons_aa_perspective:
+      - "No comments (can't guide future AAs)"
+      - "Verbose (quotes, brackets)"
+      - "In-place updates harder than YAML"
+      - "Human-readability lower than YAML"
+    
+    best_for:
+      - "Test results (results.json)"
+      - "Tool output (ci_report.json)"
+      - "API responses (github_api.json)"
+      - "Data export (metrics.json)"
+
+# =============================================================================
+# RECOMMENDED FILE STRUCTURE (AA-Optimized)
+# =============================================================================
+
+recommended_structure:
+  
+  active_operations:
+    path: ".agents/active/"
+    purpose: "Current AA operations (high-frequency updates)"
+    
+    files:
+      - name: "tasks.yml"
+        format: "yaml"
+        why: "AAs need to claim/update tasks autonomously"
+        schema_embedded: true
+        automation: ["claim_task.sh", "check_blockers.sh", "report_status.sh"]
+        
+      - name: "locks.yml"
+        format: "yaml"
+        why: "Real-time lock acquisition/release"
+        schema_embedded: true
+        automation: ["acquire_lock.sh", "release_lock.sh", "check_stale.sh"]
+        
+      - name: "events.jsonl"
+        format: "jsonl"
+        why: "Append-only audit trail"
+        schema_embedded: true
+        automation: ["log_action.sh", "detect_conflicts.sh", "timeline.sh"]
+  
+  guidance_docs:
+    path: ".agents/guides/"
+    purpose: "How-to documentation for AAs"
+    
+    files:
+      - name: "README.md"
+        format: "markdown"
+        why: "Entry point for new AAs"
+        template: "guides/template_readme.md"
+        
+      - name: "coordination.md"
+        format: "markdown"
+        why: "Coordination protocols (narrative)"
+        sections: ["Task Claiming", "Lock Protocol", "Conflict Resolution"]
+        
+      - name: "file_formats.md"
+        format: "markdown"
+        why: "This guide (meta)"
+  
+  completed_work:
+    path: ".agents/archive/"
+    purpose: "Historical record (low-frequency access)"
+    
+    files:
+      - name: "completed_tasks.yml"
+        format: "yaml"
+        why: "Queryable history"
+        
+      - name: "sessions/*.md"
+        format: "markdown"
+        why: "Session narratives for learning"
+
+# =============================================================================
+# AUTOMATION TOOLKIT (For AAs)
+# =============================================================================
+
+automation_scripts:
+  
+  scripts_to_create:
+    
+    - name: "claim_task.sh"
+      purpose: "AA claims first available task"
+      input: "AA name (cursor|codex|gemini)"
+      output: "Task ID or error"
+      logic: |
+        #!/bin/bash
+        AA_NAME=$1
+        TASK_FILE=".agents/active/tasks.yml"
+        
+        # Find first pending task
+        TASK_ID=$(yq '.tasks[] | select(.status=="pending" and .assignee==null) | .id' $TASK_FILE | head -1)
+        
+        if [ -z "$TASK_ID" ]; then
+          echo "ERROR: No available tasks"
+          exit 1
+        fi
+        
+        # Claim task
+        yq -i "(.tasks[] | select(.id==\"$TASK_ID\")) |= (.status = \"in_progress\" | .assignee = \"$AA_NAME\" | .started = \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\")" $TASK_FILE
+        
+        # Log event
+        echo "{\"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"aa\": \"$AA_NAME\", \"action\": \"claim_task\", \"target\": \"$TASK_ID\"}" >> .agents/active/events.jsonl
+        
+        echo "Claimed: $TASK_ID"
+    
+    - name: "acquire_lock.sh"
+      purpose: "AA acquires file lock"
+      input: "AA name, file path, task ID"
+      output: "Success or conflict"
+      logic: |
+        #!/bin/bash
+        AA_NAME=$1
+        FILE_PATH=$2
+        TASK_ID=$3
+        LOCK_FILE=".agents/active/locks.yml"
+        
+        # Check if file already locked
+        OWNER=$(yq ".locks[] | select(.path==\"$FILE_PATH\" and .status==\"active\") | .owner" $LOCK_FILE)
+        
+        if [ -n "$OWNER" ] && [ "$OWNER" != "$AA_NAME" ]; then
+          echo "ERROR: File locked by $OWNER"
+          exit 1
+        fi
+        
+        # Acquire lock
+        LOCK_ID="lock-$(date +%s)"
+        yq -i ".locks += [{\"id\": \"$LOCK_ID\", \"path\": \"$FILE_PATH\", \"owner\": \"$AA_NAME\", \"claimed_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"eta\": \"$(date -u -d '+20 minutes' +%Y-%m-%dT%H:%M:%SZ)\", \"status\": \"active\", \"task_id\": \"$TASK_ID\"}]" $LOCK_FILE
+        
+        # Log event
+        echo "{\"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"aa\": \"$AA_NAME\", \"action\": \"acquire_lock\", \"target\": \"$FILE_PATH\"}" >> .agents/active/events.jsonl
+        
+        echo "Lock acquired: $LOCK_ID"
+    
+    - name: "validate_yaml.sh"
+      purpose: "Validate YAML file before commit"
+      input: "File path"
+      output: "Valid or errors"
+      logic: |
+        #!/bin/bash
+        FILE=$1
+        
+        # Syntax check
+        yamllint --strict $FILE || exit 1
+        
+        # Schema check (if schema defined in file)
+        SCHEMA=$(yq '._schema' $FILE)
+        if [ -n "$SCHEMA" ]; then
+          # Validate against schema (would need schema file)
+          echo "Schema validation: $SCHEMA (TODO: implement)"
+        fi
+        
+        echo "Valid: $FILE"
+
+# =============================================================================
+# AA SELF-SERVICE CHECKLIST
+# =============================================================================
+
+aa_self_service_checklist:
+  
+  before_choosing_format:
+    - question: "Will I need to update this file frequently?"
+      if_yes: "Choose YAML (easy updates with yq)"
+      if_no: "Markdown is fine"
+    
+    - question: "Will scripts need to parse this?"
+      if_yes: "Choose YAML or JSONL"
+      if_no: "Markdown is fine"
+    
+    - question: "Is this append-only (logs, events)?"
+      if_yes: "Choose JSONL"
+      if_no: "Choose YAML or Markdown"
+    
+    - question: "Does this need inline guidance for future AAs?"
+      if_yes: "Choose YAML (comments) or Markdown"
+      if_no: "JSON is fine"
+  
+  after_creating_file:
+    - action: "Embed schema in file (YAML comments or JSONL first line)"
+    - action: "Create corresponding automation script (if applicable)"
+    - action: "Add validation command (yamllint, jq, markdownlint)"
+    - action: "Document in guides/README.md (what this file is for)"
+    - action: "Test: Can another AA use this without asking me?"
+
+# =============================================================================
+# SUCCESS METRICS
+# =============================================================================
+
+success_criteria:
+  
+  aa_autonomy:
+    metric: "% of operations AA can do without human help"
+    target: ">90%"
+    measured_by: "Count of 'AA stuck, asked human' incidents"
+  
+  self_documentation:
+    metric: "% of files with embedded schema/comments"
+    target: "100%"
+    measured_by: "Audit .agents/ files for schema presence"
+  
+  automation_coverage:
+    metric: "% of file types with automation scripts"
+    target: "100% for YAML/JSONL files"
+    measured_by: "Count scripts in scripts/ directory"
+  
+  validation_coverage:
+    metric: "% of files with validation commands"
+    target: "100%"
+    measured_by: "Check pre-commit hooks coverage"
+
+# =============================================================================
+# EVOLUTION PLAN
+# =============================================================================
+
+evolution:
+  
+  phase1_current:
+    status: "Mostly Markdown (37 files), minimal YAML (3 files)"
+    autonomy: "Low (AAs must ask for guidance)"
+  
+  phase2_next_session:
+    actions:
+      - "Create tasks.yml (migrate from TODO.md)"
+      - "Create locks.yml (prevent git conflicts)"
+      - "Create events.jsonl (audit trail)"
+      - "Create automation scripts (claim_task.sh, acquire_lock.sh)"
+    expected_autonomy: "Medium (AAs can self-serve for common operations)"
+  
+  phase3_future:
+    actions:
+      - "Add schema validation to pre-commit hooks"
+      - "Create dashboard (parse YAML/JSONL for metrics)"
+      - "Expand automation scripts (conflict detection, stale lock cleanup)"
+    expected_autonomy: "High (AAs fully self-sufficient)"
+
+# =============================================================================
+# FINAL RECOMMENDATION
+# =============================================================================
+
+final_recommendation:
+  
+  principle: "Choose format that maximizes AA autonomy"
+  
+  decision_tree:
+    - question: "Structured data that AAs will update?"
+      answer: "YAML (tasks, locks, config)"
+    
+    - question: "Append-only logs/events?"
+      answer: "JSONL (events, audit trail)"
+    
+    - question: "Documentation for AAs to read?"
+      answer: "Markdown (guides, handoffs)"
+    
+    - question: "Tool output for AAs to process?"
+      answer: "JSON (test results, API responses)"
+  
+  action_now:
+    - "Create .agents/active/tasks.yml"
+    - "Create .agents/active/locks.yml"
+    - "Create .agents/active/events.jsonl"
+    - "Create scripts/claim_task.sh"
+    - "Create scripts/acquire_lock.sh"
+    - "Embed schemas in all YAML files"
+    - "Test: Can Codex/Gemini operate autonomously?"
