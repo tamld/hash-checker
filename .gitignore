@@ -98,3 +98,4 @@ secrets/
 /.agents/workflows/templates/*
 !/.agents/workflows/templates/*.md
 !/.agents/workflows/templates/*.yml
+backups/
