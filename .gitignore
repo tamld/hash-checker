@@ -70,6 +70,10 @@ secrets/
 !/.agents/AGENTS.md
 !/.agents/agents_registry.md
 !/.agents/conflict_resolution.md
+!/.agents/CORE_LAW_VERIFICATION_INTEGRITY.md
+!/.agents/incidents/
+/.agents/incidents/*
+!/.agents/incidents/*.md
 !/.agents/lessons_learned/
 /.agents/lessons_learned/*
 !/.agents/lessons_learned/README.md
@@ -94,3 +98,6 @@ secrets/
 /.agents/workflows/templates/*
 !/.agents/workflows/templates/*.md
 !/.agents/workflows/templates/*.yml
+backups/
+!/.agents/handoffs/
+!/.agents/handoffs/*.md
