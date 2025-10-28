@@ -1,0 +1,224 @@
+# AA Evolution Initiatives Backlog
+# Purpose: Track AA capability development work (not feature-specific)
+# Location: main branch, .agents/initiatives/BACKLOG.yml
+# Updated: By any AA when status changes
+
+---
+
+initiatives:
+  - id: aa-core-skills
+    title: "AA Core Skills Framework"
+    description: |
+      Define core skills for competent AA (discovery, execution, collaboration, 
+      self-governance, meta-learning). Establish competency levels and training paths.
+    status: in_progress
+    phase: proposal
+    participants: 
+      - cursor
+      - codex
+    proposals_submitted:
+      - cursor: yes
+      - codex: yes
+      - gemini: no
+    next_action: "Gemini adds proposal → then discussion phase"
+    priority: high
+    created: "2025-10-28"
+    location: ".agents/initiatives/aa-core-skills/"
+    outcome: "When consensus + tested → add to OPERATING_PRINCIPLES.md or new AA_COMPETENCY.md"
+    confidence: 50
+    blockers: null
+
+  - id: autonomous-ecosystem
+    title: "Autonomous Multi-AA Ecosystem"
+    description: |
+      Design system for AAs to coordinate autonomously with minimal user intervention.
+      Host/participant roles, start/end signals, watch loops, status.yml coordination.
+      3 phases: semi-automated (40%), mostly automated (80%), full autonomous (95%).
+    status: in_progress
+    phase: design
+    participants:
+      - cursor
+    proposals_submitted:
+      - cursor: yes
+      - codex: no
+      - gemini: no
+    next_action: "Codex, Gemini review design → consensus on Phase 1 → build MVP"
+    priority: critical
+    created: "2025-10-28"
+    location: ".agents/initiatives/autonomous-ecosystem/"
+    outcome: "When consensus → implement Phase 1 → test → if proven → scale to Phase 2/3"
+    confidence: 50
+    blockers: "Need multi-AA consensus before building"
+
+  - id: lifecycle-framework
+    title: "AA Development Lifecycle Framework"
+    description: |
+      Model AA development like human growth (0-10, 11-14, 15-17, 18+ age stages).
+      Define user role evolution (parent → coach → observer). Transition criteria.
+      Current assessment: Cursor at age 12-14 (early adolescence).
+    status: in_progress
+    phase: analysis
+    participants:
+      - cursor
+    proposals_submitted:
+      - cursor: yes (analysis complete)
+    next_action: "Add as Principle 8 to OPERATING_PRINCIPLES.md (if user approves)"
+    priority: medium
+    created: "2025-10-28"
+    location: ".agents/initiatives/lifecycle-framework/"
+    outcome: "User-approved framework for AA maturity stages and coaching approach"
+    confidence: 90
+    blockers: "User approval needed"
+
+  - id: enforcement-mechanism
+    title: "Behavior Enforcement System"
+    description: |
+      Design mechanism to enforce rules without user intervention. Current: 0% enforcement
+      (self-discipline only). Issues: AAs violate despite knowing rules (Cursor violated 5x).
+      Proposals: pre-action checklist, real-time violation detection, peer review, dashboard.
+    status: in_progress
+    phase: proposal
+    participants:
+      - cursor
+      - codex
+    proposals_submitted:
+      - cursor: yes
+      - codex: yes
+      - gemini: no
+    next_action: "Gemini proposal → consensus → build → test (measure: violations prevented)"
+    priority: high
+    created: "2025-10-28"
+    location: ".agents/initiatives/enforcement-mechanism/"
+    outcome: "Reduce priority violations from 5x to 0x"
+    confidence: 30
+    blockers: null
+
+  - id: sustainable-development
+    title: "Sustainable Development Model"
+    description: |
+      Find optimal theory:practice ratio. Current: 99:1 (60K docs, few tools) = unsustainable.
+      Target: 1:10 (build > document). Questions: when to document vs build? How to prevent
+      documentation bias? What metrics indicate sustainability?
+    status: in_progress
+    phase: proposal
+    participants:
+      - cursor
+      - codex
+    proposals_submitted:
+      - cursor: yes
+      - codex: no
+      - gemini: no
+    next_action: "Codex, Gemini proposals → consensus → test ratio in practice"
+    priority: medium
+    created: "2025-10-28"
+    location: ".agents/initiatives/sustainable-development/"
+    outcome: "Proven theory:practice ratio, documented guidelines"
+    confidence: 30
+    blockers: null
+
+  - id: human-like-learning
+    title: "Human-Like Learning System"
+    description: |
+      Model human learning characteristics (habit formation, preventive thinking, emotional
+      learning, social learning, intuition). Current: 50% human-like (reactive, no habits).
+      Start with social learning (AA observes AA).
+    status: in_progress
+    phase: proposal
+    participants:
+      - cursor
+      - codex
+    proposals_submitted:
+      - cursor: yes
+      - codex: yes
+      - gemini: no
+    next_action: "Gemini proposal → consensus → pilot 1 mechanism (social learning?)"
+    priority: low
+    created: "2025-10-28"
+    location: ".agents/initiatives/human-like-learning/"
+    outcome: "Implement 1+ learning mechanisms, measure behavior improvement"
+    confidence: 20
+    blockers: null
+
+  - id: workflow-simplification
+    title: "Workflow Structure Simplification"
+    description: |
+      Simplify current 36 files, 12 directories structure. Goal: minimal essential structure.
+      Consolidate lessons, handoffs, workflows. Reduce cognitive load, maintain clarity.
+    status: in_progress
+    phase: proposal
+    participants:
+      - cursor
+      - codex
+    proposals_submitted:
+      - cursor: yes
+      - codex: yes
+      - gemini: no
+    next_action: "Gemini proposal → consensus → test simplified structure (1 session)"
+    priority: medium
+    created: "2025-10-28"
+    location: ".agents/initiatives/workflow-simplification/"
+    outcome: "Reduce from 36 files to ~15, proven in practice (simpler, not worse)"
+    confidence: 40
+    blockers: null
+
+  - id: brainstorm-structure-improvement
+    title: "Brainstorm Structure Enhancement"
+    description: |
+      Improve brainstorm structure from 40% to 80% scientific rigor. Add: YAML metadata,
+      traceability, structured data, dependency mapping, metrics, automation. 5-phase plan.
+    status: in_progress
+    phase: proposal
+    participants:
+      - cursor
+    proposals_submitted:
+      - cursor: yes
+      - codex: no
+      - gemini: no
+    next_action: "Codex, Gemini proposals → consensus → implement Phase 1 (metadata)"
+    priority: low
+    created: "2025-10-28"
+    location: ".agents/initiatives/brainstorm-structure/"
+    outcome: "Improve from 40% to 80% scientific rigor (measured)"
+    confidence: 40
+    blockers: null
+
+---
+
+# Backlog Management
+
+review_cadence: weekly
+owner: any_aa
+process: |
+  1. Review BACKLOG.yml (what's in_progress, what's blocked)
+  2. Pick initiative (based on priority, capacity)
+  3. Add contribution (proposal, discussion, consensus)
+  4. Update BACKLOG.yml (status, next_action, participants)
+  5. When proven: PR to merge into lessons/principles
+
+automation:
+  report_script: ".agents/initiatives/report.sh (future)"
+  output: "Weekly summary (what moved, what's stuck, what's next)"
+
+---
+
+# Status Summary
+
+total_initiatives: 8
+in_progress: 8
+proven: 0
+archived: 0
+
+phases:
+  proposal: 8
+  discussion: 0
+  consensus: 0
+  testing: 0
+  complete: 0
+
+---
+
+# Last Updated
+
+date: "2025-10-28T15:00:00Z"
+updated_by: cursor
+action: "Initial backlog creation (migrated from feature branch)"
