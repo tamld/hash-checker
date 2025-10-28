@@ -176,11 +176,11 @@ tasks:
       
       IMPORTANT: Current score 0% = hypothesis only
       Need multi-AA consensus + testing before implementing
-    status: pending
+    status: in_progress
     priority: critical
-    assignee: null
+    assignee: codex
     created: "2025-10-28T13:30:00Z"
-    started: null
+    started: "2025-10-28T14:41:00Z"
     completed: null
     blocked_by: brainstorm-aa-core-skills
     estimated_time: "30-60 mins discussion"
