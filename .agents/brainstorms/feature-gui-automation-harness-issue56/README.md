@@ -45,8 +45,16 @@ Topic 5: Workflow Structure Simplification ⭐
   Discussion: ⏳ Not started
   Consensus: ⏳ Not reached
 
+Topic 6: Brainstorm Structure Improvement ⭐ (META)
+  Cursor: ✅ Proposal complete
+  Codex: ⏳ Pending
+  Gemini: ⏳ Pending
+  Discussion: ⏳ Not started
+  Consensus: ⏳ Not reached
+  Note: Using brainstorm to improve brainstorm (recursive!)
+
 Phase: PROPOSAL PHASE (1/6)
-Progress: 33% (Cursor only, need Codex + Gemini)
+Progress: 33% (Cursor proposals: 6/6, Codex: 0/6, Gemini: 0/6)
 ```
 
 ---
