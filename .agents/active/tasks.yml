@@ -1,0 +1,135 @@
+# Active Tasks Registry
+# Purpose: Single source of truth for task status (AA-parseable)
+# Format: YAML (structured, self-documenting, automation-ready)
+# Updated: 2025-10-27T18:30:00Z
+
+schema_version: "1.0"
+last_updated: "2025-10-27T18:30:00Z"
+
+# Schema Definition (embedded for AA autonomy)
+# Fields:
+#   - id: string (unique, format: phase[1-9]-[a-z-]+)
+#   - title: string (concise task description)
+#   - assignee: string | null (AA name: cursor|codex|gemini)
+#   - status: enum [pending, in_progress, completed, cancelled]
+#   - priority: enum [critical, high, medium, low]
+#   - created: ISO8601 timestamp
+#   - started: ISO8601 timestamp | null
+#   - completed: ISO8601 timestamp | null
+#   - eta: ISO8601 timestamp | null
+#   - dependencies: array of task_id (must complete before this task)
+#   - blockers: array of strings (issues blocking this task)
+#   - files: array of file paths (files this task will modify)
+#   - notes: string (additional context)
+
+tasks:
+  - id: phase1-fix-main
+    title: "Fix Main Branch (--lib → --tests bug)"
+    assignee: cursor
+    status: completed
+    priority: critical
+    created: "2025-10-27T14:00:00Z"
+    started: "2025-10-27T14:15:00Z"
+    completed: "2025-10-27T17:30:00Z"
+    eta: null
+    dependencies: []
+    blockers: []
+    files:
+      - ".github/workflows/gui-automation.yml"
+    notes: "PR #58 merged to main. CI all GREEN."
+  
+  - id: phase2-codex-coordination-rules
+    title: "Create COORDINATION_RULES.md (Codex delegation)"
+    assignee: null
+    status: pending
+    priority: high
+    created: "2025-10-27T16:00:00Z"
+    started: null
+    completed: null
+    eta: null
+    dependencies: ["phase1-fix-main"]
+    blockers: []
+    files:
+      - ".agents/workflows/COORDINATION_RULES.md"
+    notes: "Delegation spec ready: CODEX_DELEGATION_SPEC_PHASE2.md"
+  
+  - id: translation-vietnamese-to-english
+    title: "Translate 5 files Vietnamese → English (Gemini)"
+    assignee: null
+    status: pending
+    priority: high
+    created: "2025-10-27T18:30:00Z"
+    started: null
+    completed: null
+    eta: null
+    dependencies: []
+    blockers: []
+    files:
+      - ".agents/workflows/CODEX_EXPECTED_BEHAVIOR_SUMMARY.md"
+      - ".agents/lessons_learned/META_LEARNING_WHEN_TO_CREATE_LESSONS.md"
+      - ".agents/lessons_learned/REALITY_CHECK_PROVEN_VS_PROPOSED.md"
+      - ".agents/lessons_learned/CURSOR_PROTOCOL_VIOLATION_META_LESSON_2025-10-27.md"
+      - ".agents/workflows/SESSION_SUMMARY_2025-10-27.md"
+    notes: "Task spec: GEMINI_TRANSLATION_TASK_SPEC.md. ETA: 3 hours."
+  
+  - id: ci-optimization-phase1
+    title: "Implement CI optimization Phase 1"
+    assignee: null
+    status: pending
+    priority: medium
+    created: "2025-10-27T17:45:00Z"
+    started: null
+    completed: null
+    eta: null
+    dependencies: []
+    blockers: []
+    files:
+      - ".github/workflows/ci.yml"
+    notes: "Analysis ready: ci_optimization_analysis.yml. Expected: 33% time savings."
+  
+  - id: file-lock-implementation
+    title: "Implement file lock system for multi-AA"
+    assignee: null
+    status: pending
+    priority: medium
+    created: "2025-10-27T18:30:00Z"
+    started: null
+    completed: null
+    eta: null
+    dependencies: []
+    blockers: []
+    files:
+      - ".agents/active/locks.yml"
+      - "scripts/acquire_lock.sh"
+      - "scripts/release_lock.sh"
+    notes: "Design ready: MULTI_AA_GIT_CONFLICT_ANALYSIS.md. Test with real scenario."
+  
+  - id: document-consolidation
+    title: "Consolidate documents (36 files → 15 files)"
+    assignee: null
+    status: pending
+    priority: low
+    created: "2025-10-27T18:30:00Z"
+    started: null
+    completed: null
+    eta: null
+    dependencies: []
+    blockers: []
+    files:
+      - ".agents/**/*.md"
+    notes: "Gap identified: Too many files. Merge redundant docs."
+
+# Automation Examples (for AA self-service)
+# 
+# Claim first pending task:
+#   task_id=$(yq '.tasks[] | select(.status=="pending" and .assignee==null) | .id' tasks.yml | head -1)
+#   yq -i "(.tasks[] | select(.id==\"$task_id\")) |= (.status = \"in_progress\" | .assignee = \"cursor\" | .started = \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\")" tasks.yml
+#
+# Mark task complete:
+#   yq -i "(.tasks[] | select(.id==\"phase1-fix-main\")) |= (.status = \"completed\" | .completed = \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\")" tasks.yml
+#
+# List pending tasks:
+#   yq '.tasks[] | select(.status=="pending") | .id + ": " + .title' tasks.yml
+#
+# Check blockers:
+#   yq '.tasks[] | select(.blockers | length > 0) | .id + " blocked by: " + (.blockers | join(", "))' tasks.yml
