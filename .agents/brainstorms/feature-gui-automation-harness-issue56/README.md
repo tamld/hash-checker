@@ -12,7 +12,7 @@
 ```yaml
 Topic 1: AA Core Skills Framework ⭐⭐⭐
   Cursor: ✅ Proposal complete
-  Codex: ⏳ Pending
+  Codex: ✅ Proposal complete
   Gemini: ⏳ Pending
   Discussion: ⏳ Not started
   Consensus: ⏳ Not reached
