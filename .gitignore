@@ -71,6 +71,7 @@ secrets/
 !/.agents/agents_registry.md
 !/.agents/conflict_resolution.md
 !/.agents/CORE_LAW_VERIFICATION_INTEGRITY.md
+!/.agents/TRACKING_GUIDELINES.md
 !/.agents/incidents/
 /.agents/incidents/*
 !/.agents/incidents/*.md
