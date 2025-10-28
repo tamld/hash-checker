@@ -1,62 +1,225 @@
-# File Lock Registry
-# Purpose: Prevent git conflicts in multi-AA environment
-# Format: YAML (real-time updates, AA-parseable)
-# Updated: 2025-10-27T18:30:00Z
+# AA File Lock Registry
+# Purpose: Prevent git conflicts by coordinating file access across multiple AAs
+# Location: .agents/active/locks.yml
+# Protocol: Acquire lock BEFORE editing, release AFTER commit
 
-schema_version: "1.0"
-last_updated: "2025-10-27T18:30:00Z"
+---
 
-# Schema Definition (embedded for AA autonomy)
-# Fields:
-#   - id: string (unique, format: lock-[timestamp])
-#   - path: string (file or directory path)
-#   - owner: string (AA name: cursor|codex|gemini)
-#   - claimed_at: ISO8601 timestamp
-#   - eta: ISO8601 timestamp (expected release time)
-#   - max_eta: ISO8601 timestamp (hard deadline, auto-release after this)
-#   - status: enum [active, released, stale]
-#   - released_at: ISO8601 timestamp | null
-#   - task_id: string (reference to tasks.yml)
+## Schema Definition
+
+# Lock Structure:
+#   file: string (relative path from repo root)
+#   holder: string (cursor | codex | gemini)
+#   acquired: ISO 8601 timestamp
+#   reason: string (why editing this file)
+#   expires: ISO 8601 timestamp (optional, auto-release)
+
+---
+
+## Current Locks
 
 locks: []
-# No active locks at session start
 
-# Example lock entry (for reference):
-# - id: "lock-1730052000"
-#   path: ".agents/workflows/COORDINATION_RULES.md"
-#   owner: "codex"
-#   claimed_at: "2025-10-27T18:00:00Z"
-#   eta: "2025-10-27T18:20:00Z"
-#   max_eta: "2025-10-27T18:30:00Z"
-#   status: "active"
-#   released_at: null
-#   task_id: "phase2-codex-coordination-rules"
+# Example (when in use):
+# locks:
+#   - file: ".agents/handoffs/HANDOFF_2025-10-28.md"
+#     holder: "cursor"
+#     acquired: "2025-10-28T13:10:00Z"
+#     reason: "Adding session summary"
+#     expires: "2025-10-28T13:20:00Z"
 
+---
+
+## Critical Sections
+
+# Files that MUST use locks (high conflict risk):
 critical_sections:
-  # These files require sequential access (no concurrent edits)
   - ".github/workflows/*.yml"
+  - ".agents/handoffs/*.md"
+  - ".agents/active/tasks.yml"
+  - ".agents/active/locks.yml"
   - "Cargo.toml"
-  - "rust/Cargo.lock"
+  - "Cargo.lock"
+  - "package.json"
+  - "package-lock.json"
   - "README.md"
   - ".gitignore"
 
-# Automation Examples (for AA self-service)
-#
-# Acquire lock:
-#   LOCK_ID="lock-$(date +%s)"
-#   yq -i ".locks += [{\"id\": \"$LOCK_ID\", \"path\": \"file.md\", \"owner\": \"cursor\", \"claimed_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"eta\": \"$(date -u -d '+20 minutes' +%Y-%m-%dT%H:%M:%SZ)\", \"max_eta\": \"$(date -u -d '+30 minutes' +%Y-%m-%dT%H:%M:%SZ)\", \"status\": \"active\", \"released_at\": null, \"task_id\": \"my-task\"}]" locks.yml
-#
-# Check if file is locked:
-#   yq ".locks[] | select(.path==\"file.md\" and .status==\"active\") | .owner" locks.yml
-#   # If output exists, file is locked by that owner
-#
-# Release lock:
-#   yq -i "(.locks[] | select(.id==\"lock-123\")) |= (.status = \"released\" | .released_at = \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\")" locks.yml
-#
-# Check stale locks (past max_eta):
-#   yq ".locks[] | select(.status==\"active\" and .max_eta < \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\") | .id" locks.yml
-#
-# Auto-release stale locks:
-#   for lock_id in $(yq ".locks[] | select(.status==\"active\" and .max_eta < \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\") | .id" locks.yml); do
-#     yq -i "(.locks[] | select(.id==\"$lock_id\")) |= (.status = \"stale\" | .released_at = \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\")" locks.yml
-#   done
+# For these files: ALWAYS acquire lock before editing
+
+---
+
+## Lock Protocol
+
+### Before Editing Critical File:
+
+1. Check if locked:
+   ```bash
+   yq '.locks[] | select(.file=="PATH/TO/FILE")' locks.yml
+   ```
+
+2. If locked (output exists):
+   - Wait for release OR
+   - Contact holder OR
+   - Work on different file
+
+3. If NOT locked (no output):
+   - Acquire lock:
+   ```bash
+   yq -i '.locks += [{"file": "PATH/TO/FILE", "holder": "YOUR_NAME", "acquired": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'", "reason": "Your reason"}]' .agents/active/locks.yml
+   git add .agents/active/locks.yml
+   git commit -m "lock: acquire PATH/TO/FILE"
+   git push
+   ```
+
+4. Edit the file (you now have exclusive access)
+
+5. Commit your changes:
+   ```bash
+   git add PATH/TO/FILE
+   git commit -m "your changes"
+   ```
+
+6. Release lock:
+   ```bash
+   yq -i 'del(.locks[] | select(.file=="PATH/TO/FILE" and .holder=="YOUR_NAME"))' .agents/active/locks.yml
+   git add .agents/active/locks.yml
+   git commit -m "lock: release PATH/TO/FILE"
+   git push
+   ```
+
+---
+
+## Automation Examples
+
+### Check if file is locked:
+```bash
+FILE="path/to/file"
+LOCK=$(yq '.locks[] | select(.file=="'$FILE'")' locks.yml)
+if [ -n "$LOCK" ]; then
+  echo "LOCKED by: $(echo $LOCK | yq '.holder')"
+  exit 1
+else
+  echo "AVAILABLE - can acquire lock"
+fi
+```
+
+### Acquire lock (safe):
+```bash
+FILE="path/to/file"
+HOLDER="cursor"
+REASON="Editing for task X"
+
+# Check not already locked
+if yq -e '.locks[] | select(.file=="'$FILE'")' locks.yml >/dev/null 2>&1; then
+  echo "ERROR: File already locked"
+  exit 1
+fi
+
+# Acquire lock
+yq -i '.locks += [{"file": "'$FILE'", "holder": "'$HOLDER'", "acquired": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'", "reason": "'$REASON'"}]' locks.yml
+git add locks.yml
+git commit -m "lock: acquire $FILE ($REASON)"
+git push
+```
+
+### Release lock:
+```bash
+FILE="path/to/file"
+HOLDER="cursor"
+
+yq -i 'del(.locks[] | select(.file=="'$FILE'" and .holder=="'$HOLDER'"))' locks.yml
+git add locks.yml
+git commit -m "lock: release $FILE"
+git push
+```
+
+### List all current locks:
+```bash
+yq '.locks[] | .file + " (held by " + .holder + ")"' locks.yml
+```
+
+### Auto-expire old locks (>1 hour):
+```bash
+NOW=$(date -u +%s)
+yq -i 'del(.locks[] | select(.acquired | sub("T.*", "") | fromdateiso8601 < ('$NOW' - 3600)))' locks.yml
+```
+
+---
+
+## Best Practices
+
+1. **Always check before editing critical files**
+   - Don't assume file is available
+   - Check locks.yml first
+
+2. **Acquire lock BEFORE pulling latest**
+   - Prevents race condition
+   - Ensures exclusive access
+
+3. **Keep lock time SHORT**
+   - Acquire → Edit → Commit → Release
+   - Don't hold locks during breaks
+
+4. **Set expires for long tasks**
+   - Auto-release if abandoned
+   - Prevents permanent locks
+
+5. **Use descriptive reasons**
+   - Others know why locked
+   - Can coordinate if urgent
+
+6. **Release even if commit fails**
+   - Don't leave orphan locks
+   - Clean up on error
+
+---
+
+## Conflict Resolution
+
+### If two AAs acquire same lock simultaneously:
+
+Git will conflict on locks.yml itself. Resolution:
+
+1. Pull latest:
+   ```bash
+   git pull
+   ```
+
+2. Check locks.yml conflict:
+   - Keep EARLIEST acquired timestamp
+   - That AA "won" the lock
+
+3. Loser AA:
+   - Remove own lock entry
+   - Wait or work on different file
+
+4. Commit resolution:
+   ```bash
+   git add locks.yml
+   git commit -m "lock: resolve conflict, defer to WINNER"
+   git push
+   ```
+
+---
+
+## Monitoring
+
+### Lock statistics:
+```bash
+echo "Active locks: $(yq '.locks | length' locks.yml)"
+echo "Cursor: $(yq '.locks[] | select(.holder=="cursor") | .file' locks.yml | wc -l)"
+echo "Codex: $(yq '.locks[] | select(.holder=="codex") | .file' locks.yml | wc -l)"
+echo "Gemini: $(yq '.locks[] | select(.holder=="gemini") | .file' locks.yml | wc -l)"
+```
+
+---
+
+## Status
+
+- Created: 2025-10-28T13:05:00Z
+- Active locks: 0
+- Last cleanup: Never
+- Status: Operational (ready for use)
+
+**Note**: This file itself is a critical section. Use locks to edit locks.yml!
