@@ -85,19 +85,21 @@ secrets/
 !/.agents/backlog/*.md
 !/.agents/brainstorms/
 /.agents/brainstorms/*
-!/.agents/brainstorms/*.yml
-!/.agents/brainstorms/*.md
-!/.agents/records/
-/.agents/records/*
-!/.agents/records/*.md
+!/.agents/brainstorms/README.md
+!/.agents/brainstorms/BRAINSTORM_INDEX.yml
+# All feature-specific brainstorms stay local (not tracked)
+/.agents/records/
+# All records stay local (not tracked)
 !/.agents/workflows/
 /.agents/workflows/*
 !/.agents/workflows/README.md
-!/.agents/workflows/*.md
+!/.agents/workflows/GEMINI_TRANSLATION_TASK_SPEC.md
 !/.agents/workflows/templates/
 /.agents/workflows/templates/*
 !/.agents/workflows/templates/*.md
 !/.agents/workflows/templates/*.yml
+# Session-specific workflows stay local (not tracked)
 backups/
 !/.agents/handoffs/
-!/.agents/handoffs/*.md
+!/.agents/handoffs/README.md
+# All handoff files stay local (not tracked)
