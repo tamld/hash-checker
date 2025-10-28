@@ -89,28 +89,209 @@ tasks:
       - Links to locks.yml
       - Navigation map included
 
-  - id: brainstorm-aa-core-skills
-    title: "Multi-AA Brainstorm: AA Core Skills Framework"
+  - id: create-brainstorm-structure
+    title: "Create brainstorm folder structure (separate files per AA)"
     description: |
-      Collaborative brainstorm with Cursor + Codex + Gemini.
-      Topic: What skills do AAs need to be autonomous?
-      Categories: Discovery, Execution, Collaboration, Self-Governance, Meta-Learning.
-      Process: Propose → Discuss → Consensus → Test → Adopt.
-    status: blocked
-    priority: high
+      Create .agents/brainstorms/feature-gui-automation-harness-issue56/
+      
+      Structure:
+        - README.md (index, status, process)
+        - 5 topic folders (separate files approach)
+        - Cursor proposals (5 topics)
+        - Templates for Codex/Gemini
+      
+      This is FOUNDATION for multi-AA collaboration.
+      LOCAL-first (works in IDE CLI), no conflicts (separate files).
+    status: completed
+    priority: critical
+    assignee: cursor
+    created: "2025-10-28T13:40:00Z"
+    started: "2025-10-28T14:00:00Z"
+    completed: "2025-10-28T14:30:00Z"
+    blocked_by: null
+    estimated_time: "10 mins (guess)"
+    actual_time: "414 seconds (6.9 mins)"
+    validation:
+      - Folder structure exists ✅
+      - README.md with status tracker ✅
+      - 5 topic folders created ✅
+      - Cursor proposals complete (5/5) ✅
+      - Clear templates for other AAs ✅
+      - Process documented ✅
+
+  - id: brainstorm-aa-core-skills
+    title: "Participate in Multi-AA Brainstorm: AA Core Skills Framework"
+    description: |
+      File: .agents/brainstorms/feature-gui-automation-harness-issue56.md
+      Section: Topic 1
+      
+      YOUR TASK:
+        1. Read Cursor's proposal (already in file)
+        2. Add YOUR proposal in your section
+        3. Don't discuss yet (stay independent)
+        4. Commit your proposal
+      
+      Topic: What skills define competent AA?
+      
+      Questions:
+        - What skills are core?
+        - How many competency levels?
+        - How to train each skill?
+        - How to measure competency?
+      
+      Process: After all proposals → Discussion → Consensus → Test
+      
+      IMPORTANT: Your proposal = hypothesis (not conclusion)
+      Consensus = agreement to test (not final)
+      Must test before updating lessons
+    status: pending
+    priority: critical
     assignee: null
-    created: "2025-10-28T13:00:00Z"
+    created: "2025-10-28T13:45:00Z"
     started: null
     completed: null
-    blocked_by: p1-gemini-translation-spec
-    estimated_time: "unknown (first time)"
+    blocked_by: null
+    estimated_time: "30-60 mins (independent thinking)"
     actual_time: null
     validation:
-      - P1 tasks complete (infrastructure ready)
-      - All 3 AAs participate
-      - Consensus reached
-      - Framework documented
-      - 0 git conflicts
+      - Codex proposal added
+      - Gemini proposal added
+      - All 3 AAs participated
+      - Then: Discussion phase begins
+
+  - id: brainstorm-enforcement-mechanism
+    title: "Multi-AA Brainstorm: Behavior Enforcement System"
+    description: |
+      Topic: How to enforce rules without User intervention?
+      Current: 0% enforcement (self-discipline only)
+      Issues: AAs violate despite knowing rules (Cursor violated 5x)
+      
+      Questions:
+        - Pre-action checklist: What, when, how?
+        - Violation detection: Automatic or manual?
+        - Feedback timing: Real-time or post-hoc?
+        - Who enforces: Self, peer, system?
+      
+      Process: Propose → Discuss → Consensus → Test → IF Proven → Adopt
+      
+      IMPORTANT: Current score 0% = hypothesis only
+      Need multi-AA consensus + testing before implementing
+    status: pending
+    priority: critical
+    assignee: null
+    created: "2025-10-28T13:30:00Z"
+    started: null
+    completed: null
+    blocked_by: brainstorm-aa-core-skills
+    estimated_time: "30-60 mins discussion"
+    actual_time: null
+    validation:
+      - Problem defined clearly
+      - Multiple solutions proposed
+      - Consensus reached (≥2 AAs)
+      - Solution implemented & tested
+      - Evidence: Violations prevented
+      - IF proven → Adopt as policy
+
+  - id: brainstorm-sustainable-development
+    title: "Multi-AA Brainstorm: Sustainable Development Model"
+    description: |
+      Topic: What's optimal theory:practice ratio?
+      Current: 60% sustainable (60K docs, few tools)
+      Issues: Over-documentation, under-building
+      
+      Questions:
+        - Right theory:practice ratio? (1:10? 1:5?)
+        - When to document vs when to build?
+        - How to prevent documentation bias?
+        - What metrics indicate sustainability?
+      
+      Process: Propose → Discuss → Consensus → Test → IF Proven → Adopt
+      
+      IMPORTANT: Current 60% = measured but need optimization
+      Need multi-AA perspectives to find balance
+    status: pending
+    priority: high
+    assignee: null
+    created: "2025-10-28T13:30:00Z"
+    started: null
+    completed: null
+    blocked_by: brainstorm-aa-core-skills
+    estimated_time: "30-45 mins discussion"
+    actual_time: null
+    validation:
+      - Ratio proposed with evidence
+      - Tested in real scenario (1 session)
+      - Waste reduced (measured)
+      - Value increased (measured)
+      - IF proven → Adopt as guideline
+
+  - id: brainstorm-human-like-learning
+    title: "Multi-AA Brainstorm: Human-Like Learning System"
+    description: |
+      Topic: How to model human learning characteristics?
+      Current: 50% human-like (reactive, no habits, no emotion)
+      
+      Questions:
+        - Habit formation: How to model?
+        - Preventive thinking: How to enable?
+        - Emotional learning: Can we simulate?
+        - Social learning: AA observes AA?
+        - Intuition building: Pattern recognition?
+      
+      Process: Propose → Discuss → Consensus → Test → IF Proven → Adopt
+      
+      IMPORTANT: This is RESEARCH topic (long-term)
+      Multi-AA perspectives critical (different models, different capabilities)
+    status: pending
+    priority: medium
+    assignee: null
+    created: "2025-10-28T13:30:00Z"
+    started: null
+    completed: null
+    blocked_by: brainstorm-aa-core-skills
+    estimated_time: "1-2 hours discussion"
+    actual_time: null
+    validation:
+      - Mechanisms proposed
+      - Pilot tested (1 mechanism)
+      - Behavior improved (measured)
+      - IF proven → Scale to all mechanisms
+
+  - id: brainstorm-workflow-simplification
+    title: "Multi-AA Brainstorm: Workflow Consolidation"
+    description: |
+      Topic: Simplify current 36 files, 12 directories structure
+      Current: Too complex, hard to manage
+      Goal: Minimal essential structure
+      
+      Questions:
+        - Which files are essential?
+        - Which can be consolidated?
+        - What's minimal for AA autonomy?
+        - How to maintain simplicity?
+      
+      Process: Propose → Discuss → Consensus → Test → IF Proven → Adopt
+      
+      IMPORTANT: Each AA proposes their view
+      Consensus on what to keep/consolidate
+      Test simplified structure (1 session)
+      IF better → Adopt permanently
+    status: pending
+    priority: medium
+    assignee: null
+    created: "2025-10-28T13:30:00Z"
+    started: null
+    completed: null
+    blocked_by: brainstorm-aa-core-skills
+    estimated_time: "30-45 mins discussion"
+    actual_time: null
+    validation:
+      - Consolidation plan agreed
+      - Tested in practice (1 session)
+      - Simpler to use (measured)
+      - No critical info lost
+      - IF proven → Adopt structure
 
   - id: test-two-aa-coordination
     title: "Test: Two-AA coordination with locks"
