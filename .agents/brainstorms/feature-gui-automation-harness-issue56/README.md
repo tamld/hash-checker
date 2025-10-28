@@ -26,14 +26,14 @@ Topic 2: Behavior Enforcement Mechanism ⭐⭐
 
 Topic 3: Sustainable Development Model ⭐
   Cursor: ✅ Proposal complete
-  Codex: ⏳ Pending
+  Codex: ✅ Proposal complete
   Gemini: ⏳ Pending
   Discussion: ⏳ Not started
   Consensus: ⏳ Not reached
 
 Topic 4: Human-Like Learning System ⭐
   Cursor: ✅ Proposal complete
-  Codex: ⏳ Pending
+  Codex: ✅ Proposal complete
   Gemini: ⏳ Pending
   Discussion: ⏳ Not started
   Consensus: ⏳ Not reached
