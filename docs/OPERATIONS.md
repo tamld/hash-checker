@@ -81,6 +81,13 @@ make rust-gui-smoke-host
 - **Windows limitation**: không có runner Windows nội bộ, vì vậy mọi so khớp
   golden cho Windows phải thông qua GitHub Actions (`windows-latest`). macOS và
   Linux vẫn kiểm chứng được tại chỗ (mac host / Docker) trước khi đẩy code.
+- **GH Actions workflow tips**:
+  - List recent runs: `gh run list --workflow "Golden Master Validation" --limit 5`
+  - Download artifacts for inspection: `gh run download <run-id> --dir tmp/golden-run`
+  - Ping the built-in chatbot bằng comment `@codex` trên PR để nhận phản hồi và
+    log lại bằng template `templates/github_actions_codex_interaction.md`.
+  - Khi workflow fail, đọc log `golden-artifacts/<platform>/<scenario>.log` để
+    xác định diff cụ thể rồi cập nhật golden/comparator theo bằng chứng.
 
 #### GTK4-native (optional, Linux)
 - This feature is experimental and enabled via the `gtk4-native` feature. Since the local environment (macOS) does not have GTK4, enable/disable and test it on a Linux runner (GitHub Actions) or a dedicated VM.
