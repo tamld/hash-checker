@@ -64,43 +64,10 @@ plans/
 secrets/
 *.secret
 .ci-target/
-/.agent/
-# Agent workspace: track structure, ignore content
-/.agents/*
-!/.agents/AGENTS.md
-!/.agents/agents_registry.md
-!/.agents/conflict_resolution.md
-!/.agents/CORE_LAW_VERIFICATION_INTEGRITY.md
-!/.agents/TRACKING_GUIDELINES.md
-!/.agents/incidents/
-/.agents/incidents/*
-!/.agents/incidents/*.md
-!/.agents/lessons_learned/
-/.agents/lessons_learned/*
-!/.agents/lessons_learned/README.md
-!/.agents/lessons_learned/*.md
-!/.agents/backlog/
-/.agents/backlog/*
-!/.agents/backlog/README.md
-!/.agents/backlog/*.yml
-!/.agents/backlog/*.md
-!/.agents/brainstorms/
-/.agents/brainstorms/*
-!/.agents/brainstorms/README.md
-!/.agents/brainstorms/BRAINSTORM_INDEX.yml
-# All feature-specific brainstorms stay local (not tracked)
-/.agents/records/
-# All records stay local (not tracked)
-!/.agents/workflows/
-/.agents/workflows/*
-!/.agents/workflows/README.md
-!/.agents/workflows/GEMINI_TRANSLATION_TASK_SPEC.md
-!/.agents/workflows/templates/
-/.agents/workflows/templates/*
-!/.agents/workflows/templates/*.md
-!/.agents/workflows/templates/*.yml
-# Session-specific workflows stay local (not tracked)
+# AA Workspace (LOCAL ONLY - Never track)
+/.agents/
+
+# IMPORTANT: No exceptions! All .agents/ content stays local.
+# If you need to share something, put it in docs/ or specs/
+
 backups/
-!/.agents/handoffs/
-!/.agents/handoffs/README.md
-# All handoff files stay local (not tracked)
