@@ -105,6 +105,7 @@ fn normalize_object(map: &Map<String, Value>) -> Map<String, Value> {
             "captured_at" => Value::String("<normalized>".to_owned()),
             "cli_args" => normalize_cli_args(value),
             "git_commit" => Value::Null,
+            "telemetry" => normalize_telemetry(value),
             _ => normalize_value(value),
         };
         out.insert(key.clone(), normalized);
@@ -124,5 +125,23 @@ fn normalize_cli_args(value: &Value) -> Value {
                 .collect(),
         ),
         None => normalize_value(value),
+    }
+}
+
+fn normalize_telemetry(value: &Value) -> Value {
+    match value {
+        Value::Object(map) => {
+            let mut out = Map::new();
+            for (key, val) in map {
+                let normalized = if key == "scan_progress" {
+                    Value::String("<normalized>".to_owned())
+                } else {
+                    normalize_value(val)
+                };
+                out.insert(key.clone(), normalized);
+            }
+            Value::Object(out)
+        }
+        _ => normalize_value(value),
     }
 }
