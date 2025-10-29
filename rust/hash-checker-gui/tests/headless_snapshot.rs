@@ -1,10 +1,26 @@
 use assert_cmd::Command;
 use serde_json::Value;
 use std::fs;
+use std::path::PathBuf;
 use tempfile::tempdir;
+
+const DEMO_SAMPLE_CONTENT: &str = "Hash Checker GUI demo sample\n";
+
+fn reset_demo_sample_file() {
+    let path: PathBuf = if cfg!(windows) {
+        PathBuf::from(r"C:\\Temp\\hash-checker-gui\\sample.txt")
+    } else {
+        PathBuf::from("/tmp/hash-checker-gui/sample.txt")
+    };
+    if let Some(parent) = path.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+    let _ = fs::write(&path, DEMO_SAMPLE_CONTENT);
+}
 
 #[test]
 fn headless_snapshot_writes_json() {
+    reset_demo_sample_file();
     let dir = tempdir().expect("tempdir");
     let json_path = dir.path().join("state.json");
 
@@ -35,6 +51,7 @@ fn headless_manifest_requires_snapshot() {
 
 #[test]
 fn capture_golden_respects_output_dir() {
+    reset_demo_sample_file();
     let dir = tempdir().expect("tempdir");
     std::env::set_var("HASH_CHECKER_GOLDEN_DIR", dir.path());
 
@@ -54,6 +71,7 @@ fn capture_golden_respects_output_dir() {
 
 #[test]
 fn compare_golden_detects_changes() {
+    reset_demo_sample_file();
     let dir = tempdir().expect("tempdir");
 
     // baseline capture
@@ -95,6 +113,7 @@ fn compare_golden_detects_changes() {
 
 #[test]
 fn compare_golden_fuzzy_tolerates_dimension_drift() {
+    reset_demo_sample_file();
     let dir = tempdir().expect("tempdir");
 
     // baseline capture

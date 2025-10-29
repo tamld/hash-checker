@@ -92,7 +92,23 @@ const DEMO_SAMPLE_CONTENT: &str = "Hash Checker GUI demo sample\n";
 
 fn ensure_demo_sample_file() -> PathBuf {
     let path = demo_storage_dir().join("sample.txt");
-    if !path.exists() {
+    let mut needs_refresh = true;
+    if path.exists() {
+        match fs::read(&path) {
+            Ok(bytes) => {
+                if bytes == DEMO_SAMPLE_CONTENT.as_bytes() {
+                    needs_refresh = false;
+                }
+            }
+            Err(err) => {
+                eprintln!(
+                    "Failed to read existing demo sample file {}: {err}",
+                    path.display()
+                );
+            }
+        }
+    }
+    if needs_refresh {
         if let Some(parent) = path.parent() {
             if let Err(err) = fs::create_dir_all(parent) {
                 eprintln!(
