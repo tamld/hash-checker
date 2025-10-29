@@ -1,43 +1,46 @@
 # GTK4 Migration Plan
 
+> Last reviewed: 2025-10-28 (see `logs/gtk4/20251022-research.md` for the
+> supporting investigation log translated the same day).
+
 ## Overview
-- **Goal**: bổ sung chế độ GTK4-native tùy chọn cho Hash Checker GUI trong khi vẫn giữ đường XDG portal mặc định.
-- **Bối cảnh hiện tại**: ứng dụng sử dụng `eframe 0.33` + `egui_glow` và `rfd 0.15.4` với backend portal; `rfd` chưa cung cấp GTK4 dialogue chính thức, thread "Add GTK4 dialog support" xác nhận cần chờ `gtk4-rs` ổn định và hiện tại tiếp tục dùng portal/GTK3 citeturn1search1.
+- **Goal**: add an optional GTK4-native mode for the Hash Checker GUI while keeping the XDG portal as the default.
+- **Current Context**: The application uses `eframe 0.33` + `egui_glow` and `rfd 0.15.4` with the portal backend. `rfd` does not yet provide an official GTK4 dialog, so the GTK3 portal flow remains the stable default while upstream `gtk4-rs` support matures.
 
 ## Assumptions & Dependencies
-- Tiếp tục duy trì portal làm mặc định để đáp ứng môi trường sandbox như Flatpak.
-- Khi kích hoạt GTK4, cần cài đặt `libgtk-4-dev`, `libadwaita-1-dev` và các header GL/EGL theo hướng dẫn GTK chính thức citeturn13search7.
-- Các thư viện bổ trợ:
-  - `gtk-easy-egui` (tiền thân `gtk5` branch) đang được phát triển nhằm nhúng egui vào GTK4 thông qua GLArea; vẫn cảnh báo đang trong quá trình hoàn thiện citeturn1search0.
+- Continue maintaining the portal as the default to support sandboxed environments like Flatpak.
+- When activating GTK4, install `libgtk-4-dev`, `libadwaita-1-dev`, and the GL/EGL headers that the official GTK guide calls out for development environments.
+- Supporting Libraries:
+  - `gtk-easy-egui` (formerly the `gtk5` branch) is being developed to embed egui into GTK4 via GLArea; treat it as experimental because the maintainers still mark it under active development.
 
 ## Risks & Mitigations
-- `gtk::GLArea` trên Xorg từng gặp lỗi render khi sử dụng GSK renderer 4.16, yêu cầu đặt `GSK_RENDERER=vulkan` hoặc cập nhật lên bản vá 4.16.1 trở lên citeturn0search3.
-- Đội egui từng gỡ backend GLArea do lỗi trong GTK4, vì vậy việc thử nghiệm phải theo dõi các issue tương tự và chuẩn bị fallback về portal citeturn0search5.
+- `gtk::GLArea` on Xorg has previously encountered rendering errors when using the GSK renderer 4.16, which were mitigated either by setting `GSK_RENDERER=vulkan` or upgrading to patch 4.16.1 or newer.
+- The egui team previously removed the GLArea backend due to GTK4 bugs, so experiments must monitor for regressions and be ready to fall back to the portal workflow.
 
 ## Phases
-### Phase 1 – Nghiên cứu chi tiết & prototype (1–2 tuần)
-1. Theo dõi tiến trình `rfd` (issue/branch) và cân nhắc fork cộng đồng nếu ổn định.
-2. Đánh giá `gtk-easy-egui`/`gtk-egui-area` và thử dựng prototype nhúng egui vào `gtk4::GLArea`.
-3. Ghi chép vào `logs/gtk4/` (đã mở nhật ký ngày 2025-10-22) và cập nhật tài liệu nếu phát hiện blocker mới.
+### Phase 1 – Detailed Research & Prototype (1–2 weeks)
+1. Monitor the progress of `rfd` (issue/branch) and consider a community fork if it's stable.
+2. Evaluate `gtk-easy-egui`/`gtk-egui-area` and try building a prototype to embed egui into `gtk4::GLArea`.
+3. Log findings in `logs/gtk4/` (log started on 2025-10-22) and update documentation if new blockers are discovered.
 
-### Phase 2 – Thực thi (2–3 tuần)
-1. Tạo nhánh `feature/gtk4-native-dialogs-issue39`.
-2. Thêm feature flag mới (ví dụ `gtk4-native`) trong GUI crate; giữ portal làm default.
-3. Viết wrapper GTK4 dialog (dựa trên API `FileDialog`/`FileChooserNative`) và đồng nhất behaviour với portal.
-4. Cập nhật script Docker/Makefile để cài gói GTK4 khi bật flag.
+### Phase 2 – Execution (2–3 weeks)
+1. Create branch `feature/gtk4-native-dialogs-issue39`.
+2. Add a new feature flag (e.g., `gtk4-native`) in the GUI crate; keep the portal as the default.
+3. Write a GTK4 dialog wrapper (based on the `FileDialog`/`FileChooserNative` API) and unify its behavior with the portal.
+4. Update Docker/Makefile scripts to install GTK4 packages when the flag is enabled.
 
-### Phase 3 – Kiểm thử & Packaging (1–2 tuần)
-1. Kiểm thử tự động: `make ci-linux-local`, `cargo test`, smoke test GUI với GTK4.
-2. Kiểm thử thủ công: Xorg + Wayland, AppImage, `.deb`; ghi log vào `logs/qa/gtk4-<date>.md`.
-3. Điều chỉnh Flatpak manifest để giữ portal khi ở sandbox.
+### Phase 3 – Testing & Packaging (1–2 weeks)
+1. Automated Testing: `make ci-linux-local`, `cargo test`, smoke test the GUI with GTK4.
+2. Manual Testing: Xorg + Wayland, AppImage, `.deb`; log results in `logs/qa/gtk4-<date>.md`.
+3. Adjust the Flatpak manifest to keep the portal in sandboxed environments.
 
 ### Phase 4 – Rollout
-1. Tổng hợp kết quả, cập nhật CHANGELOG/README/docs/OPERATIONS.md.
-2. Chuẩn bị PR, liên kết Issue #39, cung cấp log kiểm thử và hướng dẫn cài đặt.
-3. Sau merge, theo dõi regressions (đặc biệt trên Xorg với renderer GL).
+1. Summarize results, update CHANGELOG/README/docs/OPERATIONS.md.
+2. Prepare a PR, link Issue #39, and provide test logs and installation instructions.
+3. After merging, monitor for regressions (especially on Xorg with the GL renderer).
 
 ## Deliverables
-- Nhật ký research (`logs/gtk4/20251022-research.md`).
-- Prototype/PR minh chứng với CI Linux run 18708523500 (smoke portal + `cargo check` + `dbus-run-session` GTK4-native).
-- Cập nhật tài liệu (README, docs/DEPENDENCY_MIGRATION.md, CHANGELOG, guides).
-- Bảng kiểm thử và gói packaging đã thông qua.
+- Research Log (`logs/gtk4/20251022-research.md`).
+- Prototype/Proof-of-Concept PR with CI Linux run 18708523500 (smoke portal + `cargo check` + `dbus-run-session` GTK4-native).
+- Updated documentation (README, docs/DEPENDENCY_MIGRATION.md, CHANGELOG, guides).
+- Test plan and packaging bundle have been approved.

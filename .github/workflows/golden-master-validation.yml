@@ -1,0 +1,110 @@
+name: Golden Master Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'rust/hash-checker-gui/**'
+      - 'test-fixtures/golden/**'
+      - 'scripts/docker-rust-gui-build.sh'
+      - '.github/workflows/golden-master-validation.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'rust/hash-checker-gui/**'
+      - 'test-fixtures/golden/**'
+      - 'scripts/docker-rust-gui-build.sh'
+      - '.github/workflows/golden-master-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  golden-master:
+    name: Golden master compare (${{ matrix.display }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            display: Linux
+            rust_target: x86_64-unknown-linux-gnu
+            shell: bash
+          - os: macos-14
+            display: macOS
+            rust_target: x86_64-apple-darwin
+            shell: bash
+          - os: windows-latest
+            display: Windows
+            rust_target: x86_64-pc-windows-msvc
+            shell: pwsh
+    env:
+      HASH_CHECKER_GOLDEN_DIR: test-fixtures/golden
+      CARGO_TERM_COLOR: always
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.88.0
+          target: ${{ matrix.rust_target }}
+
+      - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libasound2-dev libgtk-3-dev libxkbcommon-dev libudev-dev libglib2.0-dev
+
+      - name: Install macOS dependencies
+        if: matrix.os == 'macos-14'
+        run: |
+          brew update
+          brew list pkg-config >/dev/null 2>&1 || brew install pkg-config
+
+      - name: Compare golden scenarios (Unix)
+        if: matrix.shell == 'bash'
+        shell: bash
+        run: |
+          set -u
+          log_dir="golden-artifacts/${{ matrix.display }}"
+          mkdir -p "$log_dir"
+          status=0
+          for scenario in minimal-scan deep-tree verify-mismatches; do
+            log_file="$log_dir/${scenario}.log"
+            printf '# scenario: %s\n' "$scenario" | tee "$log_file"
+            cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --headless --compare-golden "$scenario" |& tee -a "$log_file"
+            exit_code=${PIPESTATUS[0]}
+            if [ $exit_code -ne 0 ] && [ $status -eq 0 ]; then
+              status=$exit_code
+            fi
+          done
+          exit $status
+
+      - name: Compare golden scenarios (Windows)
+        if: matrix.shell == 'pwsh'
+        shell: pwsh
+        run: |
+          $scenarios = @('minimal-scan','deep-tree','verify-mismatches')
+          $logDir = "golden-artifacts/${{ matrix.display }}"
+          New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+          $status = 0
+          foreach ($scenario in $scenarios) {
+            $logPath = Join-Path $logDir "$scenario.log"
+            "# scenario: $scenario" | Tee-Object -FilePath $logPath
+            $cmd = "cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --headless --compare-golden $scenario"
+            Invoke-Expression $cmd 2>&1 | Tee-Object -FilePath $logPath -Append
+            if ($LASTEXITCODE -ne 0 -and $status -eq 0) {
+              $status = $LASTEXITCODE
+            }
+          }
+          if ($status -ne 0) { exit $status }
+
+      - name: Upload comparison logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-comparison-${{ matrix.display }}
+          path: golden-artifacts/${{ matrix.display }}
+          if-no-files-found: warn
+          retention-days: 7

@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0",
+  "platform": "linux",
+  "captures": [
+    {
+      "version": "1.0.0",
+      "captured_at": "2025-10-28T16:36:16.125027Z",
+      "platform": "linux",
+      "scenario": "deep-tree",
+      "window": {
+        "width": 1280,
+        "height": 800,
+        "theme": "Slate"
+      },
+      "navigation": {
+        "active_tab": "File Hash",
+        "breadcrumb": [
+          "/tmp/hash-checker-gui/gui-deep"
+        ]
+      },
+      "widgets": [
+        {
+          "id": "file_path_input",
+          "kind": "text",
+          "value": null,
+          "selected": true,
+          "enabled": true,
+          "visible": true
+        },
+        {
+          "id": "algorithm_selector",
+          "kind": "dropdown",
+          "value": "auto",
+          "selected": false,
+          "enabled": true,
+          "visible": true
+        }
+      ],
+      "telemetry": {
+        "scan_progress": 1.0,
+        "hash_mismatches": 0,
+        "elapsed_ms": 340
+      },
+      "metadata": {
+        "app_version": "0.1.5",
+        "git_commit": null,
+        "cli_args": [
+          "--headless",
+          "--capture-golden",
+          "deep-tree"
+        ]
+      }
+    }
+  ]
+}
