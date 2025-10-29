@@ -2608,6 +2608,29 @@ struct ManifestCliOptions {
     report_path: Option<PathBuf>,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum CompareMode {
+    Exact,
+    #[default]
+    Structural,
+    Fuzzy,
+}
+
+impl CompareMode {
+    fn parse(value: &str) -> Option<Self> {
+        match value.to_ascii_lowercase().as_str() {
+            "exact" => Some(CompareMode::Exact),
+            "structural" => Some(CompareMode::Structural),
+            "fuzzy" => Some(CompareMode::Fuzzy),
+            _ => None,
+        }
+    }
+
+    fn variants_str() -> &'static str {
+        "exact, structural, fuzzy"
+    }
+}
+
 struct CliConfig {
     headless: bool,
     smoke_test: bool,
@@ -2615,6 +2638,7 @@ struct CliConfig {
     manifest: Option<ManifestCliOptions>,
     capture_golden: Option<String>,
     compare_golden: Option<String>,
+    compare_mode: CompareMode,
 }
 
 impl CliConfig {
@@ -2627,7 +2651,9 @@ impl CliConfig {
             manifest: None,
             capture_golden: None,
             compare_golden: None,
+            compare_mode: CompareMode::default(),
         };
+        let mut compare_mode_set = false;
 
         while let Some(arg) = args.next() {
             match arg.as_str() {
@@ -2745,6 +2771,22 @@ impl CliConfig {
                     config.compare_golden = Some(scenario);
                     config.headless = true;
                 }
+                "--compare-mode" => {
+                    let value = args
+                        .next()
+                        .ok_or_else(|| "Expected mode after --compare-mode".to_owned())?;
+                    if compare_mode_set {
+                        return Err("--compare-mode specified multiple times".to_owned());
+                    }
+                    let mode = CompareMode::parse(&value).ok_or_else(|| {
+                        format!(
+                            "Unsupported compare mode: {value}. Valid modes: {}",
+                            CompareMode::variants_str()
+                        )
+                    })?;
+                    config.compare_mode = mode;
+                    compare_mode_set = true;
+                }
                 "--help" | "-h" => {
                     print_usage();
                     std::process::exit(0);
@@ -2763,6 +2805,9 @@ impl CliConfig {
         }
         if config.compare_golden.is_some() && config.snapshot.is_some() {
             return Err("Cannot use --compare-golden and --snapshot together".to_owned());
+        }
+        if compare_mode_set && config.compare_golden.is_none() {
+            return Err("--compare-mode requires --compare-golden".to_owned());
         }
 
         Ok(config)
@@ -2786,6 +2831,7 @@ Options:
   --snapshot-height <PX>           Override snapshot height in logical pixels (default: {SNAPSHOT_DEFAULT_HEIGHT}).
   --capture-golden <SCENARIO>      Capture golden master JSON for the specified scenario (implies --headless).
   --compare-golden <SCENARIO>      Compare current state with stored golden master (implies --headless).
+  --compare-mode <MODE>            Comparison mode: exact, structural, or fuzzy (default: structural).
   --help, -h                       Show this help message."
     );
 }
@@ -2891,7 +2937,7 @@ fn main() -> eframe::Result<()> {
 
 fn run_headless(cli: &CliConfig) -> eframe::Result<()> {
     if let Some(scenario) = &cli.compare_golden {
-        return run_headless_compare_golden(scenario);
+        return run_headless_compare_golden(scenario, cli.compare_mode);
     }
 
     if let Some(scenario) = &cli.capture_golden {
@@ -2984,7 +3030,7 @@ fn run_headless_capture_golden(scenario: &str) -> eframe::Result<()> {
     Ok(())
 }
 
-fn run_headless_compare_golden(scenario: &str) -> eframe::Result<()> {
+fn run_headless_compare_golden(scenario: &str, mode: CompareMode) -> eframe::Result<()> {
     let actual_state = match build_golden_state(scenario) {
         Ok(state) => state,
         Err(err) => {
@@ -3033,7 +3079,12 @@ fn run_headless_compare_golden(scenario: &str) -> eframe::Result<()> {
             std::process::exit(3);
         }
     };
-    match comparator::compare_structural(&golden_value, &actual_value) {
+    let comparison = match mode {
+        CompareMode::Exact => comparator::compare_exact(&golden_value, &actual_value),
+        CompareMode::Structural => comparator::compare_structural(&golden_value, &actual_value),
+        CompareMode::Fuzzy => comparator::compare_fuzzy(&golden_value, &actual_value),
+    };
+    match comparison {
         comparator::ComparisonResult::Match => {
             println!("Golden master matches ({}).", golden_path.display());
             Ok(())
@@ -3050,7 +3101,7 @@ fn run_headless_compare_golden(scenario: &str) -> eframe::Result<()> {
                 println!("  … {} more differences", diffs.len() - 10);
             }
             match serde_json::to_string_pretty(&diffs) {
-                Ok(diff_json) => println!("Diff JSON:\n{}", diff_json),
+                Ok(diff_json) => println!("Diff JSON:\n{diff_json}"),
                 Err(err) => eprintln!("Failed to serialize diff JSON: {err}"),
             }
             std::process::exit(1);

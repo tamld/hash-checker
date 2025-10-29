@@ -92,3 +92,54 @@ fn compare_golden_detects_changes() {
         .failure()
         .code(1);
 }
+
+#[test]
+fn compare_golden_fuzzy_tolerates_dimension_drift() {
+    let dir = tempdir().expect("tempdir");
+
+    // baseline capture
+    Command::cargo_bin("hash-checker-gui")
+        .expect("binary")
+        .env("HASH_CHECKER_GOLDEN_DIR", dir.path())
+        .args(["--headless", "--capture-golden", "minimal-scan"])
+        .assert()
+        .success();
+
+    let platform_dir = dir.path().join(std::env::consts::OS);
+    let golden_path = platform_dir.join("minimal-scan.json");
+    let mut value: Value =
+        serde_json::from_str(&fs::read_to_string(&golden_path).unwrap()).expect("json");
+    if let Some(window) = value
+        .get_mut("captures")
+        .and_then(|captures| captures.get_mut(0))
+        .and_then(|capture| capture.get_mut("window"))
+        .and_then(|window| window.as_object_mut())
+    {
+        window.insert("width".to_owned(), Value::from(1284));
+        window.insert("height".to_owned(), Value::from(804));
+    }
+    fs::write(&golden_path, serde_json::to_string_pretty(&value).unwrap()).unwrap();
+
+    // Structural (default) should fail
+    Command::cargo_bin("hash-checker-gui")
+        .expect("binary")
+        .env("HASH_CHECKER_GOLDEN_DIR", dir.path())
+        .args(["--headless", "--compare-golden", "minimal-scan"])
+        .assert()
+        .failure()
+        .code(1);
+
+    // Fuzzy should accept tolerance
+    Command::cargo_bin("hash-checker-gui")
+        .expect("binary")
+        .env("HASH_CHECKER_GOLDEN_DIR", dir.path())
+        .args([
+            "--headless",
+            "--compare-mode",
+            "fuzzy",
+            "--compare-golden",
+            "minimal-scan",
+        ])
+        .assert()
+        .success();
+}

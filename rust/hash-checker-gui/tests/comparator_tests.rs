@@ -2,7 +2,7 @@ mod comparator {
     include!("../src/comparator.rs");
 }
 
-use comparator::{compare_exact, compare_structural, ComparisonResult};
+use comparator::{compare_exact, compare_fuzzy, compare_structural, ComparisonResult};
 use serde_json::json;
 
 #[test]
@@ -59,5 +59,93 @@ fn structural_comparison_ignores_timestamp_and_golden_flag() {
     assert!(matches!(
         compare_structural(&expected, &actual),
         ComparisonResult::Match
+    ));
+}
+
+#[test]
+fn fuzzy_allows_small_dimension_drift() {
+    let expected = json!({
+        "captures": [{
+            "window": {"width": 1280, "height": 800}
+        }]
+    });
+    let actual = json!({
+        "captures": [{
+            "window": {"width": 1283, "height": 804}
+        }]
+    });
+
+    assert!(matches!(
+        compare_fuzzy(&expected, &actual),
+        ComparisonResult::Match
+    ));
+    assert!(matches!(
+        compare_structural(&expected, &actual),
+        ComparisonResult::Diff(_)
+    ));
+}
+
+#[test]
+fn fuzzy_rejects_large_dimension_drift() {
+    let expected = json!({
+        "captures": [{
+            "window": {"width": 1280}
+        }]
+    });
+    let actual = json!({
+        "captures": [{
+            "window": {"width": 1300}
+        }]
+    });
+
+    assert!(matches!(
+        compare_fuzzy(&expected, &actual),
+        ComparisonResult::Diff(_)
+    ));
+}
+
+#[test]
+fn fuzzy_handles_color_component_tolerance() {
+    let expected = json!({
+        "captures": [{
+            "metadata": {
+                "theme": {
+                    "accent": {"r": 200, "g": 120, "b": 100, "a": 255}
+                }
+            }
+        }]
+    });
+    let actual = json!({
+        "captures": [{
+            "metadata": {
+                "theme": {
+                    "accent": {"r": 205, "g": 118, "b": 104, "a": 255}
+                }
+            }
+        }]
+    });
+
+    assert!(matches!(
+        compare_fuzzy(&expected, &actual),
+        ComparisonResult::Match
+    ));
+}
+
+#[test]
+fn fuzzy_keeps_strict_for_non_dimension_numeric_fields() {
+    let expected = json!({
+        "captures": [{
+            "telemetry": {"elapsed_ms": 340}
+        }]
+    });
+    let actual = json!({
+        "captures": [{
+            "telemetry": {"elapsed_ms": 360}
+        }]
+    });
+
+    assert!(matches!(
+        compare_fuzzy(&expected, &actual),
+        ComparisonResult::Diff(_)
     ));
 }

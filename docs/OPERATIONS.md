@@ -89,6 +89,29 @@ make rust-gui-smoke-host
   - Khi workflow fail, đọc log `golden-artifacts/<platform>/<scenario>.log` để
     xác định diff cụ thể rồi cập nhật golden/comparator theo bằng chứng.
 
+#### Comparison Modes (`--compare-mode`)
+- **Default**: `structural` — normalization removes volatile fields (timestamps,
+  CLI argv, telemetry drift) before comparing JSON. Đây là chế độ CI sử dụng.
+- **`exact`**: raw byte-for-byte JSON comparison. Dùng khi cần xác minh
+  normalizer mới hoặc audit comparator; dễ báo động giả nếu timestamp/telemetry
+  thay đổi.
+- **`structural`**: chỉ chuẩn hóa. Phù hợp cho các regression thông thường khi
+  bố cục phải khớp tuyệt đối trừ các trường biến động. CI chạy với chế độ này
+  nên mọi mismatch đều chặn release.
+- **`fuzzy`**: structural + dung sai số học (±5 px cho tọa độ/kích thước, ±5%
+  cho màu sắc/tỉ lệ). Hữu ích để phân tích drift nhẹ (raster font, subpixel).
+  Chỉ dùng nội bộ, lưu diff JSON + bằng chứng trước khi đề xuất cập nhật
+  golden.
+- **Ví dụ**:
+  ```bash
+  HASH_CHECKER_GOLDEN_DIR=test-fixtures/golden \
+    cargo run --manifest-path rust/hash-checker-gui/Cargo.toml -- \
+      --headless --compare-golden minimal-scan --compare-mode fuzzy
+  ```
+- **CI expectation**: giữ `structural` làm mặc định tự động. Nếu phải dùng
+  `fuzzy` để pass local, coi đó là tín hiệu điều tra ổn định layout hoặc xin ý
+  kiến trước khi cập nhật golden.
+
 #### GTK4-native (optional, Linux)
 - This feature is experimental and enabled via the `gtk4-native` feature. Since the local environment (macOS) does not have GTK4, enable/disable and test it on a Linux runner (GitHub Actions) or a dedicated VM.
 - Install necessary packages before building:
