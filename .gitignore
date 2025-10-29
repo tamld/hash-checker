@@ -70,4 +70,9 @@ secrets/
 # IMPORTANT: No exceptions! All .agents/ content stays local.
 # If you need to share something, put it in docs/ or specs/
 
+# Backup files (local only)
+*.backup-location.txt
+*-backup-*/
+*.backup.tgz
+
 backups/
