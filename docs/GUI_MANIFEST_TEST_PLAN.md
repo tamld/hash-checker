@@ -12,7 +12,7 @@
 | A2 | Summary banner reflects counts + duration using real manifest data. | ✅ | Screenshot `logs/gui-manifest/snapshots/manifest-20251019-114418.png`. |
 | A3 | Folder Scan controls follow three-row layout; secondary buttons size to content. | ✅ (2025-10-19) | Snapshot `docs/assets/gui-folder-scan.png` shows clamped dropdowns, accent Scan, and drag-and-drop status banner. |
 | A4 | Table must handle deep directory structures and long hashes without truncation. | ✅ (2025-10-19) | Details dialog `docs/assets/gui-folder-details.png` provides scrollable view for long paths/hash values. |
-| A5 | Telemetry logs each scan/verify with recorded + mismatch counts. | ⏳ | Script `validate_telemetry.py` (queued). |
+| A5 | Telemetry logs each scan/verify with recorded + mismatch counts. | ✅ | Script `validate_telemetry.py` (implemented). |
 | A6 | Theme palette options provide comfortable contrast (Soft Light inclusive). | ⚠️ (2025-10-19) | Soft Light theme causes excessive brightness; see feedback screenshot. |
 
 ## Scenario Matrix
@@ -74,7 +74,7 @@
 1. Implement deep-tree harness (S2+S3) and store golden artefacts.
 2. Adjust table layout to expand columns for long hashes/paths (addresses feedback “số 2”).
 3. Tune dropdown/button widths per blueprint (feedback “số 1”).
-4. Wire telemetry validator, referencing harness outputs.
+4. [x] Wire telemetry validator, referencing harness outputs.
 5. Integrate scenarios into CI workflow (`gui-validation.yml` planned).
 
 Once all items show ✅ in the matrix, mark the manifest tab as MVP-ready for release.
