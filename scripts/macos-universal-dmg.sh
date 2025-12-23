@@ -86,7 +86,7 @@ cp -R "$APP_PATH" "$DMG_STAGING/"
 ln -sf /Applications "$DMG_STAGING/Applications"
 
 VOLNAME="Hash Checker"
-DMG_NAME="$(basename "$APP_PATH" ".app").dmg"
+DMG_NAME="hash-checker.dmg"
 DEST_PATH="$OUT_DIR/$DMG_NAME"
 rm -f "$DEST_PATH"
 

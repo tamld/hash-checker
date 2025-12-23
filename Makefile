@@ -33,7 +33,7 @@ rust-gui-dmg-temp: ## Build macOS .dmg into /tmp/hash-checker-gui
 	cargo install cargo-packager@0.11.7 --locked >/dev/null 2>&1 || true
 	cargo packager --release --formats dmg --manifest-path rust/hash-checker-gui/Cargo.toml
 	mkdir -p /tmp/hash-checker-gui
-	cp rust/hash-checker-gui/target/packager/*.dmg /tmp/hash-checker-gui/
+	cp rust/hash-checker-gui/target/packager/*.dmg /tmp/hash-checker-gui/hash-checker.dmg
 	cp rust/hash-checker-gui/target/packager/SHA256SUMS /tmp/hash-checker-gui/
 	rm -rf rust/hash-checker-gui/target/packager
 
