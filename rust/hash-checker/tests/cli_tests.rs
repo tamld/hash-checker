@@ -76,6 +76,22 @@ fn cli_infers_blake2b_without_algorithm_flag() {
 }
 
 #[test]
+fn cli_rejects_conflicting_algorithm_hints() {
+    let (temp_dir, path) = sample_file();
+    let digest = compute_hash(path.as_path(), "sha256").expect("hash");
+    let prefixed = format!("sha512:{digest}");
+    let mut cmd = Command::cargo_bin("hash-checker").expect("binary");
+    cmd.arg(&path)
+        .arg(prefixed)
+        .arg("--algorithm")
+        .arg("sha256");
+    cmd.assert()
+        .code(1)
+        .stderr(contains("conflicting algorithm hints"));
+    drop(temp_dir);
+}
+
+#[test]
 fn cli_emits_json_logs_when_requested() {
     let (temp_dir, path) = sample_file();
     let digest = compute_hash(path.as_path(), "sha256").expect("hash");

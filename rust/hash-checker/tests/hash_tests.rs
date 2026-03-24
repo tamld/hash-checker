@@ -104,6 +104,15 @@ fn verify_hash_rejects_unknown_prefix() {
 }
 
 #[test]
+fn verify_hash_rejects_conflicting_algorithm_hints() {
+    let file = write_sample_file();
+    let digest = compute_hash(file.path(), "sha256").expect("hash");
+    let prefixed = format!("sha512:{digest}");
+    let err = verify_hash(file.path(), &prefixed, Some("sha256")).expect_err("expected failure");
+    assert!(matches!(err, HashError::ConflictingAlgorithmHints { .. }));
+}
+
+#[test]
 fn supported_algorithms_contains_expected() {
     let algos = supported_algorithms();
     for name in ["md5", "sha1", "sha256", "blake2b"] {

@@ -26,6 +26,10 @@ const CHUNK_SIZE: usize = 1024 * 1024;
 pub enum HashError {
     #[error("unsupported algorithm '{0}'")]
     UnsupportedAlgorithm(String),
+    #[error(
+        "conflicting algorithm hints: flag '{provided}' does not match digest prefix '{prefixed}'"
+    )]
+    ConflictingAlgorithmHints { provided: String, prefixed: String },
     #[error("expected hash cannot be empty")]
     EmptyExpectedHash,
     #[error("unable to infer algorithm from digest length {0}")]
@@ -214,6 +218,15 @@ pub fn verify_hash(
         ),
         _ => None,
     };
+
+    if let (Some(provided), Some(prefixed)) = (provided_algorithm, prefix_algorithm) {
+        if provided != prefixed {
+            return Err(HashError::ConflictingAlgorithmHints {
+                provided: provided.to_string(),
+                prefixed: prefixed.to_string(),
+            });
+        }
+    }
 
     let candidates: Vec<&'static str> = if let Some(name) = provided_algorithm {
         vec![name]
