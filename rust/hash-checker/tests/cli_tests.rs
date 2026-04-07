@@ -76,6 +76,75 @@ fn cli_infers_blake2b_without_algorithm_flag() {
 }
 
 #[test]
+fn cli_rejects_conflicting_algorithm_hints() {
+    let (temp_dir, path) = sample_file();
+    let digest = compute_hash(path.as_path(), "sha256").expect("hash");
+    let prefixed = format!("sha512:{digest}");
+    let mut cmd = Command::cargo_bin("hash-checker").expect("binary");
+    cmd.arg(&path)
+        .arg(prefixed)
+        .arg("--algorithm")
+        .arg("sha256");
+    cmd.assert()
+        .code(1)
+        .stderr(contains("conflicting algorithm hints"));
+    drop(temp_dir);
+}
+
+#[test]
+fn cli_conflicting_algorithm_hints_error_message_names_both_algorithms() {
+    // Verify the CLI error output mentions both the flag algorithm and the prefixed algorithm.
+    let (temp_dir, path) = sample_file();
+    let digest = compute_hash(path.as_path(), "sha256").expect("hash");
+    let prefixed = format!("sha512:{digest}");
+    let mut cmd = Command::cargo_bin("hash-checker").expect("binary");
+    cmd.arg(&path)
+        .arg(prefixed)
+        .arg("--algorithm")
+        .arg("sha256");
+    let output = cmd.output().expect("run command");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("sha256"),
+        "stderr should mention flag algorithm: {stderr}"
+    );
+    assert!(
+        stderr.contains("sha512"),
+        "stderr should mention prefix algorithm: {stderr}"
+    );
+    drop(temp_dir);
+}
+
+#[test]
+fn cli_accepts_matching_prefix_and_algorithm_flag() {
+    // When digest prefix and --algorithm flag agree, verification should succeed.
+    let (temp_dir, path) = sample_file();
+    let digest = compute_hash(path.as_path(), "sha256").expect("hash");
+    let prefixed = format!("sha256:{digest}");
+    let mut cmd = Command::cargo_bin("hash-checker").expect("binary");
+    cmd.arg(&path).arg(prefixed).arg("--algorithm").arg("sha256");
+    cmd.assert().success().stdout(contains("Hashes match"));
+    drop(temp_dir);
+}
+
+#[test]
+fn cli_rejects_conflicting_hints_different_algorithm_pair() {
+    // Conflict detection should also fire for pairs other than sha256/sha512.
+    let (temp_dir, path) = sample_file();
+    let digest = compute_hash(path.as_path(), "sha1").expect("hash");
+    let prefixed = format!("md5:{digest}");
+    let mut cmd = Command::cargo_bin("hash-checker").expect("binary");
+    cmd.arg(&path)
+        .arg(prefixed)
+        .arg("--algorithm")
+        .arg("sha1");
+    cmd.assert()
+        .code(1)
+        .stderr(contains("conflicting algorithm hints"));
+    drop(temp_dir);
+}
+
+#[test]
 fn cli_emits_json_logs_when_requested() {
     let (temp_dir, path) = sample_file();
     let digest = compute_hash(path.as_path(), "sha256").expect("hash");

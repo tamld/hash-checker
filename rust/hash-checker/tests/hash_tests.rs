@@ -104,6 +104,87 @@ fn verify_hash_rejects_unknown_prefix() {
 }
 
 #[test]
+fn verify_hash_rejects_conflicting_algorithm_hints() {
+    let file = write_sample_file();
+    let digest = compute_hash(file.path(), "sha256").expect("hash");
+    let prefixed = format!("sha512:{digest}");
+    let err = verify_hash(file.path(), &prefixed, Some("sha256")).expect_err("expected failure");
+    assert!(matches!(err, HashError::ConflictingAlgorithmHints { .. }));
+}
+
+#[test]
+fn verify_hash_conflicting_hints_error_fields_are_correct() {
+    // Verify the error struct captures the exact provided and prefixed algorithm names.
+    let file = write_sample_file();
+    let digest = compute_hash(file.path(), "sha256").expect("hash");
+    let prefixed = format!("sha512:{digest}");
+    let err = verify_hash(file.path(), &prefixed, Some("sha256")).expect_err("expected failure");
+    match err {
+        HashError::ConflictingAlgorithmHints { provided, prefixed } => {
+            assert_eq!(provided, "sha256");
+            assert_eq!(prefixed, "sha512");
+        }
+        other => panic!("unexpected error variant: {other}"),
+    }
+}
+
+#[test]
+fn verify_hash_conflicting_hints_error_message_contains_both_names() {
+    // Verify the Display impl includes both algorithm names for diagnostic clarity.
+    let file = write_sample_file();
+    let digest = compute_hash(file.path(), "sha256").expect("hash");
+    let prefixed = format!("sha512:{digest}");
+    let err = verify_hash(file.path(), &prefixed, Some("sha256")).expect_err("expected failure");
+    let msg = err.to_string();
+    assert!(
+        msg.contains("sha256"),
+        "error message should mention provided algorithm: {msg}"
+    );
+    assert!(
+        msg.contains("sha512"),
+        "error message should mention prefixed algorithm: {msg}"
+    );
+}
+
+#[test]
+fn verify_hash_rejects_conflicting_hints_different_pair() {
+    // Ensure the conflict check fires for algorithm pairs beyond sha256/sha512.
+    let file = write_sample_file();
+    let digest = compute_hash(file.path(), "md5").expect("hash");
+    let prefixed = format!("sha1:{digest}");
+    let err = verify_hash(file.path(), &prefixed, Some("md5")).expect_err("expected failure");
+    assert!(matches!(err, HashError::ConflictingAlgorithmHints { .. }));
+}
+
+#[test]
+fn verify_hash_accepts_matching_prefix_and_algorithm_flag() {
+    // When prefix and --algorithm agree, no conflict should be raised and verification succeeds.
+    let file = write_sample_file();
+    let digest = compute_hash(file.path(), "sha256").expect("hash");
+    let prefixed = format!("sha256:{digest}");
+    let (matches, computed) =
+        verify_hash(file.path(), &prefixed, Some("sha256")).expect("should not conflict");
+    assert!(matches);
+    assert_eq!(computed, digest);
+}
+
+#[test]
+fn verify_hash_conflicting_hints_reverse_direction() {
+    // sha256 prefix with sha512 flag — opposite of the PR test to catch asymmetry bugs.
+    let file = write_sample_file();
+    let digest = compute_hash(file.path(), "sha512").expect("hash");
+    let prefixed = format!("sha256:{digest}");
+    let err = verify_hash(file.path(), &prefixed, Some("sha512")).expect_err("expected failure");
+    match err {
+        HashError::ConflictingAlgorithmHints { provided, prefixed } => {
+            assert_eq!(provided, "sha512");
+            assert_eq!(prefixed, "sha256");
+        }
+        other => panic!("unexpected error variant: {other}"),
+    }
+}
+
+#[test]
 fn supported_algorithms_contains_expected() {
     let algos = supported_algorithms();
     for name in ["md5", "sha1", "sha256", "blake2b"] {
