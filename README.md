@@ -2,7 +2,11 @@
 
 [![CI](https://github.com/tamld/hash-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/tamld/hash-checker/actions/workflows/ci.yml)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![Rust](https://img.shields.io/badge/Rust-1.88%2B-orange?logo=rust)
+![Rust](https://img.shields.io/badge/Rust-1.88%2B-orange?logo=rust&logoColor=white)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-informational?logo=linux&logoColor=white)
+![GUI: egui](https://img.shields.io/badge/GUI-egui-purple?style=flat)
+![Algorithms](https://img.shields.io/badge/Algorithms-SHA2%20%7C%20SHA1%20%7C%20MD5%20%7C%20BLAKE2-blue?style=flat)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat)
 
 > Cross-platform integrity checker with a shared Rust core powering CLI and egui desktop apps.
 
