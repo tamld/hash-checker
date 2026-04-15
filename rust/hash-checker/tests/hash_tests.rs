@@ -54,7 +54,9 @@ fn detect_algorithm_with_prefix() {
 fn detect_algorithm_edge_cases() {
     // Prefix with whitespace padding and mixed case
     assert_eq!(
-        detect_algorithm("  sHa256 : 19fe5f3e518ba46537ddf4bcd098d66e2873fda2dccf58e66f6ab1f932c6d811  "),
+        detect_algorithm(
+            "  sHa256 : 19fe5f3e518ba46537ddf4bcd098d66e2873fda2dccf58e66f6ab1f932c6d811  "
+        ),
         Some("sha256")
     );
 
@@ -74,16 +76,10 @@ fn detect_algorithm_edge_cases() {
     // Multiple colons: only the first is the boundary
     // The "digest" becomes "bar:baz" which is 7 chars.
     // However, if the prefix is valid, it returns the prefix.
-    assert_eq!(
-        detect_algorithm("sha256:bar:baz"),
-        Some("sha256")
-    );
+    assert_eq!(detect_algorithm("sha256:bar:baz"), Some("sha256"));
 
     // Multiple colons with unknown prefix and invalid digest length
-    assert_eq!(
-        detect_algorithm("foo:bar:baz"),
-        None
-    );
+    assert_eq!(detect_algorithm("foo:bar:baz"), None);
 
     // No prefix and unsupported length
     assert_eq!(
