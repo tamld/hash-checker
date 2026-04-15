@@ -45,7 +45,7 @@ jobs:
       VAGRANT_ENABLED: 'false'
     if: ${{ (github.event_name != 'workflow_dispatch' || github.event.inputs.run_linux == 'true') && !(github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'skip-linux-ci')) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
@@ -115,7 +115,7 @@ jobs:
     runs-on: macos-14
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_macos == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@master
         with:
@@ -149,7 +149,7 @@ jobs:
     runs-on: windows-latest
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_windows == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@master
         with:

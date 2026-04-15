@@ -29,7 +29,7 @@ jobs:
       VAGRANT_ENABLED: 'false'
     if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:
@@ -105,7 +105,7 @@ jobs:
     runs-on: macos-14
     if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:
@@ -221,7 +221,7 @@ jobs:
       installer_artifact_id: ${{ steps.upload_installer_unsigned.outputs.artifact-id }}
     if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:
@@ -420,7 +420,7 @@ jobs:
       GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
       GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Download artefacts
         uses: actions/download-artifact@v4
         with:
