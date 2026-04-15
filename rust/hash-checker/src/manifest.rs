@@ -583,4 +583,31 @@ mod tests {
         assert_eq!(manifest.entries.len(), parsed.entries.len());
         assert_eq!(manifest.version, parsed.version);
     }
+
+    #[test]
+    fn test_detect_format_from_extension() {
+        // Test Json
+        assert_eq!(detect_format_from_extension(Path::new("file.json")), Some(ManifestFormat::Json));
+        assert_eq!(detect_format_from_extension(Path::new("file.JSON")), Some(ManifestFormat::Json));
+        assert_eq!(detect_format_from_extension(Path::new("file.manifest.json")), Some(ManifestFormat::Json));
+
+        // Test Csv
+        assert_eq!(detect_format_from_extension(Path::new("data.csv")), Some(ManifestFormat::Csv));
+        assert_eq!(detect_format_from_extension(Path::new("DATA.CSV")), Some(ManifestFormat::Csv));
+
+        // Test Plain
+        assert_eq!(detect_format_from_extension(Path::new("hashes.txt")), Some(ManifestFormat::Plain));
+        assert_eq!(detect_format_from_extension(Path::new("hashes.TXT")), Some(ManifestFormat::Plain));
+        assert_eq!(detect_format_from_extension(Path::new("manifest.mf")), Some(ManifestFormat::Plain));
+        assert_eq!(detect_format_from_extension(Path::new("MANIFEST.MF")), Some(ManifestFormat::Plain));
+
+        // Test Unknown extensions
+        assert_eq!(detect_format_from_extension(Path::new("file.xml")), None);
+        assert_eq!(detect_format_from_extension(Path::new("file.bin")), None);
+
+        // Test No extension
+        assert_eq!(detect_format_from_extension(Path::new("file")), None);
+        assert_eq!(detect_format_from_extension(Path::new("")), None);
+        assert_eq!(detect_format_from_extension(Path::new(".hidden")), None);
+    }
 }
