@@ -9,7 +9,7 @@ jobs:
   install-latest:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@master
         with:
