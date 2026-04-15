@@ -174,3 +174,53 @@ fn map_error(err: &HashError) -> (BatchStatus, String) {
         _ => (BatchStatus::Error, err.to_string()),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn create_report(errored: usize, mismatched: usize, missing: usize) -> BatchReport {
+        BatchReport {
+            summary: BatchSummary {
+                total: 10, // arbitrary
+                matched: 10 - errored - mismatched - missing,
+                mismatched,
+                missing,
+                errored,
+            },
+            entries: vec![],
+        }
+    }
+
+    #[test]
+    fn test_exit_code_success() {
+        let report = create_report(0, 0, 0);
+        assert_eq!(report.exit_code(), 0);
+    }
+
+    #[test]
+    fn test_exit_code_errored() {
+        // errored > 0 should return 2
+        let report = create_report(1, 0, 0);
+        assert_eq!(report.exit_code(), 2);
+
+        // errored > 0 should return 2 even if mismatched or missing are > 0
+        let report = create_report(1, 1, 1);
+        assert_eq!(report.exit_code(), 2);
+    }
+
+    #[test]
+    fn test_exit_code_mismatched_or_missing() {
+        // mismatched > 0 should return 3
+        let report = create_report(0, 1, 0);
+        assert_eq!(report.exit_code(), 3);
+
+        // missing > 0 should return 3
+        let report = create_report(0, 0, 1);
+        assert_eq!(report.exit_code(), 3);
+
+        // both > 0 should return 3
+        let report = create_report(0, 1, 1);
+        assert_eq!(report.exit_code(), 3);
+    }
+}
