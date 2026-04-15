@@ -247,7 +247,10 @@ mod tests {
         };
         let (status, msg) = map_error(&err);
         assert_eq!(status, BatchStatus::Error);
-        assert_eq!(msg, "failed to canonicalize path 'test.txt': permission denied");
+        assert_eq!(
+            msg,
+            "failed to canonicalize path 'test.txt': permission denied"
+        );
     }
 
     #[test]
