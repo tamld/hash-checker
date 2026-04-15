@@ -174,3 +174,109 @@ fn map_error(err: &HashError) -> (BatchStatus, String) {
         _ => (BatchStatus::Error, err.to_string()),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io;
+
+    #[test]
+    fn test_map_error_path_not_found() {
+        let err = HashError::PathNotFound("test.txt".to_string());
+        let (status, msg) = map_error(&err);
+        assert_eq!(status, BatchStatus::Missing);
+        assert_eq!(msg, "path 'test.txt' does not exist");
+    }
+
+    #[test]
+    fn test_map_error_not_a_file() {
+        let err = HashError::NotAFile("test.txt".to_string());
+        let (status, msg) = map_error(&err);
+        assert_eq!(status, BatchStatus::Error);
+        assert_eq!(msg, "path 'test.txt' is not a regular file");
+    }
+
+    #[test]
+    fn test_map_error_unsupported_algorithm() {
+        let err = HashError::UnsupportedAlgorithm("md4".to_string());
+        let (status, msg) = map_error(&err);
+        assert_eq!(status, BatchStatus::Error);
+        assert_eq!(msg, "unsupported algorithm 'md4'");
+    }
+
+    #[test]
+    fn test_map_error_inference_failed() {
+        let err = HashError::InferenceFailed(16);
+        let (status, msg) = map_error(&err);
+        assert_eq!(status, BatchStatus::Error);
+        assert_eq!(msg, "unable to infer algorithm from digest length 16");
+    }
+
+    #[test]
+    fn test_map_error_invalid_expected_hash() {
+        let err = HashError::InvalidExpectedHash;
+        let (status, msg) = map_error(&err);
+        assert_eq!(status, BatchStatus::Error);
+        assert_eq!(msg, "expected hash contains non-hex characters");
+    }
+
+    #[test]
+    fn test_map_error_empty_expected_hash() {
+        let err = HashError::EmptyExpectedHash;
+        let (status, msg) = map_error(&err);
+        assert_eq!(status, BatchStatus::Error);
+        assert_eq!(msg, "expected hash cannot be empty");
+    }
+
+    #[test]
+    fn test_map_error_canonicalize_not_found() {
+        let err = HashError::Canonicalize {
+            path: "test.txt".to_string(),
+            source: io::Error::new(io::ErrorKind::NotFound, "not found"),
+        };
+        let (status, msg) = map_error(&err);
+        assert_eq!(status, BatchStatus::Missing);
+        assert_eq!(msg, "failed to canonicalize path 'test.txt': not found");
+    }
+
+    #[test]
+    fn test_map_error_canonicalize_other_error() {
+        let err = HashError::Canonicalize {
+            path: "test.txt".to_string(),
+            source: io::Error::new(io::ErrorKind::PermissionDenied, "permission denied"),
+        };
+        let (status, msg) = map_error(&err);
+        assert_eq!(status, BatchStatus::Error);
+        assert_eq!(
+            msg,
+            "failed to canonicalize path 'test.txt': permission denied"
+        );
+    }
+
+    #[test]
+    fn test_map_error_io_not_found() {
+        let err = HashError::Io(io::Error::new(io::ErrorKind::NotFound, "not found"));
+        let (status, msg) = map_error(&err);
+        assert_eq!(status, BatchStatus::Missing);
+        assert_eq!(msg, "not found");
+    }
+
+    #[test]
+    fn test_map_error_io_other_error() {
+        let err = HashError::Io(io::Error::new(
+            io::ErrorKind::PermissionDenied,
+            "permission denied",
+        ));
+        let (status, msg) = map_error(&err);
+        assert_eq!(status, BatchStatus::Error);
+        assert_eq!(msg, "permission denied");
+    }
+
+    #[test]
+    fn test_map_error_fallback() {
+        let err = HashError::NotADirectory("test.txt".to_string());
+        let (status, msg) = map_error(&err);
+        assert_eq!(status, BatchStatus::Error);
+        assert_eq!(msg, "path 'test.txt' is not a directory");
+    }
+}
