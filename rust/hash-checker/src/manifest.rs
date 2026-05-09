@@ -165,6 +165,13 @@ pub fn verify_manifest(manifest: &Manifest, root: &Path) -> HashResult<Verificat
         actual_map.insert(key, file);
     }
 
+    compare_manifest_to_files(manifest, &actual_map)
+}
+
+pub fn compare_manifest_to_files(
+    manifest: &Manifest,
+    actual_map: &BTreeMap<String, PathBuf>,
+) -> HashResult<VerificationReport> {
     let mut matched = 0usize;
     let mut mismatched = Vec::new();
     let mut missing = Vec::new();
