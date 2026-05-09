@@ -583,4 +583,21 @@ mod tests {
         assert_eq!(manifest.entries.len(), parsed.entries.len());
         assert_eq!(manifest.version, parsed.version);
     }
+
+    #[test]
+    fn apply_entry_path_resolves_correctly() {
+        let root = Path::new("/base/dir");
+
+        // Basic relative path
+        let resolved = apply_entry_path(root, "file.txt");
+        assert_eq!(resolved, root.join("file.txt"));
+
+        // Path with subdirectory
+        let resolved = apply_entry_path(root, "subdir/file.txt");
+        assert_eq!(resolved, root.join("subdir").join("file.txt"));
+
+        // Path with multiple depths
+        let resolved = apply_entry_path(root, "a/b/c/d.txt");
+        assert_eq!(resolved, root.join("a").join("b").join("c").join("d.txt"));
+    }
 }
