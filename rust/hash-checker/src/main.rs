@@ -498,14 +498,14 @@ fn write_batch_report(report: &BatchReport, args: &BatchArgs) -> HashResult<()> 
             }
         }
         BatchFormatArg::Csv => {
-            let write_target = match &args.output {
+            let write_target: Box<dyn std::io::Write> = match &args.output {
                 Some(path) => {
                     let file = File::create(path)?;
-                    EitherWriter::File(file)
+                    Box::new(file)
                 }
                 None => {
                     let stdout = io::stdout();
-                    EitherWriter::Stdout(stdout)
+                    Box::new(stdout)
                 }
             };
             write_batch_report_csv(report, write_target)?;
@@ -514,34 +514,7 @@ fn write_batch_report(report: &BatchReport, args: &BatchArgs) -> HashResult<()> 
     Ok(())
 }
 
-enum EitherWriter {
-    File(File),
-    Stdout(io::Stdout),
-}
-
-impl Write for EitherWriter {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        match self {
-            EitherWriter::File(file) => file.write(buf),
-            EitherWriter::Stdout(stdout) => {
-                let mut handle = stdout.lock();
-                handle.write(buf)
-            }
-        }
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        match self {
-            EitherWriter::File(file) => file.flush(),
-            EitherWriter::Stdout(stdout) => {
-                let mut handle = stdout.lock();
-                handle.flush()
-            }
-        }
-    }
-}
-
-fn write_batch_report_csv(report: &BatchReport, mut writer: EitherWriter) -> HashResult<()> {
+fn write_batch_report_csv(report: &BatchReport, mut writer: Box<dyn std::io::Write>) -> HashResult<()> {
     let mut wtr = csv::WriterBuilder::new()
         .has_headers(true)
         .from_writer(&mut writer);
