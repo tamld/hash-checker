@@ -230,10 +230,12 @@ fn collect_files(root: &Path, recursive: bool) -> HashResult<Vec<PathBuf>> {
 }
 
 fn to_manifest_path(path: &Path) -> String {
-    path.components()
-        .map(|component| component.as_os_str().to_string_lossy())
-        .collect::<Vec<_>>()
-        .join("/")
+    let count = path.components().count();
+    let mut vec = Vec::with_capacity(count);
+    for component in path.components() {
+        vec.push(component.as_os_str().to_string_lossy());
+    }
+    vec.join("/")
 }
 
 fn from_manifest_path(path: &str) -> PathBuf {
