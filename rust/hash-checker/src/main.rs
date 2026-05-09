@@ -483,38 +483,30 @@ struct CsvBatchRow {
 }
 
 fn write_batch_report(report: &BatchReport, args: &BatchArgs) -> HashResult<()> {
+    let mut write_target: Box<dyn std::io::Write> = match &args.output {
+        Some(path) => Box::new(File::create(path)?),
+        None => Box::new(io::stdout()),
+    };
+
     match args.output_format {
         BatchFormatArg::Json => {
-            if let Some(path) = &args.output {
-                let file = File::create(path)?;
-                serde_json::to_writer_pretty(file, report)
-                    .map_err(|err| HashError::ManifestSerialize(err.to_string()))?;
-            } else {
-                let stdout = io::stdout();
-                let mut handle = stdout.lock();
-                serde_json::to_writer_pretty(&mut handle, report)
-                    .map_err(|err| HashError::ManifestSerialize(err.to_string()))?;
-                handle.write_all(b"\n")?;
+            serde_json::to_writer_pretty(&mut write_target, report)
+                .map_err(|err| HashError::ManifestSerialize(err.to_string()))?;
+            if args.output.is_none() {
+                write_target.write_all(b"\n")?;
             }
         }
         BatchFormatArg::Csv => {
-            let write_target: Box<dyn std::io::Write> = match &args.output {
-                Some(path) => {
-                    let file = File::create(path)?;
-                    Box::new(file)
-                }
-                None => {
-                    let stdout = io::stdout();
-                    Box::new(stdout)
-                }
-            };
             write_batch_report_csv(report, write_target)?;
         }
     }
     Ok(())
 }
 
-fn write_batch_report_csv(report: &BatchReport, mut writer: Box<dyn std::io::Write>) -> HashResult<()> {
+fn write_batch_report_csv(
+    report: &BatchReport,
+    mut writer: Box<dyn std::io::Write>,
+) -> HashResult<()> {
     let mut wtr = csv::WriterBuilder::new()
         .has_headers(true)
         .from_writer(&mut writer);
