@@ -73,6 +73,29 @@ pub fn detect_format_from_extension(path: &Path) -> Option<ManifestFormat> {
     }
 }
 
+fn create_manifest_entry(file: &Path, root: &Path, algorithm: &str) -> HashResult<ManifestEntry> {
+    let rel = file
+        .strip_prefix(root)
+        .map_err(|_| HashError::Canonicalize {
+            path: file.display().to_string(),
+            source: std::io::Error::other("path prefix error"),
+        })?;
+    let hash = compute_hash(file, algorithm)?;
+    let metadata = fs::metadata(file)?;
+    let modified = metadata
+        .modified()
+        .ok()
+        .and_then(|ts| ts.duration_since(UNIX_EPOCH).ok())
+        .map(|dur| dur.as_secs());
+    let path_str = to_manifest_path(rel);
+    Ok(ManifestEntry {
+        path: path_str,
+        hash,
+        size: metadata.len(),
+        modified,
+    })
+}
+
 pub fn generate_manifest(root: &Path, algorithm: &str, recursive: bool) -> HashResult<Manifest> {
     if !root.exists() {
         return Err(HashError::PathNotFound(root.display().to_string()));
@@ -84,26 +107,7 @@ pub fn generate_manifest(root: &Path, algorithm: &str, recursive: bool) -> HashR
     let files = collect_files(root, recursive)?;
     let mut entries = Vec::with_capacity(files.len());
     for file in files {
-        let rel = file
-            .strip_prefix(root)
-            .map_err(|_| HashError::Canonicalize {
-                path: file.display().to_string(),
-                source: std::io::Error::other("path prefix error"),
-            })?;
-        let hash = compute_hash(&file, algorithm)?;
-        let metadata = fs::metadata(&file)?;
-        let modified = metadata
-            .modified()
-            .ok()
-            .and_then(|ts| ts.duration_since(UNIX_EPOCH).ok())
-            .map(|dur| dur.as_secs());
-        let path_str = to_manifest_path(rel);
-        entries.push(ManifestEntry {
-            path: path_str,
-            hash,
-            size: metadata.len(),
-            modified,
-        });
+        entries.push(create_manifest_entry(&file, root, algorithm)?);
     }
     entries.sort_by(|a, b| a.path.cmp(&b.path));
 
