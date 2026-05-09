@@ -186,28 +186,52 @@ mod tests {
     fn test_batch_report_exit_code() {
         // Success
         let report = BatchReport {
-            summary: BatchSummary { total: 0, matched: 0, mismatched: 0, missing: 0, errored: 0 },
+            summary: BatchSummary {
+                total: 0,
+                matched: 0,
+                mismatched: 0,
+                missing: 0,
+                errored: 0,
+            },
             entries: vec![],
         };
         assert_eq!(report.exit_code(), 0);
 
         // Errored (takes precedence)
         let report = BatchReport {
-            summary: BatchSummary { total: 0, matched: 0, mismatched: 1, missing: 1, errored: 1 },
+            summary: BatchSummary {
+                total: 0,
+                matched: 0,
+                mismatched: 1,
+                missing: 1,
+                errored: 1,
+            },
             entries: vec![],
         };
         assert_eq!(report.exit_code(), 2);
 
         // Mismatched
         let report = BatchReport {
-            summary: BatchSummary { total: 0, matched: 0, mismatched: 1, missing: 0, errored: 0 },
+            summary: BatchSummary {
+                total: 0,
+                matched: 0,
+                mismatched: 1,
+                missing: 0,
+                errored: 0,
+            },
             entries: vec![],
         };
         assert_eq!(report.exit_code(), 3);
 
         // Missing
         let report = BatchReport {
-            summary: BatchSummary { total: 0, matched: 0, mismatched: 0, missing: 1, errored: 0 },
+            summary: BatchSummary {
+                total: 0,
+                matched: 0,
+                mismatched: 0,
+                missing: 1,
+                errored: 0,
+            },
             entries: vec![],
         };
         assert_eq!(report.exit_code(), 3);
@@ -267,16 +291,32 @@ mod tests {
         assert_eq!(report.summary.errored, 1);
         assert_eq!(report.entries.len(), 4);
 
-        let match_entry = report.entries.iter().find(|e| e.path == match_path.display().to_string()).unwrap();
+        let match_entry = report
+            .entries
+            .iter()
+            .find(|e| e.path == match_path.display().to_string())
+            .unwrap();
         assert_eq!(match_entry.status, BatchStatus::Match);
 
-        let mismatch_entry = report.entries.iter().find(|e| e.path == mismatch_path.display().to_string()).unwrap();
+        let mismatch_entry = report
+            .entries
+            .iter()
+            .find(|e| e.path == mismatch_path.display().to_string())
+            .unwrap();
         assert_eq!(mismatch_entry.status, BatchStatus::Mismatch);
 
-        let missing_entry = report.entries.iter().find(|e| e.path == missing_path.display().to_string()).unwrap();
+        let missing_entry = report
+            .entries
+            .iter()
+            .find(|e| e.path == missing_path.display().to_string())
+            .unwrap();
         assert_eq!(missing_entry.status, BatchStatus::Missing);
 
-        let error_entry = report.entries.iter().find(|e| e.path == error_path.display().to_string()).unwrap();
+        let error_entry = report
+            .entries
+            .iter()
+            .find(|e| e.path == error_path.display().to_string())
+            .unwrap();
         assert_eq!(error_entry.status, BatchStatus::Error);
     }
 }
