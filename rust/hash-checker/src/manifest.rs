@@ -587,20 +587,50 @@ mod tests {
     #[test]
     fn test_detect_format_from_extension() {
         // Test JSON
-        assert_eq!(detect_format_from_extension(Path::new("test.json")), Some(ManifestFormat::Json));
-        assert_eq!(detect_format_from_extension(Path::new("test.manifest.json")), Some(ManifestFormat::Json));
-        assert_eq!(detect_format_from_extension(Path::new("TEST.JSON")), Some(ManifestFormat::Json));
-        assert_eq!(detect_format_from_extension(Path::new("Test.Json")), Some(ManifestFormat::Json));
+        assert_eq!(
+            detect_format_from_extension(Path::new("test.json")),
+            Some(ManifestFormat::Json)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("test.manifest.json")),
+            Some(ManifestFormat::Json)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("TEST.JSON")),
+            Some(ManifestFormat::Json)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("Test.Json")),
+            Some(ManifestFormat::Json)
+        );
 
         // Test CSV
-        assert_eq!(detect_format_from_extension(Path::new("test.csv")), Some(ManifestFormat::Csv));
-        assert_eq!(detect_format_from_extension(Path::new("TEST.CSV")), Some(ManifestFormat::Csv));
+        assert_eq!(
+            detect_format_from_extension(Path::new("test.csv")),
+            Some(ManifestFormat::Csv)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("TEST.CSV")),
+            Some(ManifestFormat::Csv)
+        );
 
         // Test Plain Text
-        assert_eq!(detect_format_from_extension(Path::new("test.txt")), Some(ManifestFormat::Plain));
-        assert_eq!(detect_format_from_extension(Path::new("test.mf")), Some(ManifestFormat::Plain));
-        assert_eq!(detect_format_from_extension(Path::new("TEST.TXT")), Some(ManifestFormat::Plain));
-        assert_eq!(detect_format_from_extension(Path::new("TEST.MF")), Some(ManifestFormat::Plain));
+        assert_eq!(
+            detect_format_from_extension(Path::new("test.txt")),
+            Some(ManifestFormat::Plain)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("test.mf")),
+            Some(ManifestFormat::Plain)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("TEST.TXT")),
+            Some(ManifestFormat::Plain)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("TEST.MF")),
+            Some(ManifestFormat::Plain)
+        );
 
         // Test Unsupported/Invalid
         assert_eq!(detect_format_from_extension(Path::new("test.xml")), None);
