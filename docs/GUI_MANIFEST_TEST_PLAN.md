@@ -1,5 +1,8 @@
 # GUI Manifest Test Plan
 
+> Last reviewed: 2025-10-28 – translation complete; scenario status mirrors the
+> October 2025 optimisation sessions until new automation evidence is captured.
+
 > Scope: validate the Folder Scan / Directory Manifest experience across functional,
 > layout, and telemetry dimensions. This plan formalises the assumptions discussed
 > during the October 2025 optimisation sessions.
@@ -72,8 +75,8 @@
 ## Next Actions
 
 1. Implement deep-tree harness (S2+S3) and store golden artefacts.
-2. Adjust table layout to expand columns for long hashes/paths (addresses feedback “số 2”).
-3. Tune dropdown/button widths per blueprint (feedback “số 1”).
+2. Adjust table layout to expand columns for long hashes/paths (addresses feedback 'number 2').
+3. Tune dropdown/button widths per blueprint (feedback 'number 1').
 4. Wire telemetry validator, referencing harness outputs.
 5. Integrate scenarios into CI workflow (`gui-validation.yml` planned).
 
@@ -104,3 +107,9 @@ Once all items show ✅ in the matrix, mark the manifest tab as MVP-ready for re
   - Soft Light theme removed from selector pending redesign (A6 mitigation).  
 - Follow-up tasks tracked in `.agents/gui_manifest_todo.yml` (`control_width_tuning`, `table_responsive_layout`, `theme_palette_review`, `deep_tree_harness` continuation).  
 - After review, rerun S1/S2 scenarios and rebuild DMG to validate and promote snapshots to golden.
+
+## Build Status (2025-10-28)
+
+- `make rust-gui-build` chạy thành công trong Docker `rust:1.88` sau khi Codex session cập nhật lại pipeline snapshot (`main.rs` dùng `write_snapshot_json<T: Serialize>` và tách borrow trong `process_snapshot`).
+- Lệnh kiểm chứng mới nhất: `make rust-gui-build` (2025-10-28 20:15 UTC) → `Finished 'release' profile`.
+- Với build đã xanh, nhiệm vụ tiếp theo là tiếp tục scenario S2/S3, thu thập lại golden artefact và cập nhật `logs/gui-manifest/snapshots/` theo kế hoạch ở đầu tài liệu.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE="rust:1.83"
+IMAGE="rust:1.88"
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 LOCAL_UID=$(id -u)
 LOCAL_GID=$(id -g)

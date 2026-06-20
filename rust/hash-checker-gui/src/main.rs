@@ -30,9 +30,11 @@ use hash_checker::{
     ManifestFormat, VerificationReport,
 };
 use image::RgbaImage;
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 mod dialog;
 use serde::Serialize;
-use serde_json::to_writer_pretty;
+use serde_json::{to_value, to_writer_pretty, Value};
+mod comparator;
 
 const BASE_SPACING: f32 = 8.0;
 const LARGE_SPACING: f32 = 16.0;
@@ -60,6 +62,98 @@ fn canonicalize_or(path: PathBuf) -> PathBuf {
 
 fn fixture_path(relative: &str) -> PathBuf {
     canonicalize_or(project_root().join(relative))
+}
+
+#[cfg(target_os = "windows")]
+fn demo_storage_dir() -> PathBuf {
+    let base = PathBuf::from(r"C:\Temp\hash-checker-gui");
+    if let Err(err) = fs::create_dir_all(&base) {
+        eprintln!(
+            "Failed to create demo storage directory {}: {err}",
+            base.display()
+        );
+    }
+    base
+}
+
+#[cfg(not(target_os = "windows"))]
+fn demo_storage_dir() -> PathBuf {
+    let base = PathBuf::from("/tmp/hash-checker-gui");
+    if let Err(err) = fs::create_dir_all(&base) {
+        eprintln!(
+            "Failed to create demo storage directory {}: {err}",
+            base.display()
+        );
+    }
+    base
+}
+
+const DEMO_SAMPLE_CONTENT: &str = "Hash Checker GUI demo sample\n";
+
+fn ensure_demo_sample_file() -> PathBuf {
+    let path = demo_storage_dir().join("sample.txt");
+    let mut needs_refresh = true;
+    if path.exists() {
+        match fs::read(&path) {
+            Ok(bytes) => {
+                if bytes == DEMO_SAMPLE_CONTENT.as_bytes() {
+                    needs_refresh = false;
+                }
+            }
+            Err(err) => {
+                eprintln!(
+                    "Failed to read existing demo sample file {}: {err}",
+                    path.display()
+                );
+            }
+        }
+    }
+    if needs_refresh {
+        if let Some(parent) = path.parent() {
+            if let Err(err) = fs::create_dir_all(parent) {
+                eprintln!(
+                    "Failed to create demo sample parent directory {}: {err}",
+                    parent.display()
+                );
+            }
+        }
+        if let Err(err) = fs::write(&path, DEMO_SAMPLE_CONTENT) {
+            eprintln!("Failed to write demo sample file {}: {err}", path.display());
+        }
+    }
+    path
+}
+
+fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
+    if !dst.exists() {
+        fs::create_dir_all(dst)?;
+    }
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+        if file_type.is_dir() {
+            copy_dir_recursive(&src_path, &dst_path)?;
+        } else if file_type.is_file() {
+            fs::copy(&src_path, &dst_path)?;
+        }
+    }
+    Ok(())
+}
+
+fn ensure_demo_manifest_dir() -> PathBuf {
+    let dest = demo_storage_dir().join("gui-deep");
+    if !dest.exists() {
+        let src = fixture_path("test-fixtures/gui-deep");
+        if let Err(err) = copy_dir_recursive(&src, &dest) {
+            eprintln!(
+                "Failed to prepare demo manifest directory {}: {err}",
+                dest.display()
+            );
+        }
+    }
+    dest
 }
 
 fn responsive_multiplier(width: f32) -> f32 {
@@ -155,6 +249,8 @@ struct HashCheckerApp {
     manifest: ManifestView,
     snapshot_jobs: VecDeque<SnapshotRequest>,
     force_open_algorithm_popup: bool,
+    snapshot_config: Option<SnapshotOptions>,
+    snapshot_capture: Option<SnapshotCaptureState>,
 }
 
 #[derive(Clone, Copy)]
@@ -181,12 +277,33 @@ impl SnapshotScenario {
             }
         }
     }
+
+    fn label(&self) -> &'static str {
+        match self {
+            SnapshotScenario::FileDefault => "file-default",
+            SnapshotScenario::FileMatch => "file-match",
+            SnapshotScenario::FileMismatch => "file-mismatch",
+            SnapshotScenario::FileAlgorithmDropdown => "file-algorithm-dropdown",
+            SnapshotScenario::FileHighContrast => "file-high-contrast",
+            SnapshotScenario::ManifestSummary => "manifest-summary",
+            SnapshotScenario::ManifestDetails => "manifest-details",
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum SnapshotPreset {
     Default,
     Readme,
+}
+
+impl SnapshotPreset {
+    fn label(&self) -> &'static str {
+        match self {
+            SnapshotPreset::Default => "default",
+            SnapshotPreset::Readme => "readme",
+        }
+    }
 }
 
 struct SnapshotRequest {
@@ -209,6 +326,7 @@ impl SnapshotRequest {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 enum SnapshotStage {
     Configure,
     AwaitPaint,
@@ -239,6 +357,8 @@ impl HashCheckerApp {
             manifest: ManifestView::new(),
             snapshot_jobs: VecDeque::new(),
             force_open_algorithm_popup: false,
+            snapshot_config: None,
+            snapshot_capture: None,
         }
     }
 
@@ -561,9 +681,14 @@ impl HashCheckerApp {
 
     fn process_snapshot(&mut self, ctx: &egui::Context, _frame: &mut Frame) {
         let mut pop_front = false;
-        if let Some(request) = self.snapshot_jobs.front() {
-            if matches!(request.stage, SnapshotStage::Configure) {
-                self.prepare_snapshot_scenario(request.scenario, ctx);
+        if let Some((stage, scenario)) = self
+            .snapshot_jobs
+            .front()
+            .map(|req| (req.stage, req.scenario))
+        {
+            if matches!(stage, SnapshotStage::Configure) {
+                self.prepare_snapshot_scenario(scenario, ctx);
+                self.record_snapshot_state(scenario);
             }
         }
         if let Some(request) = self.snapshot_jobs.front_mut() {
@@ -615,6 +740,7 @@ impl HashCheckerApp {
             self.snapshot_jobs.pop_front();
             if self.snapshot_jobs.is_empty() {
                 ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                self.finalize_snapshot_capture();
             } else {
                 ctx.request_repaint();
             }
@@ -669,7 +795,7 @@ impl HashCheckerApp {
     }
 
     fn configure_file_match(&mut self) {
-        let sample_path = fixture_path("test-fixtures/sample.txt");
+        let sample_path = ensure_demo_sample_file();
         let digest = compute_hash(&sample_path, "sha256")
             .unwrap_or_else(|_| "3da541559918a808c2402bba5012f6c60b27661c".to_owned());
         self.file_path = sample_path.display().to_string();
@@ -681,7 +807,7 @@ impl HashCheckerApp {
     }
 
     fn configure_file_mismatch(&mut self) {
-        let sample_path = fixture_path("test-fixtures/sample.txt");
+        let sample_path = ensure_demo_sample_file();
         let digest = compute_hash(&sample_path, "sha256")
             .unwrap_or_else(|_| "3da541559918a808c2402bba5012f6c60b27661c".to_owned());
         self.file_path = sample_path.display().to_string();
@@ -693,7 +819,7 @@ impl HashCheckerApp {
     }
 
     fn configure_file_algorithm_dropdown(&mut self) {
-        let sample_path = fixture_path("test-fixtures/sample.txt");
+        let sample_path = ensure_demo_sample_file();
         let digest = compute_hash(&sample_path, "sha512").unwrap_or_else(|_| {
             "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce".to_owned()
         });
@@ -717,7 +843,7 @@ impl HashCheckerApp {
     }
 
     fn configure_manifest_snapshot(&mut self, embed_details: bool) {
-        let root = fixture_path("test-fixtures/gui-deep");
+        let root = ensure_demo_manifest_dir();
         let ready = match generate_manifest(&root, "sha256", true) {
             Ok(manifest) => {
                 if embed_details {
@@ -954,43 +1080,40 @@ impl HashCheckerApp {
     }
 
     fn enable_snapshot(&mut self, options: SnapshotOptions) {
+        let (png_parent, stem, json_path) = resolve_snapshot_targets(&options.path);
+        if let Err(err) = fs::create_dir_all(&png_parent) {
+            eprintln!(
+                "Failed to prepare snapshot directory {}: {err}",
+                png_parent.display()
+            );
+        }
+
+        self.snapshot_capture = Some(SnapshotCaptureState {
+            json_path,
+            states: Vec::new(),
+        });
+        self.snapshot_config = Some(options.clone());
+
         let mut jobs = VecDeque::new();
         match options.preset {
             SnapshotPreset::Default => {
-                let parent = options
-                    .path
-                    .parent()
-                    .map(Path::to_path_buf)
-                    .unwrap_or_else(|| PathBuf::from("."));
-                let stem = options
-                    .path
-                    .file_stem()
-                    .unwrap_or_else(|| OsStr::new("snapshot"))
-                    .to_string_lossy()
-                    .to_string();
                 let width = options.width;
                 let height = options.height;
                 jobs.push_back(SnapshotRequest::new(
-                    parent.join(format!("{stem}-file.png")),
+                    png_parent.join(format!("{stem}-file.png")),
                     width,
                     height,
                     SnapshotScenario::FileDefault,
                 ));
                 jobs.push_back(SnapshotRequest::new(
-                    parent.join(format!("{stem}-manifest.png")),
+                    png_parent.join(format!("{stem}-manifest.png")),
                     width,
                     height,
                     SnapshotScenario::ManifestSummary,
                 ));
             }
             SnapshotPreset::Readme => {
-                let mut output_dir = options.path.clone();
-                if output_dir.extension().is_some() {
-                    output_dir = output_dir
-                        .parent()
-                        .map(Path::to_path_buf)
-                        .unwrap_or_else(|| PathBuf::from("."));
-                }
+                let output_dir = png_parent.clone();
                 if let Err(err) = fs::create_dir_all(&output_dir) {
                     eprintln!("Failed to create snapshot directory: {err}");
                 }
@@ -1025,12 +1148,55 @@ impl HashCheckerApp {
         }
         self.snapshot_jobs = jobs;
     }
+
+    fn record_snapshot_state(&mut self, scenario: SnapshotScenario) {
+        let config = match self.snapshot_config.clone() {
+            Some(cfg) => cfg,
+            None => return,
+        };
+        let state = SnapshotState::from_app(self, &config, Some(scenario.label().to_string()));
+        if let Some(capture) = self.snapshot_capture.as_mut() {
+            capture.states.push(state);
+        }
+    }
+
+    fn finalize_snapshot_capture(&mut self) {
+        if let Some(capture) = self.snapshot_capture.take() {
+            if capture.states.is_empty() {
+                self.snapshot_config = None;
+                return;
+            }
+            let document = SnapshotDocument {
+                version: "1.0.0".to_owned(),
+                platform: env::consts::OS.to_owned(),
+                captures: capture.states,
+            };
+            if let Err(err) = write_snapshot_json(&capture.json_path, &document) {
+                eprintln!(
+                    "Failed to write snapshot state JSON {}: {err}",
+                    capture.json_path.display()
+                );
+            } else {
+                println!("Snapshot state written to {}", capture.json_path.display());
+            }
+        }
+        self.snapshot_config = None;
+    }
 }
 
 #[derive(Default)]
 struct AlgorithmChoice {
     algorithms: Vec<String>,
     selected_index: usize,
+}
+
+impl AlgorithmChoice {
+    fn current_label(&self) -> &str {
+        self.algorithms
+            .get(self.selected_index)
+            .map(|s| s.as_str())
+            .unwrap_or("auto")
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -1046,6 +1212,17 @@ enum StatusKind {
     Success,
     Warning,
     Error,
+}
+
+impl StatusKind {
+    fn as_str(&self) -> &'static str {
+        match self {
+            StatusKind::Info => "info",
+            StatusKind::Success => "success",
+            StatusKind::Warning => "warning",
+            StatusKind::Error => "error",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -2250,6 +2427,195 @@ impl SnapshotOptions {
     }
 }
 
+fn resolve_snapshot_targets(path: &Path) -> (PathBuf, String, PathBuf) {
+    if path.extension().is_some() {
+        let parent = path
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| PathBuf::from("."));
+        let stem = path
+            .file_stem()
+            .unwrap_or_else(|| OsStr::new("snapshot"))
+            .to_string_lossy()
+            .to_string();
+        (parent, stem, path.to_path_buf())
+    } else {
+        let parent = path.to_path_buf();
+        let stem = "snapshot".to_string();
+        let json_path = parent.join(format!("{stem}.json"));
+        (parent, stem, json_path)
+    }
+}
+
+#[derive(Serialize)]
+struct SnapshotWindowState {
+    width: u32,
+    height: u32,
+    theme: String,
+}
+
+#[derive(Serialize)]
+struct SnapshotNavigationState {
+    active_tab: String,
+    breadcrumb: Vec<String>,
+}
+
+#[derive(Serialize)]
+struct SnapshotWidgetState {
+    id: String,
+    kind: String,
+    value: Option<String>,
+    selected: bool,
+    enabled: bool,
+    visible: bool,
+}
+
+#[derive(Serialize)]
+struct SnapshotTelemetryState {
+    scan_progress: f32,
+    hash_mismatches: u32,
+    elapsed_ms: u64,
+}
+
+#[derive(Serialize)]
+struct SnapshotMetadata {
+    app_version: String,
+    git_commit: Option<String>,
+    cli_args: Vec<String>,
+}
+
+#[derive(Serialize)]
+struct SnapshotState {
+    version: String,
+    captured_at: String,
+    platform: String,
+    scenario: Option<String>,
+    window: SnapshotWindowState,
+    navigation: SnapshotNavigationState,
+    widgets: Vec<SnapshotWidgetState>,
+    telemetry: SnapshotTelemetryState,
+    metadata: SnapshotMetadata,
+}
+
+impl SnapshotState {
+    fn from_app(
+        app: &HashCheckerApp,
+        snapshot_opts: &SnapshotOptions,
+        scenario: Option<String>,
+    ) -> Self {
+        let captured_at = OffsetDateTime::now_utc()
+            .format(&Rfc3339)
+            .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_owned());
+        let theme_name = app.theme.selected_theme().name().to_string();
+        let window = SnapshotWindowState {
+            width: snapshot_opts.width,
+            height: snapshot_opts.height,
+            theme: theme_name,
+        };
+        let breadcrumb = app
+            .manifest
+            .selected_dir
+            .as_ref()
+            .map(|dir| vec![dir.display().to_string()])
+            .unwrap_or_default();
+        let navigation = SnapshotNavigationState {
+            active_tab: app.active_tab.label().to_string(),
+            breadcrumb,
+        };
+
+        let mut widgets = Vec::new();
+        widgets.push(SnapshotWidgetState {
+            id: "file_path_input".to_owned(),
+            kind: "text".to_owned(),
+            value: (!app.file_path.is_empty()).then_some(app.file_path.clone()),
+            selected: matches!(app.active_tab, ActiveTab::File),
+            enabled: true,
+            visible: true,
+        });
+        widgets.push(SnapshotWidgetState {
+            id: "algorithm_selector".to_owned(),
+            kind: "dropdown".to_owned(),
+            value: Some(app.algorithm.current_label().to_owned()),
+            selected: false,
+            enabled: true,
+            visible: true,
+        });
+        if let Some(hash) = &app.computed_hash {
+            widgets.push(SnapshotWidgetState {
+                id: "computed_hash".to_owned(),
+                kind: "label".to_owned(),
+                value: Some(hash.clone()),
+                selected: false,
+                enabled: true,
+                visible: true,
+            });
+        }
+        if let Some(status) = &app.status {
+            widgets.push(SnapshotWidgetState {
+                id: "status_message".to_owned(),
+                kind: format!("status::{}", status.kind.as_str()),
+                value: Some(status.text.clone()),
+                selected: false,
+                enabled: true,
+                visible: true,
+            });
+        }
+
+        let (scan_progress, hash_mismatches, elapsed_ms) = match &app.manifest.state {
+            ManifestState::Ready(data) => {
+                let total = data.summary.total as f32;
+                let progress = if total > 0.0 {
+                    data.summary.recorded as f32 / total
+                } else {
+                    0.0
+                };
+                (
+                    progress,
+                    data.summary.mismatched as u32,
+                    data.duration.as_millis() as u64,
+                )
+            }
+            _ => (0.0, 0, 0),
+        };
+
+        let telemetry = SnapshotTelemetryState {
+            scan_progress,
+            hash_mismatches,
+            elapsed_ms,
+        };
+
+        let metadata = SnapshotMetadata {
+            app_version: env!("CARGO_PKG_VERSION").to_string(),
+            git_commit: option_env!("GIT_COMMIT_HASH").map(|s| s.to_string()),
+            cli_args: std::env::args().skip(1).collect(),
+        };
+
+        SnapshotState {
+            version: "1.0.0".to_string(),
+            captured_at,
+            platform: env::consts::OS.to_string(),
+            scenario,
+            window,
+            navigation,
+            widgets,
+            telemetry,
+            metadata,
+        }
+    }
+}
+
+#[derive(Serialize)]
+struct SnapshotDocument {
+    version: String,
+    platform: String,
+    captures: Vec<SnapshotState>,
+}
+
+struct SnapshotCaptureState {
+    json_path: PathBuf,
+    states: Vec<SnapshotState>,
+}
+
 #[derive(Clone)]
 struct ManifestCliOptions {
     dir: PathBuf,
@@ -2258,23 +2624,56 @@ struct ManifestCliOptions {
     report_path: Option<PathBuf>,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum CompareMode {
+    Exact,
+    #[default]
+    Structural,
+    Fuzzy,
+}
+
+impl CompareMode {
+    fn parse(value: &str) -> Option<Self> {
+        match value.to_ascii_lowercase().as_str() {
+            "exact" => Some(CompareMode::Exact),
+            "structural" => Some(CompareMode::Structural),
+            "fuzzy" => Some(CompareMode::Fuzzy),
+            _ => None,
+        }
+    }
+
+    fn variants_str() -> &'static str {
+        "exact, structural, fuzzy"
+    }
+}
+
 struct CliConfig {
+    headless: bool,
     smoke_test: bool,
     snapshot: Option<SnapshotOptions>,
     manifest: Option<ManifestCliOptions>,
+    capture_golden: Option<String>,
+    compare_golden: Option<String>,
+    compare_mode: CompareMode,
 }
 
 impl CliConfig {
     fn parse() -> Result<Self, String> {
         let mut args = env::args().skip(1);
         let mut config = CliConfig {
+            headless: false,
             smoke_test: false,
             snapshot: None,
             manifest: None,
+            capture_golden: None,
+            compare_golden: None,
+            compare_mode: CompareMode::default(),
         };
+        let mut compare_mode_set = false;
 
         while let Some(arg) = args.next() {
             match arg.as_str() {
+                "--headless" => config.headless = true,
                 "--smoke-test" => config.smoke_test = true,
                 "--snapshot" => {
                     let path = args
@@ -2368,6 +2767,42 @@ impl CliConfig {
                         .ok_or_else(|| "--manifest-report must follow --manifest-dir".to_owned())?;
                     options.report_path = Some(PathBuf::from(value));
                 }
+                "--capture-golden" => {
+                    let scenario = args
+                        .next()
+                        .ok_or_else(|| "Expected scenario after --capture-golden".to_owned())?;
+                    if config.capture_golden.is_some() {
+                        return Err("--capture-golden specified multiple times".to_owned());
+                    }
+                    config.capture_golden = Some(scenario);
+                    config.headless = true;
+                }
+                "--compare-golden" => {
+                    let scenario = args
+                        .next()
+                        .ok_or_else(|| "Expected scenario after --compare-golden".to_owned())?;
+                    if config.compare_golden.is_some() {
+                        return Err("--compare-golden specified multiple times".to_owned());
+                    }
+                    config.compare_golden = Some(scenario);
+                    config.headless = true;
+                }
+                "--compare-mode" => {
+                    let value = args
+                        .next()
+                        .ok_or_else(|| "Expected mode after --compare-mode".to_owned())?;
+                    if compare_mode_set {
+                        return Err("--compare-mode specified multiple times".to_owned());
+                    }
+                    let mode = CompareMode::parse(&value).ok_or_else(|| {
+                        format!(
+                            "Unsupported compare mode: {value}. Valid modes: {}",
+                            CompareMode::variants_str()
+                        )
+                    })?;
+                    config.compare_mode = mode;
+                    compare_mode_set = true;
+                }
                 "--help" | "-h" => {
                     print_usage();
                     std::process::exit(0);
@@ -2376,6 +2811,19 @@ impl CliConfig {
                     return Err(format!("Unrecognized argument: {other}"));
                 }
             }
+        }
+
+        if config.snapshot.is_some() && config.capture_golden.is_some() {
+            return Err("Cannot use --snapshot and --capture-golden together".to_owned());
+        }
+        if config.compare_golden.is_some() && config.capture_golden.is_some() {
+            return Err("Cannot use --capture-golden and --compare-golden together".to_owned());
+        }
+        if config.compare_golden.is_some() && config.snapshot.is_some() {
+            return Err("Cannot use --compare-golden and --snapshot together".to_owned());
+        }
+        if compare_mode_set && config.compare_golden.is_none() {
+            return Err("--compare-mode requires --compare-golden".to_owned());
         }
 
         Ok(config)
@@ -2387,6 +2835,7 @@ fn print_usage() {
         "Usage: hash-checker-gui [OPTIONS]
 
 Options:
+  --headless                      Run in non-interactive mode (no GUI window).
   --smoke-test                     Run CLI smoke test and exit.
   --manifest-dir <PATH>            Preload a directory scan before showing the GUI.
   --manifest-recursive             Include subdirectories when scanning (default).
@@ -2396,6 +2845,9 @@ Options:
   --snapshot <PATH>                Capture a PNG screenshot to the provided path and exit when done.
   --snapshot-width <PX>            Override snapshot width in logical pixels (default: {SNAPSHOT_DEFAULT_WIDTH}).
   --snapshot-height <PX>           Override snapshot height in logical pixels (default: {SNAPSHOT_DEFAULT_HEIGHT}).
+  --capture-golden <SCENARIO>      Capture golden master JSON for the specified scenario (implies --headless).
+  --compare-golden <SCENARIO>      Compare current state with stored golden master (implies --headless).
+  --compare-mode <MODE>            Comparison mode: exact, structural, or fuzzy (default: structural).
   --help, -h                       Show this help message."
     );
 }
@@ -2437,6 +2889,10 @@ fn main() -> eframe::Result<()> {
         if cli.snapshot.is_none() && cli.manifest.is_none() {
             return Ok(());
         }
+    }
+
+    if cli.headless {
+        return run_headless(&cli);
     }
 
     let manifest_cli = cli.manifest.clone();
@@ -2493,6 +2949,222 @@ fn main() -> eframe::Result<()> {
             )
         }),
     )
+}
+
+fn run_headless(cli: &CliConfig) -> eframe::Result<()> {
+    if let Some(scenario) = &cli.compare_golden {
+        return run_headless_compare_golden(scenario, cli.compare_mode);
+    }
+
+    if let Some(scenario) = &cli.capture_golden {
+        return run_headless_capture_golden(scenario);
+    }
+
+    if let Some(snapshot_opts) = &cli.snapshot {
+        return run_headless_snapshot(cli, snapshot_opts);
+    }
+
+    if cli.manifest.is_some() {
+        eprintln!(
+            "Headless manifest operations require snapshot output support (Phase 1 pending). \
+             Please omit --manifest-* flags or combine with --snapshot."
+        );
+        std::process::exit(2);
+    }
+
+    println!("Headless mode active. No interactive window launched.");
+    Ok(())
+}
+
+fn run_headless_snapshot(cli: &CliConfig, snapshot_opts: &SnapshotOptions) -> eframe::Result<()> {
+    let mut app = HashCheckerApp::new();
+
+    if let Some(manifest_cli) = cli.manifest.clone() {
+        let algorithm = manifest_cli.algorithm.as_deref().unwrap_or("sha256");
+        if let Err(err) =
+            app.preload_manifest_scan(&manifest_cli.dir, manifest_cli.recursive, algorithm)
+        {
+            eprintln!("Failed to preload manifest: {err}");
+            std::process::exit(3);
+        }
+    } else {
+        app.configure_file_match();
+    }
+
+    let scenario = Some(snapshot_opts.preset.label().to_string());
+    let state = SnapshotState::from_app(&app, snapshot_opts, scenario);
+    let (_, _, json_path) = resolve_snapshot_targets(&snapshot_opts.path);
+    let document = SnapshotDocument {
+        version: "1.0.0".to_owned(),
+        platform: env::consts::OS.to_owned(),
+        captures: vec![state],
+    };
+
+    if let Err(err) = write_snapshot_json(&json_path, &document) {
+        eprintln!("Failed to write snapshot JSON: {err}");
+        std::process::exit(3);
+    }
+
+    println!("Snapshot state written to {}", json_path.display());
+    Ok(())
+}
+
+fn run_headless_capture_golden(scenario: &str) -> eframe::Result<()> {
+    let state = match build_golden_state(scenario) {
+        Ok(state) => state,
+        Err(err) => {
+            eprintln!("{err}");
+            std::process::exit(2);
+        }
+    };
+    let base_dir = std::env::var("HASH_CHECKER_GOLDEN_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("test-fixtures/golden"));
+    let platform = env::consts::OS;
+    let target_dir = base_dir.join(platform);
+    if let Err(err) = fs::create_dir_all(&target_dir) {
+        eprintln!(
+            "Failed to prepare golden directory {}: {err}",
+            target_dir.display()
+        );
+        std::process::exit(3);
+    }
+    let file_path = target_dir.join(format!("{scenario}.json"));
+    let document = SnapshotDocument {
+        version: "1.0.0".to_owned(),
+        platform: platform.to_owned(),
+        captures: vec![state],
+    };
+    if let Err(err) = write_snapshot_json(&file_path, &document) {
+        eprintln!(
+            "Failed to write golden master {}: {err}",
+            file_path.display()
+        );
+        std::process::exit(3);
+    }
+    println!("Golden master saved to {}", file_path.display());
+    Ok(())
+}
+
+fn run_headless_compare_golden(scenario: &str, mode: CompareMode) -> eframe::Result<()> {
+    let actual_state = match build_golden_state(scenario) {
+        Ok(state) => state,
+        Err(err) => {
+            eprintln!("{err}");
+            std::process::exit(2);
+        }
+    };
+    let base_dir = std::env::var("HASH_CHECKER_GOLDEN_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("test-fixtures/golden"));
+    let platform = env::consts::OS;
+    let golden_path = base_dir.join(platform).join(format!("{scenario}.json"));
+    if !golden_path.exists() {
+        eprintln!("Golden master not found: {}", golden_path.display());
+        std::process::exit(2);
+    }
+    let golden_file = match File::open(&golden_path) {
+        Ok(file) => file,
+        Err(err) => {
+            eprintln!(
+                "Failed to open golden master {}: {err}",
+                golden_path.display()
+            );
+            std::process::exit(3);
+        }
+    };
+    let golden_value: Value = match serde_json::from_reader(golden_file) {
+        Ok(value) => value,
+        Err(err) => {
+            eprintln!(
+                "Failed to parse golden master {}: {err}",
+                golden_path.display()
+            );
+            std::process::exit(4);
+        }
+    };
+    let actual_document = SnapshotDocument {
+        version: "1.0.0".to_owned(),
+        platform: platform.to_owned(),
+        captures: vec![actual_state],
+    };
+    let actual_value = match to_value(&actual_document) {
+        Ok(value) => value,
+        Err(err) => {
+            eprintln!("Failed to serialize current snapshot: {err}");
+            std::process::exit(3);
+        }
+    };
+    let comparison = match mode {
+        CompareMode::Exact => comparator::compare_exact(&golden_value, &actual_value),
+        CompareMode::Structural => comparator::compare_structural(&golden_value, &actual_value),
+        CompareMode::Fuzzy => comparator::compare_fuzzy(&golden_value, &actual_value),
+    };
+    match comparison {
+        comparator::ComparisonResult::Match => {
+            println!("Golden master matches ({}).", golden_path.display());
+            Ok(())
+        }
+        comparator::ComparisonResult::Diff(diffs) => {
+            println!("Golden mismatch detected ({} differences).", diffs.len());
+            for entry in diffs.iter().take(10) {
+                println!(
+                    "- {}\n    expected: {}\n    actual:   {}",
+                    entry.path, entry.expected, entry.actual
+                );
+            }
+            if diffs.len() > 10 {
+                println!("  … {} more differences", diffs.len() - 10);
+            }
+            match serde_json::to_string_pretty(&diffs) {
+                Ok(diff_json) => println!("Diff JSON:\n{diff_json}"),
+                Err(err) => eprintln!("Failed to serialize diff JSON: {err}"),
+            }
+            std::process::exit(1);
+        }
+    }
+}
+
+fn write_snapshot_json<T: Serialize>(path: &Path, state: &T) -> std::io::Result<()> {
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent)?;
+        }
+    }
+    let mut file = File::create(path)?;
+    to_writer_pretty(&mut file, state)?;
+    file.write_all(b"\n")?;
+    Ok(())
+}
+
+fn build_golden_state(scenario: &str) -> Result<SnapshotState, String> {
+    let mut app = HashCheckerApp::new();
+    let mut options = SnapshotOptions::new(PathBuf::from("golden.json"));
+    options.width = SNAPSHOT_DEFAULT_WIDTH;
+    options.height = SNAPSHOT_DEFAULT_HEIGHT;
+
+    match scenario {
+        "minimal-scan" => {
+            app.configure_file_match();
+        }
+        "deep-tree" => {
+            app.configure_manifest_snapshot(false);
+        }
+        "verify-mismatches" => {
+            app.configure_manifest_snapshot(true);
+        }
+        other => {
+            return Err(format!(
+                "Unknown golden scenario '{other}'. Expected minimal-scan | deep-tree | verify-mismatches"
+            ));
+        }
+    }
+
+    Ok(SnapshotState::from_app(
+        &app,
+        &options,
+        Some(scenario.to_owned()),
+    ))
 }
 
 fn load_app_icon() -> Option<IconData> {

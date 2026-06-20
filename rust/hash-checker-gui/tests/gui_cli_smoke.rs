@@ -51,3 +51,35 @@ fn version_flag_currently_absent() {
         "stderr should explain that --version is not yet supported"
     );
 }
+
+#[test]
+fn compare_mode_requires_compare_golden() {
+    let assert = gui_binary()
+        .args(["--headless", "--compare-mode", "fuzzy"])
+        .assert()
+        .failure();
+    let stderr = String::from_utf8_lossy(&assert.get_output().stderr);
+    assert!(
+        stderr.contains("--compare-mode requires --compare-golden"),
+        "stderr should mention missing --compare-golden dependency"
+    );
+}
+
+#[test]
+fn compare_mode_rejects_invalid_value() {
+    let assert = gui_binary()
+        .args([
+            "--headless",
+            "--compare-mode",
+            "approximate",
+            "--compare-golden",
+            "minimal-scan",
+        ])
+        .assert()
+        .failure();
+    let stderr = String::from_utf8_lossy(&assert.get_output().stderr);
+    assert!(
+        stderr.contains("Unsupported compare mode"),
+        "stderr should explain valid compare modes"
+    );
+}

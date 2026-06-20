@@ -1,0 +1,69 @@
+{
+  "version": "1.0.0",
+  "platform": "windows",
+  "captures": [
+    {
+      "version": "1.0.0",
+      "captured_at": "2025-10-28T16:36:04.339058Z",
+      "platform": "windows",
+      "scenario": "minimal-scan",
+      "window": {
+        "width": 1280,
+        "height": 800,
+        "theme": "Slate"
+      },
+      "navigation": {
+        "active_tab": "File Hash",
+        "breadcrumb": []
+      },
+      "widgets": [
+        {
+          "id": "file_path_input",
+          "kind": "text",
+          "value": "C:\\Temp\\hash-checker-gui\\sample.txt",
+          "selected": true,
+          "enabled": true,
+          "visible": true
+        },
+        {
+          "id": "algorithm_selector",
+          "kind": "dropdown",
+          "value": "sha256",
+          "selected": false,
+          "enabled": true,
+          "visible": true
+        },
+        {
+          "id": "computed_hash",
+          "kind": "label",
+          "value": "4c793f40c6ff08fa8c0ac8c020aa30ac4c29e39a54476017527580311085a459",
+          "selected": false,
+          "enabled": true,
+          "visible": true
+        },
+        {
+          "id": "status_message",
+          "kind": "status::success",
+          "value": "Hashes match.",
+          "selected": false,
+          "enabled": true,
+          "visible": true
+        }
+      ],
+      "telemetry": {
+        "scan_progress": 0.0,
+        "hash_mismatches": 0,
+        "elapsed_ms": 0
+      },
+      "metadata": {
+        "app_version": "0.1.5",
+        "git_commit": null,
+        "cli_args": [
+          "--headless",
+          "--capture-golden",
+          "minimal-scan"
+        ]
+      }
+    }
+  ]
+}

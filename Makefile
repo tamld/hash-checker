@@ -117,8 +117,8 @@ dist-linux: rust-build rust-gui-build ## Build and package Linux artifacts via D
 rust-build-temp: ## Build Rust binaries into /tmp/hash-checker-build (clean)
 	TMP=/tmp/hash-checker-build && \
 		rm -rf $$TMP && mkdir -p $$TMP && \
-		docker run --rm -v "$(shell pwd):/workspace" -w /workspace/rust/hash-checker rust:1.83 bash -lc "export PATH=\"/usr/local/cargo/bin:$$PATH\"; cargo build --release" && \
-		docker run --rm -v "$(shell pwd):/workspace" -w /workspace/rust/hash-checker-gui rust:1.83 bash -lc "apt-get update >/dev/null && apt-get install -y pkg-config libgtk-3-dev >/dev/null && export PATH=\"/usr/local/cargo/bin:$$PATH\"; cargo build --release" && \
+	docker run --rm -v "$(shell pwd):/workspace" -w /workspace/rust/hash-checker rust:1.88 bash -lc "export PATH=\"/usr/local/cargo/bin:$$PATH\"; cargo build --release" && \
+	docker run --rm -v "$(shell pwd):/workspace" -w /workspace/rust/hash-checker-gui rust:1.88 bash -lc "apt-get update >/dev/null && apt-get install -y pkg-config libgtk-3-dev >/dev/null && export PATH=\"/usr/local/cargo/bin:$$PATH\"; cargo build --release" && \
 		cp rust/hash-checker/target/release/hash-checker $$TMP/ && \
 		cp rust/hash-checker-gui/target/release/hash-checker-gui $$TMP/ && \
 	sha256sum $$TMP/hash-checker $$TMP/hash-checker-gui > $$TMP/SHA256SUMS
