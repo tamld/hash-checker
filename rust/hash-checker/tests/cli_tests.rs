@@ -114,4 +114,3 @@ fn cli_rejects_non_hex_digest_payload() {
     cmd.assert().failure().code(1);
     drop(temp_dir);
 }
-

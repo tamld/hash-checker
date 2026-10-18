@@ -145,9 +145,7 @@ fn verify_hash_accepts_matching_algorithm_and_prefix() {
     let file = write_sample_file();
     let digest = compute_hash(file.path(), "sha256").expect("hash");
     let prefixed = format!("sha256:{digest}");
-    let (matches, computed) =
-        verify_hash(file.path(), &prefixed, Some("sha256")).expect("verify");
+    let (matches, computed) = verify_hash(file.path(), &prefixed, Some("sha256")).expect("verify");
     assert!(matches);
     assert_eq!(computed, digest);
 }
-
