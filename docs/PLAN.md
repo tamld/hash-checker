@@ -102,10 +102,10 @@
 Progress is tracked via `docs/TASKS.md`, with backlog items in `docs/BACKLOG.md`.
 
 ## Phase 6 – Governance & Automation (new)
-- [ ] Finalise SignPath rollout (secrets, verification docs).
+- [x] Finalise SignPath rollout (secrets, verification docs).
 - [ ] Publish credential/runbook documentation (rotations, emergency).
 - [ ] Maintenance cadence: monthly deps-refresh, quarterly Vagrant smoke.
-- [ ] Formalise dependency refresh policy (cargo outdated/audit reporting in release notes).
+- [x] Formalise dependency refresh policy (cargo outdated/audit reporting in release notes).
 - [ ] Enforce branch protection for release workflows.
 - [ ] Define contributor onboarding (SECURITY.md update, templates).
 ## Release readiness checklist

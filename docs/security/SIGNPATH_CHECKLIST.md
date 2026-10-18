@@ -1,6 +1,8 @@
 # SignPath Onboarding Checklist (Placeholder)
 
-_Status: awaiting SignPath OSS approval._
+_Status: Blocked (2025-10-23) — SignPath OSS onboarding requires broader public adoption/recognition before certificate issuance._
+
+> **Interim Policy:** Continue shipping `SHA256SUMS` + GPG verification instructions while unsigned. End users should verify releases via checksums and GPG signatures as documented in `docs/security/VERIFICATION_GUIDE.md`.
 
 Use this template once SignPath provisions the OSS subscription and test certificate. Fill each section during onboarding.
 

@@ -2,7 +2,8 @@
 
 This document captures the end-to-end plan for automating Windows code signing with SignPath Foundation while keeping macOS unsigned (Gatekeeper bypass instructions remain in the README).
 
-> **Status (2025-10-13):** SignPath onboarding is in progress. Releases prior to the integration ship **unsigned** Windows artefacts; users must verify them via checksums/GPG as documented in `docs/security/VERIFICATION_GUIDE.md`.
+> **Status (2025-10-23):** SignPath OSS onboarding blocker encountered — SignPath Foundation requires broader public adoption/recognition before certificate issuance.
+> **Interim Policy:** Continue shipping SHA256SUMS + GPG verification instructions while unsigned (users verify releases via checksums and GPG signatures as documented in `docs/security/VERIFICATION_GUIDE.md`).
 
 ## 1. Prerequisites
 - Hash Checker repository must be **public**.
