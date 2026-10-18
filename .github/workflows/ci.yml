@@ -46,6 +46,11 @@ jobs:
     if: ${{ (github.event_name != 'workflow_dispatch' || github.event.inputs.run_linux == 'true') && !(github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'skip-linux-ci')) }}
     steps:
       - uses: actions/checkout@v4
+      - name: Governance gates (g8s offer)
+        run: |
+          bash tools/ci_link_integrity.sh
+          bash tools/ci_structure_sync.sh
+          bash tools/ci_spec_code_sync.sh
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:

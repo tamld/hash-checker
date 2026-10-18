@@ -55,6 +55,8 @@ pub enum HashError {
         expected: &'static str,
         found: String,
     },
+    #[error("conflicting algorithms: flag '{flag}' does not match digest prefix '{prefix}'")]
+    ConflictingAlgorithms { flag: String, prefix: String },
     #[error(transparent)]
     Io(#[from] std::io::Error),
 }
@@ -214,6 +216,15 @@ pub fn verify_hash(
         ),
         _ => None,
     };
+
+    if let (Some(provided), Some(prefixed)) = (provided_algorithm, prefix_algorithm) {
+        if provided != prefixed {
+            return Err(HashError::ConflictingAlgorithms {
+                flag: provided.to_string(),
+                prefix: prefixed.to_string(),
+            });
+        }
+    }
 
     let candidates: Vec<&'static str> = if let Some(name) = provided_algorithm {
         vec![name]

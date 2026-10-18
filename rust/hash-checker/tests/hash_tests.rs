@@ -130,3 +130,24 @@ fn verify_hash_accepts_canonicalised_paths() {
     let (matches, _) = verify_hash(&tricky_path, &digest, None).expect("verify");
     assert!(matches);
 }
+
+#[test]
+fn verify_hash_rejects_conflicting_algorithm_and_prefix() {
+    let file = write_sample_file();
+    let digest = compute_hash(file.path(), "md5").expect("hash");
+    let prefixed = format!("md5:{digest}");
+    let err = verify_hash(file.path(), &prefixed, Some("sha256")).expect_err("expected conflict");
+    assert!(matches!(err, HashError::ConflictingAlgorithms { .. }));
+}
+
+#[test]
+fn verify_hash_accepts_matching_algorithm_and_prefix() {
+    let file = write_sample_file();
+    let digest = compute_hash(file.path(), "sha256").expect("hash");
+    let prefixed = format!("sha256:{digest}");
+    let (matches, computed) =
+        verify_hash(file.path(), &prefixed, Some("sha256")).expect("verify");
+    assert!(matches);
+    assert_eq!(computed, digest);
+}
+

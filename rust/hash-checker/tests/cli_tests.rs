@@ -87,3 +87,31 @@ fn cli_emits_json_logs_when_requested() {
         .stderr(contains("\"Hashes match\""));
     drop(temp_dir);
 }
+
+#[test]
+fn cli_rejects_conflicting_algorithm_flag_and_prefix() {
+    let (temp_dir, path) = sample_file();
+    let digest = compute_hash(path.as_path(), "md5").expect("hash");
+    let mut cmd = Command::cargo_bin("hash-checker").expect("binary");
+    cmd.arg("-a")
+        .arg("sha256")
+        .arg(&path)
+        .arg(format!("md5:{digest}"));
+    cmd.env("RUST_BACKTRACE", "1");
+    cmd.assert()
+        .failure()
+        .code(1)
+        .stderr(contains("conflicting algorithms"));
+    drop(temp_dir);
+}
+
+#[test]
+fn cli_rejects_non_hex_digest_payload() {
+    let (temp_dir, path) = sample_file();
+    let mut cmd = Command::cargo_bin("hash-checker").expect("binary");
+    cmd.arg(&path).arg("sha256:not_a_hex_digest_zzz");
+    cmd.env("RUST_BACKTRACE", "1");
+    cmd.assert().failure().code(1);
+    drop(temp_dir);
+}
+

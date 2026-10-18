@@ -61,4 +61,69 @@ This document captures the detailed plan for publishing Hash Checker to major pa
 - For each package manager, maintain status in `.agents/project_state.yml` (planning/in-progress/shipped).
 - Keep log of submission links and moderation feedback for future updates.
 
+## 8. Prototype Manifest Commands (#54)
+
+### WinGet Manifest Generation (`wingetcreate`)
+
+Generate new manifests using `wingetcreate new` pointing to the GitHub Release installer URL:
+
+```bash
+# Generate manifest for Windows installer
+wingetcreate new https://github.com/tamld/hash-checker/releases/download/v0.1.4/hash-checker-x86_64-pc-windows-msvc-installer.exe \
+  --package-id TamLe.HashChecker \
+  --version 0.1.4 \
+  --output ./manifests/winget
+```
+
+Update existing manifests on new releases:
+
+```bash
+# Update existing package manifests
+wingetcreate update TamLe.HashChecker \
+  --urls https://github.com/tamld/hash-checker/releases/download/v0.1.5/hash-checker-x86_64-pc-windows-msvc-installer.exe \
+  --version 0.1.5 \
+  --token <GITHUB_TOKEN>
+```
+
+### Homebrew Formula Generation
+
+Generate or draft a Homebrew formula from the release tarball using `brew create`:
+
+```bash
+# Create initial formula draft from release tarball
+brew create https://github.com/tamld/hash-checker/archive/refs/tags/v0.1.4.tar.gz \
+  --rust \
+  --set-name hash-checker
+
+# Audit formula for Homebrew standards
+brew audit --new --strict --online ./hash-checker.rb
+
+# Test installation locally
+brew install --build-from-source ./hash-checker.rb
+brew test ./hash-checker.rb
+```
+
+Template `hash-checker.rb` formula structure:
+
+```ruby
+class HashChecker < Formula
+  desc "Fast, lightweight cryptographic hash checking CLI and GUI tool"
+  homepage "https://github.com/tamld/hash-checker"
+  url "https://github.com/tamld/hash-checker/archive/refs/tags/v0.1.4.tar.gz"
+  sha256 "<TARBALL_SHA256>"
+  license "MIT"
+
+  depends_on "rust" => :build
+
+  def install
+    system "cargo", "install", *std_cargo_args(path: "rust/hash-checker")
+  end
+
+  test do
+    assert_match "hash-checker", shell_output("#{bin}/hash-checker --version")
+  end
+end
+```
+
 References: see numbered sources in original plan (GitHub releases, SignPath docs, Debian packaging guides, Homebrew documentation, WinGet spec, Chocolatey quick start, etc.).
+
