@@ -483,68 +483,30 @@ struct CsvBatchRow {
 }
 
 fn write_batch_report(report: &BatchReport, args: &BatchArgs) -> HashResult<()> {
+    let mut write_target: Box<dyn Write> = match &args.output {
+        Some(path) => Box::new(File::create(path)?),
+        None => Box::new(io::stdout()),
+    };
+
     match args.output_format {
         BatchFormatArg::Json => {
-            if let Some(path) = &args.output {
-                let file = File::create(path)?;
-                serde_json::to_writer_pretty(file, report)
-                    .map_err(|err| HashError::ManifestSerialize(err.to_string()))?;
-            } else {
-                let stdout = io::stdout();
-                let mut handle = stdout.lock();
-                serde_json::to_writer_pretty(&mut handle, report)
-                    .map_err(|err| HashError::ManifestSerialize(err.to_string()))?;
-                handle.write_all(b"\n")?;
+            serde_json::to_writer_pretty(&mut write_target, report)
+                .map_err(|err| HashError::ManifestSerialize(err.to_string()))?;
+            if args.output.is_none() {
+                write_target.write_all(b"\n")?;
             }
         }
         BatchFormatArg::Csv => {
-            let write_target = match &args.output {
-                Some(path) => {
-                    let file = File::create(path)?;
-                    EitherWriter::File(file)
-                }
-                None => {
-                    let stdout = io::stdout();
-                    EitherWriter::Stdout(stdout)
-                }
-            };
-            write_batch_report_csv(report, write_target)?;
+            write_batch_report_csv(report, &mut *write_target)?;
         }
     }
     Ok(())
 }
 
-enum EitherWriter {
-    File(File),
-    Stdout(io::Stdout),
-}
-
-impl Write for EitherWriter {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        match self {
-            EitherWriter::File(file) => file.write(buf),
-            EitherWriter::Stdout(stdout) => {
-                let mut handle = stdout.lock();
-                handle.write(buf)
-            }
-        }
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        match self {
-            EitherWriter::File(file) => file.flush(),
-            EitherWriter::Stdout(stdout) => {
-                let mut handle = stdout.lock();
-                handle.flush()
-            }
-        }
-    }
-}
-
-fn write_batch_report_csv(report: &BatchReport, mut writer: EitherWriter) -> HashResult<()> {
+fn write_batch_report_csv(report: &BatchReport, writer: &mut dyn Write) -> HashResult<()> {
     let mut wtr = csv::WriterBuilder::new()
         .has_headers(true)
-        .from_writer(&mut writer);
+        .from_writer(&mut *writer);
 
     wtr.write_record(["path", "status", "expected", "actual", "algorithm", "error"])
         .map_err(|err| HashError::ManifestSerialize(err.to_string()))?;

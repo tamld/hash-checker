@@ -1,6 +1,10 @@
 use std::io::Write;
+use std::sync::atomic::AtomicBool;
 
-use hash_checker::{compute_hash, detect_algorithm, supported_algorithms, verify_hash, HashError};
+use hash_checker::{
+    compute_hash, compute_hash_with_options, detect_algorithm, supported_algorithms, verify_hash,
+    HashError,
+};
 use tempfile::NamedTempFile;
 
 const SAMPLE_TEXT: &str = "This is a test file for the hash checker.";
@@ -47,6 +51,37 @@ fn detect_algorithm_with_prefix() {
     assert_eq!(
         detect_algorithm("sha256:19fe5f3e518ba46537ddf4bcd098d66e2873fda2dccf58e66f6ab1f932c6d811"),
         Some("sha256")
+    );
+}
+
+#[test]
+fn detect_algorithm_edge_cases() {
+    assert_eq!(
+        detect_algorithm(
+            "  sHa256 : 19fe5f3e518ba46537ddf4bcd098d66e2873fda2dccf58e66f6ab1f932c6d811  "
+        ),
+        Some("sha256")
+    );
+    assert_eq!(
+        detect_algorithm("unknown:109788a70f52a60437d3c8867124ca72"),
+        Some("md5")
+    );
+    assert_eq!(
+        detect_algorithm("sha256:109788a70f52a60437d3c8867124ca72"),
+        Some("sha256")
+    );
+    assert_eq!(detect_algorithm("sha256:bar:baz"), Some("sha256"));
+    assert_eq!(detect_algorithm("foo:bar:baz"), None);
+    assert_eq!(detect_algorithm("12345"), None);
+    assert_eq!(detect_algorithm(&"a".repeat(32)), Some("md5"));
+    assert_eq!(detect_algorithm(&"a".repeat(40)), Some("sha1"));
+    assert_eq!(detect_algorithm(&"a".repeat(56)), Some("sha224"));
+    assert_eq!(detect_algorithm(&"a".repeat(64)), Some("sha256"));
+    assert_eq!(detect_algorithm(&"a".repeat(96)), Some("sha384"));
+    assert_eq!(detect_algorithm(&"a".repeat(128)), Some("sha512"));
+    assert_eq!(
+        detect_algorithm(":109788a70f52a60437d3c8867124ca72"),
+        Some("md5")
     );
 }
 
@@ -148,4 +183,35 @@ fn verify_hash_accepts_matching_algorithm_and_prefix() {
     let (matches, computed) = verify_hash(file.path(), &prefixed, Some("sha256")).expect("verify");
     assert!(matches);
     assert_eq!(computed, digest);
+}
+
+#[test]
+fn compute_hash_with_options_reports_progress_and_cancels() {
+    let file = write_sample_file();
+    let mut progress_events: Vec<(u64, u64)> = Vec::new();
+    let cancel = AtomicBool::new(false);
+
+    let digest = compute_hash_with_options(
+        file.path(),
+        "sha256",
+        Some(&cancel),
+        Some(&mut |processed, total| {
+            progress_events.push((processed, total));
+        }),
+    )
+    .expect("streaming hash with progress");
+
+    assert_eq!(
+        digest,
+        "19fe5f3e518ba46537ddf4bcd098d66e2873fda2dccf58e66f6ab1f932c6d811"
+    );
+    assert!(!progress_events.is_empty());
+    let (last_processed, total) = *progress_events.last().unwrap();
+    assert_eq!(last_processed, SAMPLE_TEXT.len() as u64);
+    assert_eq!(total, SAMPLE_TEXT.len() as u64);
+
+    let cancelled = AtomicBool::new(true);
+    let err = compute_hash_with_options(file.path(), "sha256", Some(&cancelled), None)
+        .expect_err("expected cancellation");
+    assert!(matches!(err, HashError::Cancelled));
 }

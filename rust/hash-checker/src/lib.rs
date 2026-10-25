@@ -2,6 +2,7 @@ use std::{
     fs::{self, File},
     io::{BufReader, Read},
     path::Path,
+    sync::atomic::{AtomicBool, Ordering},
 };
 
 mod batch;
@@ -9,8 +10,9 @@ mod manifest;
 
 pub use batch::{run_batch, BatchEntry, BatchInput, BatchReport, BatchStatus, BatchSummary};
 pub use manifest::{
-    apply_entry_path, detect_format_from_extension, generate_manifest, read_manifest,
-    relative_path_string, resolve_root, verify_manifest, write_manifest, Manifest, ManifestEntry,
+    apply_entry_path, detect_format_from_extension, generate_manifest,
+    generate_manifest_with_options, read_manifest, relative_path_string, resolve_root,
+    verify_manifest, verify_manifest_with_options, write_manifest, Manifest, ManifestEntry,
     ManifestFormat, VerificationReport,
 };
 
@@ -57,6 +59,8 @@ pub enum HashError {
     },
     #[error("conflicting algorithms: flag '{flag}' does not match digest prefix '{prefix}'")]
     ConflictingAlgorithms { flag: String, prefix: String },
+    #[error("operation cancelled")]
+    Cancelled,
     #[error(transparent)]
     Io(#[from] std::io::Error),
 }
@@ -90,21 +94,30 @@ fn candidate_algorithms_for_length(length: usize) -> &'static [&'static str] {
 }
 
 pub fn compute_hash(path: &Path, algorithm: &str) -> HashResult<String> {
+    compute_hash_with_options(path, algorithm, None, None)
+}
+
+pub fn compute_hash_with_options(
+    path: &Path,
+    algorithm: &str,
+    cancel: Option<&AtomicBool>,
+    on_progress: Option<&mut dyn FnMut(u64, u64)>,
+) -> HashResult<String> {
     let normalized = algorithm.to_lowercase();
     match normalized.as_str() {
-        "md5" => compute_with::<Md5>(path),
-        "sha1" => compute_with::<Sha1>(path),
-        "sha224" => compute_with::<Sha224>(path),
-        "sha256" => compute_with::<Sha256>(path),
-        "sha384" => compute_with::<Sha384>(path),
-        "sha512" => compute_with::<Sha512>(path),
-        "blake2s" => compute_with::<Blake2s256>(path),
-        "blake2b" => compute_with::<Blake2b512>(path),
+        "md5" => compute_with::<Md5>(path, cancel, on_progress),
+        "sha1" => compute_with::<Sha1>(path, cancel, on_progress),
+        "sha224" => compute_with::<Sha224>(path, cancel, on_progress),
+        "sha256" => compute_with::<Sha256>(path, cancel, on_progress),
+        "sha384" => compute_with::<Sha384>(path, cancel, on_progress),
+        "sha512" => compute_with::<Sha512>(path, cancel, on_progress),
+        "blake2s" => compute_with::<Blake2s256>(path, cancel, on_progress),
+        "blake2b" => compute_with::<Blake2b512>(path, cancel, on_progress),
         other => Err(HashError::UnsupportedAlgorithm(other.to_string())),
     }
 }
 
-fn open_canonical_file(path: &Path) -> HashResult<File> {
+fn open_canonical_file(path: &Path) -> HashResult<(File, u64)> {
     let canonical = path
         .canonicalize()
         .map_err(|source| HashError::Canonicalize {
@@ -115,24 +128,45 @@ fn open_canonical_file(path: &Path) -> HashResult<File> {
     if !metadata.is_file() {
         return Err(HashError::NotAFile(canonical.display().to_string()));
     }
-    Ok(File::open(&canonical)?)
+    Ok((File::open(&canonical)?, metadata.len()))
 }
 
-fn compute_with<D>(path: &Path) -> HashResult<String>
+fn compute_with<D>(
+    path: &Path,
+    cancel: Option<&AtomicBool>,
+    mut on_progress: Option<&mut dyn FnMut(u64, u64)>,
+) -> HashResult<String>
 where
     D: Digest,
 {
-    let file = open_canonical_file(path)?;
+    if cancel.is_some_and(|flag| flag.load(Ordering::Relaxed)) {
+        return Err(HashError::Cancelled);
+    }
+    let (file, total_bytes) = open_canonical_file(path)?;
     let mut reader = BufReader::new(file);
     let mut digest = D::new();
     let mut buffer = vec![0u8; CHUNK_SIZE];
+    let mut processed_bytes = 0u64;
+
+    if total_bytes == 0 {
+        if let Some(cb) = on_progress.as_deref_mut() {
+            cb(0, 0);
+        }
+    }
 
     loop {
+        if cancel.is_some_and(|flag| flag.load(Ordering::Relaxed)) {
+            return Err(HashError::Cancelled);
+        }
         let read = reader.read(&mut buffer[..])?;
         if read == 0 {
             break;
         }
         digest.update(&buffer[..read]);
+        processed_bytes += read as u64;
+        if let Some(cb) = on_progress.as_deref_mut() {
+            cb(processed_bytes, total_bytes);
+        }
     }
 
     Ok(hex::encode(digest.finalize()))

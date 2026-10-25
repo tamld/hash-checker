@@ -174,3 +174,135 @@ fn map_error(err: &HashError) -> (BatchStatus, String) {
         _ => (BatchStatus::Error, err.to_string()),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::File;
+    use std::io::{self, Write};
+    use tempfile::tempdir;
+
+    fn create_report(errored: usize, mismatched: usize, missing: usize) -> BatchReport {
+        BatchReport {
+            summary: BatchSummary {
+                total: 10,
+                matched: 10usize.saturating_sub(errored + mismatched + missing),
+                mismatched,
+                missing,
+                errored,
+            },
+            entries: vec![],
+        }
+    }
+
+    #[test]
+    fn test_batch_report_exit_code() {
+        assert_eq!(create_report(0, 0, 0).exit_code(), 0);
+        assert_eq!(create_report(0, 1, 0).exit_code(), 3);
+        assert_eq!(create_report(0, 0, 1).exit_code(), 3);
+        assert_eq!(create_report(0, 1, 1).exit_code(), 3);
+        assert_eq!(create_report(1, 0, 0).exit_code(), 2);
+        assert_eq!(create_report(1, 1, 0).exit_code(), 2);
+        assert_eq!(create_report(1, 0, 1).exit_code(), 2);
+    }
+
+    #[test]
+    fn test_run_batch() {
+        let dir = tempdir().unwrap();
+
+        let match_path = dir.path().join("match.txt");
+        let mut f = File::create(&match_path).unwrap();
+        f.write_all(b"hello").unwrap();
+        let expected_match = crate::compute_hash(&match_path, "sha256").unwrap();
+
+        let mismatch_path = dir.path().join("mismatch.txt");
+        let mut f = File::create(&mismatch_path).unwrap();
+        f.write_all(b"world").unwrap();
+        let expected_mismatch = "a".repeat(64);
+
+        let missing_path = dir.path().join("missing.txt");
+        let expected_missing = "b".repeat(64);
+
+        let error_path = dir.path().join("error.txt");
+        let mut f = File::create(&error_path).unwrap();
+        f.write_all(b"error").unwrap();
+        let expected_error = "invalid-hash-string".to_string();
+
+        let inputs = vec![
+            BatchInput {
+                path: match_path,
+                expected: expected_match,
+                algorithm: None,
+            },
+            BatchInput {
+                path: mismatch_path,
+                expected: expected_mismatch,
+                algorithm: Some("SHA256".to_string()),
+            },
+            BatchInput {
+                path: missing_path,
+                expected: expected_missing,
+                algorithm: None,
+            },
+            BatchInput {
+                path: error_path,
+                expected: expected_error,
+                algorithm: None,
+            },
+        ];
+
+        let report = run_batch(&inputs);
+        assert_eq!(report.summary.total, 4);
+        assert_eq!(report.summary.matched, 1);
+        assert_eq!(report.summary.mismatched, 1);
+        assert_eq!(report.summary.missing, 1);
+        assert_eq!(report.summary.errored, 1);
+        assert_eq!(report.exit_code(), 2);
+        assert_eq!(report.entries[0].status, BatchStatus::Match);
+        assert_eq!(report.entries[1].status, BatchStatus::Mismatch);
+        assert_eq!(report.entries[2].status, BatchStatus::Missing);
+        assert_eq!(report.entries[3].status, BatchStatus::Error);
+    }
+
+    #[test]
+    fn test_map_error_variants() {
+        let (status, _) = map_error(&HashError::PathNotFound("test.txt".to_string()));
+        assert_eq!(status, BatchStatus::Missing);
+
+        let (status, _) = map_error(&HashError::NotAFile("test.txt".to_string()));
+        assert_eq!(status, BatchStatus::Error);
+
+        let (status, _) = map_error(&HashError::UnsupportedAlgorithm("md4".to_string()));
+        assert_eq!(status, BatchStatus::Error);
+
+        let (status, _) = map_error(&HashError::InferenceFailed(16));
+        assert_eq!(status, BatchStatus::Error);
+
+        let (status, _) = map_error(&HashError::InvalidExpectedHash);
+        assert_eq!(status, BatchStatus::Error);
+
+        let (status, _) = map_error(&HashError::EmptyExpectedHash);
+        assert_eq!(status, BatchStatus::Error);
+
+        let (status, _) = map_error(&HashError::Canonicalize {
+            path: "test.txt".to_string(),
+            source: io::Error::new(io::ErrorKind::NotFound, "not found"),
+        });
+        assert_eq!(status, BatchStatus::Missing);
+
+        let (status, _) = map_error(&HashError::Canonicalize {
+            path: "test.txt".to_string(),
+            source: io::Error::new(io::ErrorKind::PermissionDenied, "permission denied"),
+        });
+        assert_eq!(status, BatchStatus::Error);
+
+        let (status, _) = map_error(&HashError::Io(io::Error::new(
+            io::ErrorKind::NotFound,
+            "not found",
+        )));
+        assert_eq!(status, BatchStatus::Missing);
+
+        let (status, _) = map_error(&HashError::Io(io::Error::other("other io error")));
+        assert_eq!(status, BatchStatus::Error);
+    }
+}

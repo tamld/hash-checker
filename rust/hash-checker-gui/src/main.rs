@@ -11,6 +11,7 @@ use std::{
     io::Write,
     path::{Path, PathBuf},
     sync::{
+        atomic::{AtomicBool, AtomicUsize, Ordering},
         mpsc::{self, Receiver, TryRecvError},
         Arc,
     },
@@ -25,8 +26,9 @@ use egui::{
     ViewportBuilder, ViewportId,
 };
 use hash_checker::{
-    compute_hash, detect_format_from_extension, generate_manifest, read_manifest, resolve_root,
-    supported_algorithms, verify_hash, verify_manifest, write_manifest, Manifest, ManifestEntry,
+    compute_hash, detect_algorithm, detect_format_from_extension, generate_manifest,
+    generate_manifest_with_options, read_manifest, resolve_root, supported_algorithms, verify_hash,
+    verify_manifest_with_options, write_manifest, HashError, Manifest, ManifestEntry,
     ManifestFormat, VerificationReport,
 };
 use image::RgbaImage;
@@ -409,7 +411,7 @@ impl HashCheckerApp {
 
         egui::Frame::group(&ctx.style())
             .fill(ui.visuals().extreme_bg_color.gamma_multiply(1.05))
-            .stroke(egui::Stroke::new(0.0, Color32::TRANSPARENT))
+            .stroke(egui::Stroke::new(0.0_f32, Color32::TRANSPARENT))
             .inner_margin(margin_symmetric(16.0 * scale, 12.0 * scale))
             .show(ui, |ui| {
                 ui.set_width(ui.available_width());
@@ -855,7 +857,11 @@ impl HashCheckerApp {
                 }
             }
         } else {
-            let algorithm = self.resolve_algorithm();
+            let algorithm = self
+                .selected_algorithm()
+                .or_else(|| detect_algorithm(expected))
+                .unwrap_or("sha256")
+                .to_ascii_lowercase();
             match verify_hash(&path, expected, self.selected_algorithm()) {
                 Ok((matches, digest)) => {
                     self.computed_hash = Some(digest.clone());
@@ -1049,7 +1055,6 @@ enum StatusKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[allow(dead_code)]
 enum ThemePreset {
     SoftLight,
     Slate,
@@ -1108,7 +1113,11 @@ struct ThemeChoice {
 impl Default for ThemeChoice {
     fn default() -> Self {
         Self {
-            presets: vec![ThemePreset::Slate, ThemePreset::HighContrast],
+            presets: vec![
+                ThemePreset::Slate,
+                ThemePreset::SoftLight,
+                ThemePreset::HighContrast,
+            ],
             selected_index: 0,
         }
     }
@@ -1129,6 +1138,8 @@ struct ManifestView {
     state: ManifestState,
     banner: Option<ManifestBanner>,
     job_receiver: Option<Receiver<ManifestJobResult>>,
+    cancel_token: Option<Arc<AtomicBool>>,
+    progress_counts: Option<Arc<(AtomicUsize, AtomicUsize)>>,
     telemetry_enabled: bool,
     show_details: bool,
     force_embed_details: bool,
@@ -1153,10 +1164,23 @@ impl ManifestView {
             state: ManifestState::Empty,
             banner: None,
             job_receiver: None,
+            cancel_token: None,
+            progress_counts: None,
             telemetry_enabled: true,
             show_details: false,
             force_embed_details: false,
         }
+    }
+
+    fn cancel_active_job(&mut self) {
+        if let Some(token) = &self.cancel_token {
+            token.store(true, Ordering::Relaxed);
+        }
+        self.cancel_token = None;
+        self.progress_counts = None;
+        self.job_receiver = None;
+        self.state = ManifestState::Empty;
+        self.banner = Some(ManifestBanner::info("Operation cancelled."));
     }
 
     fn poll_job(&mut self) {
@@ -1167,12 +1191,18 @@ impl ManifestView {
                         ManifestJobResult::Success(data) => {
                             self.set_ready_state(*data);
                         }
+                        ManifestJobResult::Cancelled => {
+                            self.state = ManifestState::Empty;
+                            self.banner = Some(ManifestBanner::info("Operation cancelled."));
+                        }
                         ManifestJobResult::Failure { message, details } => {
                             self.state = ManifestState::Error(ManifestError { message, details });
                             self.banner = None;
                         }
                     }
                     self.job_receiver = None;
+                    self.cancel_token = None;
+                    self.progress_counts = None;
                 }
                 Err(TryRecvError::Empty) => {}
                 Err(TryRecvError::Disconnected) => {
@@ -1181,6 +1211,8 @@ impl ManifestView {
                         details: None,
                     });
                     self.job_receiver = None;
+                    self.cancel_token = None;
+                    self.progress_counts = None;
                 }
             }
         }
@@ -1229,7 +1261,7 @@ impl ManifestView {
         egui::Frame::group(&ctx.style())
             .fill(ui.visuals().extreme_bg_color)
             .stroke(egui::Stroke::new(
-                1.0,
+                1.0_f32,
                 ui.visuals().widgets.inactive.bg_fill.gamma_multiply(0.6),
             ))
             .inner_margin(padding)
@@ -1344,7 +1376,7 @@ impl ManifestView {
     fn render_empty(&self, ui: &mut egui::Ui) {
         EguiFrame::group(ui.style())
             .fill(Color32::from_rgb(34, 38, 46))
-            .stroke(egui::Stroke::new(1.0, Color32::from_rgb(70, 78, 92)))
+            .stroke(egui::Stroke::new(1.0_f32, Color32::from_rgb(70, 78, 92)))
             .inner_margin(margin_all(LARGE_SPACING))
             .show(ui, |ui| {
                 ui.vertical_centered(|ui| {
@@ -1361,12 +1393,24 @@ impl ManifestView {
             });
     }
 
-    fn render_loading(&self, ui: &mut egui::Ui, op: ManifestOperation) {
+    fn render_loading(&mut self, ui: &mut egui::Ui, op: ManifestOperation) {
         let message = match op {
             ManifestOperation::Scan => "Scanning folder…",
             ManifestOperation::Verify => "Verifying manifest…",
         };
-        ui.label(RichText::new(message).strong());
+        ui.horizontal(|row| {
+            row.label(RichText::new(message).strong());
+            if let Some(counts) = &self.progress_counts {
+                let done = counts.0.load(Ordering::Relaxed);
+                let total = counts.1.load(Ordering::Relaxed);
+                if total > 0 {
+                    row.label(format!("({done} / {total} files)"));
+                }
+            }
+            if row.button("Cancel").clicked() {
+                self.cancel_active_job();
+            }
+        });
         ui.add_space(BASE_SPACING);
         self.render_skeleton(ui);
     }
@@ -1384,7 +1428,7 @@ impl ManifestView {
     fn render_error(&self, ui: &mut egui::Ui, err: &ManifestError) {
         EguiFrame::new()
             .fill(Color32::from_rgb(90, 34, 34))
-            .stroke(egui::Stroke::new(2.0, Color32::from_rgb(200, 80, 80)))
+            .stroke(egui::Stroke::new(2.0_f32, Color32::from_rgb(200, 80, 80)))
             .inner_margin(margin_all(LARGE_SPACING))
             .show(ui, |ui| {
                 ui.label(RichText::new("There was a problem").strong());
@@ -1418,7 +1462,7 @@ impl ManifestView {
         };
         EguiFrame::new()
             .fill(fill)
-            .stroke(egui::Stroke::new(1.0, stroke))
+            .stroke(egui::Stroke::new(1.0_f32, stroke))
             .inner_margin(margin_all(BASE_SPACING))
             .show(ui, |ui| {
                 ui.label(RichText::new(&banner.text).strong());
@@ -1450,7 +1494,7 @@ impl ManifestView {
         painter.rect_stroke(
             rect,
             2.0,
-            egui::Stroke::new(1.0, Color32::from_rgb(66, 72, 80)),
+            egui::Stroke::new(1.0_f32, Color32::from_rgb(66, 72, 80)),
             StrokeKind::Outside,
         );
         ui.allocate_space(rect.size());
@@ -1551,7 +1595,7 @@ impl ManifestView {
         egui::Frame::group(&ctx.style())
             .fill(ui.visuals().extreme_bg_color)
             .stroke(egui::Stroke::new(
-                1.0,
+                1.0_f32,
                 ui.visuals().widgets.inactive.bg_fill.gamma_multiply(0.6),
             ))
             .inner_margin(margin_all(BASE_SPACING * scale))
@@ -1701,18 +1745,35 @@ impl ManifestView {
         let algorithm = self.algorithms[self.algorithm_index].clone();
         let recursive = self.recursive;
         let (tx, rx) = mpsc::channel();
+        let cancel = Arc::new(AtomicBool::new(false));
+        let progress = Arc::new((AtomicUsize::new(0), AtomicUsize::new(0)));
         self.state = ManifestState::Loading(ManifestOperation::Scan);
         self.banner = None;
         self.job_receiver = Some(rx);
+        self.cancel_token = Some(Arc::clone(&cancel));
+        self.progress_counts = Some(Arc::clone(&progress));
 
         thread::spawn(move || {
             let start = Instant::now();
-            let result = generate_manifest(&dir, &algorithm, recursive);
+            let mut progress_cb = |done: usize, total: usize| {
+                progress.0.store(done, Ordering::Relaxed);
+                progress.1.store(total, Ordering::Relaxed);
+            };
+            let result = generate_manifest_with_options(
+                &dir,
+                &algorithm,
+                recursive,
+                Some(&cancel),
+                Some(&mut progress_cb),
+            );
             match result {
                 Ok(manifest) => {
                     let duration = start.elapsed();
                     let ready = ManifestReady::from_scan(manifest, dir.clone(), duration);
                     let _ = tx.send(ManifestJobResult::Success(Box::new(ready)));
+                }
+                Err(HashError::Cancelled) => {
+                    let _ = tx.send(ManifestJobResult::Cancelled);
                 }
                 Err(err) => {
                     let _ = tx.send(ManifestJobResult::Failure {
@@ -1776,9 +1837,13 @@ impl ManifestView {
 
         let selected_root = self.selected_dir.clone();
         let (tx, rx) = mpsc::channel();
+        let cancel = Arc::new(AtomicBool::new(false));
+        let progress = Arc::new((AtomicUsize::new(0), AtomicUsize::new(0)));
         self.state = ManifestState::Loading(ManifestOperation::Verify);
         self.banner = None;
         self.job_receiver = Some(rx);
+        self.cancel_token = Some(Arc::clone(&cancel));
+        self.progress_counts = Some(Arc::clone(&progress));
 
         thread::spawn(move || {
             let format =
@@ -1811,7 +1876,16 @@ impl ManifestView {
             };
 
             let start = Instant::now();
-            match verify_manifest(&manifest, &root) {
+            let mut progress_cb = |done: usize, total: usize| {
+                progress.0.store(done, Ordering::Relaxed);
+                progress.1.store(total, Ordering::Relaxed);
+            };
+            match verify_manifest_with_options(
+                &manifest,
+                &root,
+                Some(&cancel),
+                Some(&mut progress_cb),
+            ) {
                 Ok(report) => {
                     let duration = start.elapsed();
                     let ready = ManifestReady::from_verify(
@@ -1832,6 +1906,9 @@ impl ManifestView {
                             });
                         }
                     }
+                }
+                Err(HashError::Cancelled) => {
+                    let _ = tx.send(ManifestJobResult::Cancelled);
                 }
                 Err(err) => {
                     let _ = tx.send(ManifestJobResult::Failure {
@@ -2225,6 +2302,7 @@ enum ManifestOperation {
 
 enum ManifestJobResult {
     Success(Box<ManifestReady>),
+    Cancelled,
     Failure {
         message: String,
         details: Option<String>,
@@ -2537,14 +2615,14 @@ fn extract_prefix(input: &str) -> Option<String> {
     }
 }
 
-fn supported_prefixes() -> [&'static str; 6] {
-    ["sha1", "sha256", "sha512", "md5", "blake2b", "blake2s"]
+fn supported_prefixes() -> &'static [&'static str] {
+    supported_algorithms()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use hash_checker::{Manifest, ManifestEntry};
+    use hash_checker::{verify_manifest, Manifest, ManifestEntry};
     use serde_json::Value;
     use std::fs;
     use tempfile::tempdir;
@@ -2566,6 +2644,26 @@ mod tests {
         let parsed = parse_prefixed_hash("SHA1:ABC").expect("upper-case ok");
         assert_eq!(parsed.0, "sha1");
         assert_eq!(parsed.1, "ABC");
+    }
+
+    #[test]
+    fn parses_all_eight_known_prefixes() {
+        for algo in supported_algorithms() {
+            let input = format!("{algo}:deadbeef");
+            let parsed = parse_prefixed_hash(&input)
+                .unwrap_or_else(|| panic!("expected prefix '{algo}' to be supported in GUI"));
+            assert_eq!(parsed.0, *algo);
+            assert_eq!(parsed.1, "deadbeef");
+        }
+    }
+
+    #[test]
+    fn theme_choice_includes_soft_light_slate_and_high_contrast() {
+        let theme = ThemeChoice::default();
+        let names: Vec<&str> = theme.presets.iter().map(ThemePreset::name).collect();
+        assert!(names.contains(&"Slate"));
+        assert!(names.contains(&"Soft Light"));
+        assert!(names.contains(&"High Contrast"));
     }
 
     #[test]

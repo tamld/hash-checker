@@ -1,4 +1,4 @@
-.PHONY: rust-test rust-build rust-gui-build rust-gui-smoke clean help dist-linux cleanup-packaging ci-linux-local deps-refresh macos-dmg-universal
+.PHONY: rust-test rust-build rust-gui-build rust-gui-smoke gui-snapshot clean help dist-linux cleanup-packaging ci-linux-local deps-refresh macos-dmg-universal
 
 PROJECT_ROOT := $(shell pwd)
 DIST_DIR := dist
@@ -17,6 +17,9 @@ rust-gui-build: ## Build Rust GUI binary in Docker
 rust-gui-smoke: ## Headless GUI smoke test via Vagrant (placeholder)
 	./scripts/vagrant-gui-smoke.sh
 
+gui-snapshot: ## Capture GUI snapshots and validate telemetry logs (Issue #33)
+	./scripts/gui-snapshot-harness.sh
+
 ci-linux-local: ## Run Linux CI checks locally inside Docker (fmt, clippy, tests)
 	./scripts/ci-linux-local.sh
 
@@ -33,7 +36,7 @@ rust-gui-dmg-temp: ## Build macOS .dmg into /tmp/hash-checker-gui
 	cargo install cargo-packager@0.11.7 --locked >/dev/null 2>&1 || true
 	cargo packager --release --formats dmg --manifest-path rust/hash-checker-gui/Cargo.toml
 	mkdir -p /tmp/hash-checker-gui
-	cp rust/hash-checker-gui/target/packager/*.dmg /tmp/hash-checker-gui/
+	cp rust/hash-checker-gui/target/packager/*.dmg /tmp/hash-checker-gui/hash-checker.dmg
 	cp rust/hash-checker-gui/target/packager/SHA256SUMS /tmp/hash-checker-gui/
 	rm -rf rust/hash-checker-gui/target/packager
 
@@ -117,8 +120,8 @@ dist-linux: rust-build rust-gui-build ## Build and package Linux artifacts via D
 rust-build-temp: ## Build Rust binaries into /tmp/hash-checker-build (clean)
 	TMP=/tmp/hash-checker-build && \
 		rm -rf $$TMP && mkdir -p $$TMP && \
-		docker run --rm -v "$(shell pwd):/workspace" -w /workspace/rust/hash-checker rust:1.83 bash -lc "export PATH=\"/usr/local/cargo/bin:$$PATH\"; cargo build --release" && \
-		docker run --rm -v "$(shell pwd):/workspace" -w /workspace/rust/hash-checker-gui rust:1.83 bash -lc "apt-get update >/dev/null && apt-get install -y pkg-config libgtk-3-dev >/dev/null && export PATH=\"/usr/local/cargo/bin:$$PATH\"; cargo build --release" && \
+		docker run --rm -v "$(shell pwd):/workspace" -w /workspace/rust/hash-checker rust:1.88 bash -lc "export PATH=\"/usr/local/cargo/bin:$$PATH\"; cargo build --release" && \
+		docker run --rm -v "$(shell pwd):/workspace" -w /workspace/rust/hash-checker-gui rust:1.88 bash -lc "apt-get update >/dev/null && apt-get install -y pkg-config libgtk-3-dev >/dev/null && export PATH=\"/usr/local/cargo/bin:$$PATH\"; cargo build --release" && \
 		cp rust/hash-checker/target/release/hash-checker $$TMP/ && \
 		cp rust/hash-checker-gui/target/release/hash-checker-gui $$TMP/ && \
 	sha256sum $$TMP/hash-checker $$TMP/hash-checker-gui > $$TMP/SHA256SUMS

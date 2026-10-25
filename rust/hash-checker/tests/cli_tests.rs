@@ -114,3 +114,36 @@ fn cli_rejects_non_hex_digest_payload() {
     cmd.assert().failure().code(1);
     drop(temp_dir);
 }
+
+#[test]
+fn cli_accepts_matching_prefix_and_algorithm_flag() {
+    let (temp_dir, path) = sample_file();
+    let digest = compute_hash(path.as_path(), "sha256").expect("hash");
+    let prefixed = format!("sha256:{digest}");
+    let mut cmd = Command::cargo_bin("hash-checker").expect("binary");
+    cmd.arg(&path)
+        .arg(prefixed)
+        .arg("--algorithm")
+        .arg("sha256");
+    cmd.assert().success().stdout(contains("Hashes match"));
+    drop(temp_dir);
+}
+
+#[test]
+fn cli_conflicting_algorithm_hints_error_message_names_both_algorithms() {
+    let (temp_dir, path) = sample_file();
+    let digest = compute_hash(path.as_path(), "sha256").expect("hash");
+    let prefixed = format!("sha512:{digest}");
+    let mut cmd = Command::cargo_bin("hash-checker").expect("binary");
+    cmd.arg(&path)
+        .arg(prefixed)
+        .arg("--algorithm")
+        .arg("sha256");
+    let output = cmd.output().expect("run command");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("sha256") && stderr.contains("sha512"),
+        "stderr should mention both algorithms: {stderr}"
+    );
+    drop(temp_dir);
+}

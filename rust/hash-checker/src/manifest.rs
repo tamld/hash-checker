@@ -1,9 +1,10 @@
-use crate::{compute_hash, HashError, HashResult};
+use crate::{compute_hash_with_options, HashError, HashResult};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::io::{BufRead, Read, Write};
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 use walkdir::WalkDir;
 
@@ -74,23 +75,40 @@ pub fn detect_format_from_extension(path: &Path) -> Option<ManifestFormat> {
 }
 
 pub fn generate_manifest(root: &Path, algorithm: &str, recursive: bool) -> HashResult<Manifest> {
+    generate_manifest_with_options(root, algorithm, recursive, None, None)
+}
+
+pub fn generate_manifest_with_options(
+    root: &Path,
+    algorithm: &str,
+    recursive: bool,
+    cancel: Option<&AtomicBool>,
+    mut on_progress: Option<&mut dyn FnMut(usize, usize)>,
+) -> HashResult<Manifest> {
     if !root.exists() {
         return Err(HashError::PathNotFound(root.display().to_string()));
     }
     if !root.is_dir() {
         return Err(HashError::NotADirectory(root.display().to_string()));
     }
+    if cancel.is_some_and(|flag| flag.load(Ordering::Relaxed)) {
+        return Err(HashError::Cancelled);
+    }
 
     let files = collect_files(root, recursive)?;
-    let mut entries = Vec::with_capacity(files.len());
-    for file in files {
+    let total_files = files.len();
+    let mut entries = Vec::with_capacity(total_files);
+    for (idx, file) in files.into_iter().enumerate() {
+        if cancel.is_some_and(|flag| flag.load(Ordering::Relaxed)) {
+            return Err(HashError::Cancelled);
+        }
         let rel = file
             .strip_prefix(root)
             .map_err(|_| HashError::Canonicalize {
                 path: file.display().to_string(),
                 source: std::io::Error::other("path prefix error"),
             })?;
-        let hash = compute_hash(&file, algorithm)?;
+        let hash = compute_hash_with_options(&file, algorithm, cancel, None)?;
         let metadata = fs::metadata(&file)?;
         let modified = metadata
             .modified()
@@ -104,6 +122,9 @@ pub fn generate_manifest(root: &Path, algorithm: &str, recursive: bool) -> HashR
             size: metadata.len(),
             modified,
         });
+        if let Some(cb) = on_progress.as_deref_mut() {
+            cb(idx + 1, total_files);
+        }
     }
     entries.sort_by(|a, b| a.path.cmp(&b.path));
 
@@ -143,11 +164,23 @@ pub fn read_manifest<R: Read>(reader: R, format: ManifestFormat) -> HashResult<M
 }
 
 pub fn verify_manifest(manifest: &Manifest, root: &Path) -> HashResult<VerificationReport> {
+    verify_manifest_with_options(manifest, root, None, None)
+}
+
+pub fn verify_manifest_with_options(
+    manifest: &Manifest,
+    root: &Path,
+    cancel: Option<&AtomicBool>,
+    mut on_progress: Option<&mut dyn FnMut(usize, usize)>,
+) -> HashResult<VerificationReport> {
     if !root.exists() {
         return Err(HashError::PathNotFound(root.display().to_string()));
     }
     if !root.is_dir() {
         return Err(HashError::NotADirectory(root.display().to_string()));
+    }
+    if cancel.is_some_and(|flag| flag.load(Ordering::Relaxed)) {
+        return Err(HashError::Cancelled);
     }
 
     let recursive = manifest.recursive;
@@ -169,21 +202,32 @@ pub fn verify_manifest(manifest: &Manifest, root: &Path) -> HashResult<Verificat
     let mut mismatched = Vec::new();
     let mut missing = Vec::new();
     let mut seen: BTreeSet<String> = BTreeSet::new();
+    let total_entries = manifest.entries.len();
 
-    for entry in &manifest.entries {
-        if let Some(path) = actual_map.get(&entry.path) {
-            let computed = compute_hash(path, &manifest.algorithm)?;
+    for (idx, entry) in manifest.entries.iter().enumerate() {
+        if cancel.is_some_and(|flag| flag.load(Ordering::Relaxed)) {
+            return Err(HashError::Cancelled);
+        }
+        let normalized_path = normalize_manifest_rel_path(&entry.path)?;
+        let mut normalized_entry = entry.clone();
+        normalized_entry.path = normalized_path.clone();
+
+        if let Some(path) = actual_map.get(&normalized_path) {
+            let computed = compute_hash_with_options(path, &manifest.algorithm, cancel, None)?;
             if computed == entry.hash {
                 matched += 1;
             } else {
                 mismatched.push(Mismatch {
-                    entry: entry.clone(),
+                    entry: normalized_entry,
                     actual: computed,
                 });
             }
-            seen.insert(entry.path.clone());
+            seen.insert(normalized_path);
         } else {
-            missing.push(entry.clone());
+            missing.push(normalized_entry);
+        }
+        if let Some(cb) = on_progress.as_deref_mut() {
+            cb(idx + 1, total_entries);
         }
     }
 
@@ -230,10 +274,12 @@ fn collect_files(root: &Path, recursive: bool) -> HashResult<Vec<PathBuf>> {
 }
 
 fn to_manifest_path(path: &Path) -> String {
-    path.components()
-        .map(|component| component.as_os_str().to_string_lossy())
-        .collect::<Vec<_>>()
-        .join("/")
+    let count = path.components().count();
+    let mut vec = Vec::with_capacity(count);
+    for component in path.components() {
+        vec.push(component.as_os_str().to_string_lossy());
+    }
+    vec.join("/")
 }
 
 fn from_manifest_path(path: &str) -> PathBuf {
@@ -250,9 +296,9 @@ fn write_manifest_json<W: Write>(manifest: &Manifest, writer: W) -> HashResult<(
 }
 
 fn read_manifest_json<R: Read>(reader: R) -> HashResult<Manifest> {
-    let manifest: Manifest =
+    let mut manifest: Manifest =
         serde_json::from_reader(reader).map_err(|err| HashError::ManifestParse(err.to_string()))?;
-    ensure_manifest_supported(&manifest)?;
+    ensure_manifest_supported(&mut manifest)?;
     Ok(manifest)
 }
 
@@ -360,7 +406,7 @@ fn read_manifest_csv<R: Read>(reader: R) -> HashResult<Manifest> {
         });
     }
 
-    let manifest = Manifest {
+    let mut manifest = Manifest {
         version,
         algorithm: algo,
         generated_at: SystemTime::now()
@@ -371,7 +417,7 @@ fn read_manifest_csv<R: Read>(reader: R) -> HashResult<Manifest> {
         root,
         entries,
     };
-    ensure_manifest_supported(&manifest)?;
+    ensure_manifest_supported(&mut manifest)?;
     Ok(manifest)
 }
 
@@ -485,7 +531,7 @@ fn read_manifest_plain<R: Read>(reader: R) -> HashResult<Manifest> {
         HashError::ManifestParse("missing algorithm metadata in plain manifest".to_string())
     })?;
 
-    let manifest = Manifest {
+    let mut manifest = Manifest {
         version,
         algorithm: algo,
         generated_at: SystemTime::now()
@@ -496,16 +542,51 @@ fn read_manifest_plain<R: Read>(reader: R) -> HashResult<Manifest> {
         root,
         entries,
     };
-    ensure_manifest_supported(&manifest)?;
+    ensure_manifest_supported(&mut manifest)?;
     Ok(manifest)
 }
 
-fn ensure_manifest_supported(manifest: &Manifest) -> HashResult<()> {
+fn normalize_manifest_rel_path(raw: &str) -> HashResult<String> {
+    let normalized = raw.trim().replace('\\', "/");
+    if normalized.is_empty() {
+        return Err(HashError::ManifestParse(
+            "manifest entry path cannot be empty".to_string(),
+        ));
+    }
+    if normalized.starts_with('/') || normalized.contains(':') {
+        return Err(HashError::ManifestParse(format!(
+            "manifest entry path '{raw}' must be relative"
+        )));
+    }
+    let mut segments = Vec::new();
+    for seg in normalized.split('/') {
+        if seg.is_empty() || seg == "." {
+            continue;
+        }
+        if seg == ".." {
+            return Err(HashError::ManifestParse(format!(
+                "path traversal '..' is not allowed in manifest entry '{raw}'"
+            )));
+        }
+        segments.push(seg);
+    }
+    if segments.is_empty() {
+        return Err(HashError::ManifestParse(format!(
+            "invalid manifest entry path '{raw}'"
+        )));
+    }
+    Ok(segments.join("/"))
+}
+
+fn ensure_manifest_supported(manifest: &mut Manifest) -> HashResult<()> {
     if manifest.version != MANIFEST_VERSION {
         return Err(HashError::ManifestVersion {
             expected: MANIFEST_VERSION,
             found: manifest.version.clone(),
         });
+    }
+    for entry in &mut manifest.entries {
+        entry.path = normalize_manifest_rel_path(&entry.path)?;
     }
     Ok(())
 }
@@ -582,5 +663,90 @@ mod tests {
         let parsed = read_manifest(buffer.as_slice(), ManifestFormat::Json).expect("read");
         assert_eq!(manifest.entries.len(), parsed.entries.len());
         assert_eq!(manifest.version, parsed.version);
+    }
+
+    #[test]
+    fn manifest_normalizes_backslashes_and_rejects_traversal() {
+        let (dir, _, _) = setup_files();
+        let mut manifest = generate_manifest(dir.path(), "sha256", true).expect("manifest");
+        // Simulate Windows backslash path in manifest entry
+        for entry in &mut manifest.entries {
+            entry.path = entry.path.replace('/', "\\");
+        }
+        let mut buffer = Vec::new();
+        write_manifest(&manifest, ManifestFormat::Json, &mut buffer).expect("write");
+        let parsed = read_manifest(buffer.as_slice(), ManifestFormat::Json).expect("read");
+        assert!(parsed.entries.iter().all(|e| !e.path.contains('\\')));
+        let report = verify_manifest(&parsed, dir.path()).expect("verify normalized");
+        assert!(!report.has_failures());
+        assert_eq!(report.matched, 2);
+
+        // Reject parent directory traversal in untrusted manifest
+        let mut malicious = parsed;
+        malicious.entries[0].path = "../secret.txt".to_string();
+        let mut bad_buf = Vec::new();
+        write_manifest(&malicious, ManifestFormat::Json, &mut bad_buf).expect("write malicious");
+        let err = read_manifest(bad_buf.as_slice(), ManifestFormat::Json)
+            .expect_err("expected path traversal rejection");
+        assert!(matches!(err, HashError::ManifestParse(_)));
+    }
+
+    #[test]
+    fn apply_entry_path_resolves_correctly() {
+        let root = Path::new("/base/dir");
+        assert_eq!(apply_entry_path(root, "file.txt"), root.join("file.txt"));
+        assert_eq!(
+            apply_entry_path(root, "subdir/file.txt"),
+            root.join("subdir").join("file.txt")
+        );
+        assert_eq!(
+            apply_entry_path(root, "a/b/c/d.txt"),
+            root.join("a").join("b").join("c").join("d.txt")
+        );
+    }
+
+    #[test]
+    fn test_detect_format_from_extension() {
+        assert_eq!(
+            detect_format_from_extension(Path::new("file.json")),
+            Some(ManifestFormat::Json)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("file.JSON")),
+            Some(ManifestFormat::Json)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("file.manifest.json")),
+            Some(ManifestFormat::Json)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("data.csv")),
+            Some(ManifestFormat::Csv)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("DATA.CSV")),
+            Some(ManifestFormat::Csv)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("hashes.txt")),
+            Some(ManifestFormat::Plain)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("hashes.TXT")),
+            Some(ManifestFormat::Plain)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("manifest.mf")),
+            Some(ManifestFormat::Plain)
+        );
+        assert_eq!(
+            detect_format_from_extension(Path::new("MANIFEST.MF")),
+            Some(ManifestFormat::Plain)
+        );
+        assert_eq!(detect_format_from_extension(Path::new("file.xml")), None);
+        assert_eq!(detect_format_from_extension(Path::new("file.bin")), None);
+        assert_eq!(detect_format_from_extension(Path::new("file")), None);
+        assert_eq!(detect_format_from_extension(Path::new("")), None);
+        assert_eq!(detect_format_from_extension(Path::new(".hidden")), None);
     }
 }

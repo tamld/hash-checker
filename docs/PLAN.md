@@ -44,7 +44,7 @@
 - [x] Document the build-from-source pathway and keep parity with packaged artefacts.
 - [x] Integrate optional Vagrant headless smoke tests for Windows and Linux packaging jobs.
 - [x] Add `cargo-dist` (or an equivalent tool) to automate release notes and distribution.
-- [ ] Align macOS DMG artefact naming across local scripts and release workflow (Issue #48; branch `feature/dmg-rename-issue48-a1`).
+- [x] Align macOS DMG artefact naming across local scripts and release workflow (`hash-checker.dmg`, Issue #48).
 
 ### Closure roadmap (target: 2025-10-22)
 1. (Completed) Stabilised Linux packaging + nightly Debian job.
