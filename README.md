@@ -23,14 +23,36 @@ Hash Checker delivers reproducible workflows for validating file hashes on Windo
 - Declarative SDD specifications (`specs/PRD.md`, `specs/SRS.md`, `specs/FSM.md`, `specs/AC.md`), `.g8s/feature-map.yml`, and Offer Bundle CI gates (`tools/ci_*.sh`).
 - Accessibility extras: keyboard shortcuts, clipboard integration, and Soft Light / Slate / High Contrast Dark themes.
 
-## Getting Started
-- Clone: `git clone https://github.com/tamld/hash-checker.git && cd hash-checker` (agents may work from `local-scripts/hash-checker/` inside the workspace layout).
-- Container workflow: `make rust-test`, `make rust-gui-build`, `make rust-gui-smoke`, and `make cleanup-packaging`. See `docs/OPERATIONS.md` for the full command matrix.
-- Host build: `cargo build --release --manifest-path rust/hash-checker/Cargo.toml` plus the GUI variant (`rust/hash-checker-gui/`) or the equivalent `make` targets documented in `docs/OPERATIONS.md`.
+## Installation & Prebuilt Binaries
+
+### 1. One-Line Standalone Install (CLI + GUI, SHA-256 Verified)
+```bash
+# macOS (Universal arm64 + x86_64) & Linux (x86_64) -> installs to ~/.local/bin
+curl -fsSL https://raw.githubusercontent.com/tamld/hash-checker/main/scripts/install.sh | bash
+```
+```powershell
+# Windows PowerShell (x86_64) -> installs to %LOCALAPPDATA%\Programs\hash-checker\bin
+irm https://raw.githubusercontent.com/tamld/hash-checker/main/scripts/install.ps1 | iex
+```
+
+### 2. Native Desktop Setup & Portable Release Matrix ([GitHub Releases](https://github.com/tamld/hash-checker/releases))
+| Platform | Portable Archive (CLI + GUI) | Native Desktop Setup / Package |
+| :--- | :--- | :--- |
+| **macOS** (`arm64` + `x86_64`) | `hash-checker_<version>_darwin_all.tar.gz` | `hash-checker.dmg` (Universal `.app` bundle) |
+| **Linux** (`amd64`) | `hash-checker_<version>_linux_amd64.tar.gz` | `hash-checker-gui_<version>_amd64.deb`, `hash-checker-gui_<version>_x86_64.AppImage` |
+| **Windows** (`amd64`) | `hash-checker_<version>_windows_amd64.zip` | `hash-checker-gui_<version>_x64-setup.exe` (NSIS Installer) |
+| **Checksums** | `checksums.txt` / `SHA256SUMS` | Verify via `sha256sum -c checksums.txt --ignore-missing` |
+
+### 3. Build & Install from Source
+- Clone: `git clone https://github.com/tamld/hash-checker.git && cd hash-checker`
+- Build local CLI + GUI into `./bin/`: `make local`
+- Install to `~/.local/bin`: `make install`
+- Verify SSoT version & SDD gates: `make verify-release`
+- Container workflow: `make rust-test`, `make rust-gui-build`, `make rust-gui-smoke`, and `make cleanup-packaging`. See `docs/OPERATIONS.md` and `docs/RELEASE_SOP.md` for the full command matrix.
 - Linux GUI runs via the XDG desktop portal. Install `xdg-desktop-portal` (and a backend such as `xdg-desktop-portal-gtk`) if your distro does not enable it by default.
-- Local gate: run `make ci-linux-local` before pushing to exercise fmt, clippy, tests, and Docker workflows.
 
 ## Documentation
+- `docs/RELEASE_SOP.md` – release engineering, binary matrix, standalone installers, and SHA-256 verification SOP.
 - `docs/OPERATIONS.md` – quick start, build/packaging commands, CI modes, Gatekeeper notes.
 - `docs/PLAN.md` – roadmap and phase status.
 - `docs/TASKS.md` – near-term work queue.

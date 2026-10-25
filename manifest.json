@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "hash-checker",
+  "display_name": "Hash Checker (Rust CLI + Desktop GUI)",
+  "tagline": "Fast, deterministic file & directory cryptographic integrity verifier in Rust (CLI + egui/eframe GUI)",
+  "version": "0.2.0",
+  "rust_edition": "2021",
+  "latest_release": {
+    "tag": "v0.2.0",
+    "date": "2026-10-25"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/tamld/hash-checker",
+  "binaries": [
+    {
+      "name": "hash-checker",
+      "crate": "rust/hash-checker/Cargo.toml",
+      "kind": "cli",
+      "description": "Single-file digest, directory manifest export/verify, and JSON/CSV batch verification CLI"
+    },
+    {
+      "name": "hash-checker-gui",
+      "crate": "rust/hash-checker-gui/Cargo.toml",
+      "kind": "gui",
+      "description": "Cross-platform native egui/eframe desktop application with File Hash, Folder Scan, 3 themes, and headless snapshot/smoke flags"
+    }
+  ],
+  "install": {
+    "posix_one_liner": "curl -fsSL https://raw.githubusercontent.com/tamld/hash-checker/main/scripts/install.sh | bash",
+    "windows_one_liner": "irm https://raw.githubusercontent.com/tamld/hash-checker/main/scripts/install.ps1 | iex",
+    "release_assets": [
+      "hash-checker_<version>_darwin_all.tar.gz",
+      "hash-checker.dmg",
+      "hash-checker_<version>_linux_amd64.tar.gz",
+      "hash-checker-gui_<version>_amd64.deb",
+      "hash-checker-gui_<version>_x86_64.AppImage",
+      "hash-checker_<version>_windows_amd64.zip",
+      "hash-checker-gui_<version>_x64-setup.exe",
+      "checksums.txt",
+      "SHA256SUMS"
+    ]
+  },
+  "governance": {
+    "agent_protocol": "AGENTS.md",
+    "claude_guide": "CLAUDE.md",
+    "spec_index": "specs/INDEX.md",
+    "release_sop": "docs/RELEASE_SOP.md",
+    "changelog": "CHANGELOG.md",
+    "version_file": "VERSION"
+  },
+  "declarative_registries": {
+    "feature_map": ".g8s/feature-map.yml",
+    "lane_bundles": ".g8s/lane-bundles.yml",
+    "trust_boundaries": ".g8s/trust-boundaries.yml",
+    "verifier_classes": ".g8s/verifier-classes.yml"
+  },
+  "active_openspec_deltas": [
+    {
+      "id": "SPEC-SRS-v0.2.0",
+      "title": "Hash Checker v0.2.0 Software Requirements & SDD Specification",
+      "path": "specs/SRS.md",
+      "status": "implemented"
+    }
+  ],
+  "ci_gates": [
+    "tools/ci_version_sync.sh",
+    "tools/ci_spec_code_sync.sh",
+    "tools/ci_structure_sync.sh",
+    "tools/ci_link_integrity.sh"
+  ]
+}

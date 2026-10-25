@@ -14,9 +14,11 @@ env/
 ENV/
 
 # Build outputs
+bin/
 build/
 dist/
 dist/manifests/
+release-assets/
 *.egg-info/
 wheelhouse/
 

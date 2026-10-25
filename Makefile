@@ -1,9 +1,33 @@
-.PHONY: rust-test rust-build rust-gui-build rust-gui-smoke gui-snapshot clean help dist-linux cleanup-packaging ci-linux-local deps-refresh macos-dmg-universal
+.PHONY: local install test-host verify-release rust-test rust-build rust-gui-build rust-gui-smoke gui-snapshot clean help dist-linux cleanup-packaging ci-linux-local deps-refresh macos-dmg-universal
 
 PROJECT_ROOT := $(shell pwd)
 DIST_DIR := dist
 KEEP_PACKAGING ?= 0
 CLEAN_DOCKER ?= 1
+INSTALL_DIR ?= $(HOME)/.local/bin
+
+local: rust-build-host rust-gui-build-host ## Build both CLI & GUI release binaries into ./bin/ (g8s-style local target)
+	mkdir -p bin
+	install -m 0755 rust/hash-checker/target/release/hash-checker bin/hash-checker
+	install -m 0755 rust/hash-checker-gui/target/release/hash-checker-gui bin/hash-checker-gui
+	./bin/hash-checker --version
+	./bin/hash-checker-gui --version
+
+install: local ## Install both hash-checker and hash-checker-gui into $(INSTALL_DIR) (default: ~/.local/bin)
+	mkdir -p $(INSTALL_DIR)
+	install -m 0755 bin/hash-checker $(INSTALL_DIR)/hash-checker
+	install -m 0755 bin/hash-checker-gui $(INSTALL_DIR)/hash-checker-gui
+	@echo "✅ Installed hash-checker & hash-checker-gui to $(INSTALL_DIR)"
+
+test-host: ## Run all Rust CLI and GUI unit/integration tests on host
+	cargo test --manifest-path rust/hash-checker/Cargo.toml
+	cargo test --manifest-path rust/hash-checker-gui/Cargo.toml
+
+verify-release: ## Run SSoT version sync, SDD spec/code/structure/link gates (g8s-style release preflight)
+	./tools/ci_version_sync.sh
+	./tools/ci_spec_code_sync.sh
+	./tools/ci_structure_sync.sh
+	./tools/ci_link_integrity.sh
 
 rust-test: ## Run Rust tests in Docker (cached target)
 	./scripts/docker-rust-test.sh

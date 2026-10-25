@@ -2450,6 +2450,10 @@ impl CliConfig {
                     print_usage();
                     std::process::exit(0);
                 }
+                "--version" | "-V" => {
+                    println!("hash-checker-gui {}", env!("CARGO_PKG_VERSION"));
+                    std::process::exit(0);
+                }
                 other => {
                     return Err(format!("Unrecognized argument: {other}"));
                 }
@@ -2474,6 +2478,7 @@ Options:
   --snapshot <PATH>                Capture a PNG screenshot to the provided path and exit when done.
   --snapshot-width <PX>            Override snapshot width in logical pixels (default: {SNAPSHOT_DEFAULT_WIDTH}).
   --snapshot-height <PX>           Override snapshot height in logical pixels (default: {SNAPSHOT_DEFAULT_HEIGHT}).
+  --version, -V                    Print version and exit.
   --help, -h                       Show this help message."
     );
 }

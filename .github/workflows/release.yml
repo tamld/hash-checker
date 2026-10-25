@@ -4,499 +4,205 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
-    inputs:
-      run_linux:
-        description: "Run Linux packaging job"
-        type: boolean
-        default: true
-      run_macos:
-        description: "Run macOS packaging job"
-        type: boolean
-        default: true
-      run_windows:
-        description: "Run Windows packaging job"
-        type: boolean
-        default: true
 
 permissions:
   contents: write
 
 jobs:
-  linux:
+  verify:
+    name: Pre-Flight SSoT & Version Gate
     runs-on: ubuntu-latest
-    env:
-      VAGRANT_ENABLED: 'false'
-    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') }}
     steps:
       - uses: actions/checkout@v4
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: cargo-registry-${{ runner.os }}-${{ hashFiles('rust/**/Cargo.lock') }}
-          restore-keys: |
-            cargo-registry-${{ runner.os }}-
-      - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: 1.88.0
-          components: clippy,rustfmt
+      - name: Verify SSoT Version & Tag Alignment
+        run: |
+          chmod +x tools/ci_version_sync.sh tools/ci_spec_code_sync.sh tools/ci_structure_sync.sh tools/ci_link_integrity.sh
+          ./tools/ci_version_sync.sh
+          ./tools/ci_spec_code_sync.sh
+          ./tools/ci_structure_sync.sh
+          ./tools/ci_link_integrity.sh
+          TAG_VER="${GITHUB_REF_NAME#v}"
+          FILE_VER="$(tr -d '[:space:]' < VERSION)"
+          if [ "${TAG_VER}" != "${FILE_VER}" ]; then
+            echo "::error::Tag version (${TAG_VER}) does not match VERSION (${FILE_VER})"
+            exit 1
+          fi
+
+  linux:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pkg-config libasound2-dev xdg-desktop-portal
-      - name: Cargo fmt (hash-checker)
-        run: cargo fmt --manifest-path rust/hash-checker/Cargo.toml --check
-      - name: Cargo fmt (hash-checker-gui)
-        run: cargo fmt --manifest-path rust/hash-checker-gui/Cargo.toml --check
-      - name: Cargo clippy (hash-checker)
-        run: cargo clippy --manifest-path rust/hash-checker/Cargo.toml --all-targets -- -D warnings
-      - name: Cargo clippy (hash-checker-gui)
-        run: cargo clippy --manifest-path rust/hash-checker-gui/Cargo.toml --all-targets -- -D warnings
-      - name: Cargo test (hash-checker)
-        run: cargo test --manifest-path rust/hash-checker/Cargo.toml --all
-      - name: GUI automation tests (hash-checker-gui)
-        run: cargo test --manifest-path rust/hash-checker-gui/Cargo.toml --all
-      - name: Rust tests (Docker)
-        run: make rust-test
-      - name: GUI smoke test (host)
-        run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
-      - name: Build CLI release binary
-        run: cargo build --manifest-path rust/hash-checker/Cargo.toml --release
-      - name: Smoke test release binaries
-        run: |
-          ./rust/hash-checker/target/release/hash-checker --help > /dev/null
-          ./rust/hash-checker-gui/target/release/hash-checker-gui --smoke-test
-      - name: Optional Vagrant GUI smoke
-        if: env.VAGRANT_ENABLED == 'true'
-        run: ./scripts/vagrant-gui-smoke.sh
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config \
+            libgtk-3-dev \
+            libxcb-render0-dev \
+            libxcb-shape0-dev \
+            libxcb-xfixes0-dev \
+            libxkbcommon-dev \
+            libssl-dev \
+            patchelf \
+            desktop-file-utils \
+            squashfs-tools \
+            wget \
+            file \
+            dpkg-dev \
+            rpm
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-packager
         run: cargo install cargo-packager@0.11.7 --locked
-      - name: Build Linux installer (.deb)
-        run: cargo packager --release --formats deb
-        working-directory: rust/hash-checker-gui
-      - name: Build Linux AppImage
-        run: cargo packager --release --formats appimage
-        working-directory: rust/hash-checker-gui
-      - name: Build Arch package (pacman)
-        run: cargo packager --release --formats pacman
-        working-directory: rust/hash-checker-gui
-      - name: Collect Linux artefacts
-        run: |
-          rm -rf dist/linux
-          mkdir -p dist/linux
-          cp rust/hash-checker-gui/target/packager/*.deb dist/linux/ 2>/dev/null || true
-          cp rust/hash-checker-gui/target/packager/*.AppImage dist/linux/ 2>/dev/null || true
-          cp rust/hash-checker-gui/target/packager/*.tar.gz dist/linux/ 2>/dev/null || true
-          if ls dist/linux/* >/dev/null 2>&1; then
-            sha256sum dist/linux/* > dist/linux/SHA256SUMS-linux
-          fi
-      - name: Upload Linux artefacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-installers
-          path: dist/linux
 
-  macos:
-    runs-on: macos-14
-    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: cargo-registry-${{ runner.os }}-${{ hashFiles('rust/**/Cargo.lock') }}
-          restore-keys: |
-            cargo-registry-${{ runner.os }}-
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: 1.88.0
-          components: clippy,rustfmt
-      - name: Install GTK dependencies
-        run: |
-          brew update
-          brew list pkg-config >/dev/null 2>&1 || brew install pkg-config
-      - name: Cargo fmt
-        run: |
-          cargo fmt --manifest-path rust/hash-checker/Cargo.toml --check
-          cargo fmt --manifest-path rust/hash-checker-gui/Cargo.toml --check
-      - name: Cargo clippy
-        run: |
-          cargo clippy --manifest-path rust/hash-checker/Cargo.toml --all-targets -- -D warnings
-          cargo clippy --manifest-path rust/hash-checker-gui/Cargo.toml --all-targets -- -D warnings
-      - name: Cargo test
-        run: cargo test --manifest-path rust/hash-checker/Cargo.toml --all
-      - name: Install additional targets
-        run: |
-          rustup target add aarch64-apple-darwin
-          rustup target add x86_64-apple-darwin
-      - name: Build CLI & GUI (aarch64)
-        env:
-          CARGO_TARGET_DIR: target
-        run: |
-          cargo build --release --target aarch64-apple-darwin --manifest-path rust/hash-checker/Cargo.toml
-          cargo build --release --target aarch64-apple-darwin --manifest-path rust/hash-checker-gui/Cargo.toml
-      - name: Build CLI & GUI (x86_64)
-        env:
-          CARGO_TARGET_DIR: target
-        run: |
-          cargo build --release --target x86_64-apple-darwin --manifest-path rust/hash-checker/Cargo.toml
-          cargo build --release --target x86_64-apple-darwin --manifest-path rust/hash-checker-gui/Cargo.toml
-      - name: Create universal binaries
-        run: |
-          mkdir -p target/universal/release
-          lipo -create \
-            -output target/universal/release/hash-checker \
-            target/aarch64-apple-darwin/release/hash-checker \
-            target/x86_64-apple-darwin/release/hash-checker
-          lipo -create \
-            -output target/universal/release/hash-checker-gui \
-            target/aarch64-apple-darwin/release/hash-checker-gui \
-            target/x86_64-apple-darwin/release/hash-checker-gui
-          mv target/universal/release/hash-checker target/release/hash-checker
-          mv target/universal/release/hash-checker-gui target/release/hash-checker-gui
-      - name: GUI smoke test
-        env:
-          CARGO_TARGET_DIR: target
-        run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
-      - name: Smoke test release binaries
-        run: |
-          test -f target/release/hash-checker
-          test -f target/release/hash-checker-gui
-          ./target/release/hash-checker --help > /dev/null
-          ./target/release/hash-checker-gui --smoke-test
-      - name: Optional Vagrant GUI smoke
-        if: env.VAGRANT_ENABLED == 'true'
-        run: ./scripts/vagrant-gui-smoke.sh
-
-      - name: Install cargo-packager
-        run: |
-          source "$HOME/.cargo/env"
-          cargo install cargo-packager@0.11.7 --locked
-      - name: Build universal DMG
-        run: |
-          source "$HOME/.cargo/env"
-          make macos-dmg-universal
-      - name: Verify DMG architecture
-        run: |
-          set -euo pipefail
-          DMG_PATH="$(ls dist/macos-universal/*.dmg | head -n1)"
-          MOUNT_DIR="$(mktemp -d)"
-          hdiutil attach "$DMG_PATH" -mountpoint "$MOUNT_DIR" -nobrowse >/tmp/hdiutil.attach.log
-          lipo -info "$MOUNT_DIR/Hash Checker.app/Contents/MacOS/hash-checker-gui"
-          hdiutil detach "$MOUNT_DIR" >/tmp/hdiutil.detach.log
-          rmdir "$MOUNT_DIR"
-          cat /tmp/hdiutil.attach.log /tmp/hdiutil.detach.log
-      - name: Collect macOS artefacts
-        run: |
-          rm -rf dist/macos
-          mkdir -p dist/macos
-          cp dist/macos-universal/*.dmg dist/macos/
-          if ls logs/local-test/*.log >/dev/null 2>&1; then
-            mkdir -p dist/macos/logs
-            cp logs/local-test/*.log dist/macos/logs/
-          fi
-          if ls dist/macos/*.dmg >/dev/null 2>&1; then
-            shasum -a 256 dist/macos/*.dmg > dist/macos/SHA256SUMS-macos
-          fi
-      - name: Upload macOS artefacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-installers
-          path: dist/macos
-
-  windows:
-    runs-on: windows-latest
-    outputs:
-      cli_artifact_id: ${{ steps.upload_cli_unsigned.outputs.artifact-id }}
-      gui_artifact_id: ${{ steps.upload_gui_unsigned.outputs.artifact-id }}
-      installer_artifact_id: ${{ steps.upload_installer_unsigned.outputs.artifact-id }}
-    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: cargo-registry-${{ runner.os }}-${{ hashFiles('rust/**/Cargo.lock') }}
-          restore-keys: |
-            cargo-registry-${{ runner.os }}-
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: 1.88.0
-          target: x86_64-pc-windows-msvc
-          components: clippy,rustfmt
-      - name: Cargo fmt
-        run: |
-          cargo fmt --manifest-path rust/hash-checker/Cargo.toml --check
-          cargo fmt --manifest-path rust/hash-checker-gui/Cargo.toml --check
-      - name: Cargo clippy
-        run: |
-          cargo clippy --manifest-path rust/hash-checker/Cargo.toml --all-targets -- -D warnings
-          cargo clippy --manifest-path rust/hash-checker-gui/Cargo.toml --all-targets -- -D warnings
-      - name: Cargo test
-        run: cargo test --manifest-path rust/hash-checker/Cargo.toml --all
-      - name: Build CLI & GUI
+      - name: Build CLI and GUI binaries
         run: |
           cargo build --release --manifest-path rust/hash-checker/Cargo.toml
           cargo build --release --manifest-path rust/hash-checker-gui/Cargo.toml
-      - name: GUI smoke test
-        shell: pwsh
-        run: cargo run --manifest-path rust/hash-checker-gui/Cargo.toml --release -- --smoke-test
-      - name: Install packaging toolchain
-        shell: pwsh
-        run: |
-          cargo install cargo-packager@0.11.7 --locked
-          choco install nsis --no-progress -y
-      - name: Build Windows installer (NSIS)
-        shell: pwsh
-        run: cargo packager --release --formats nsis --manifest-path rust/hash-checker-gui/Cargo.toml
-      - name: Prepare Windows artefacts
-        shell: pwsh
-        run: |
-          Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Path dist\win\bin | Out-Null
-          New-Item -ItemType Directory -Path dist\win\portable | Out-Null
-          New-Item -ItemType Directory -Path dist\win\installer | Out-Null
-          Copy-Item 'rust\hash-checker\target\release\hash-checker.exe' -Destination 'dist\win\bin\hash-checker.exe'
-          Copy-Item 'rust\hash-checker-gui\target\release\hash-checker-gui.exe' -Destination 'dist\win\bin\hash-checker-gui.exe'
-          Copy-Item 'dist\win\bin\hash-checker.exe' -Destination 'dist\win\portable\hash-checker.exe'
-          Copy-Item 'dist\win\bin\hash-checker-gui.exe' -Destination 'dist\win\portable\hash-checker-gui.exe'
-          Compress-Archive -Path dist\win\portable\* -DestinationPath dist\hash-checker-windows-portable.zip -Force
-          $installerSource = Get-ChildItem 'rust\hash-checker-gui\target\packager\*.exe' | Select-Object -First 1
-          if (-not $installerSource) { throw 'Installer executable not found under rust\hash-checker-gui\target\packager' }
-          Copy-Item $installerSource.FullName -Destination 'dist\win\installer\hash-checker-gui-setup.exe' -Force
-      - name: Upload CLI binary (unsigned)
-        id: upload_cli_unsigned
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-cli-unsigned
-          path: dist/win/bin/hash-checker.exe
-      - name: Upload GUI binary (unsigned)
-        id: upload_gui_unsigned
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-gui-unsigned
-          path: dist/win/bin/hash-checker-gui.exe
-      - name: Upload Windows installer (unsigned)
-        id: upload_installer_unsigned
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer-unsigned
-          path: dist/win/installer/hash-checker-gui-setup.exe
-      - name: Upload Windows portable archive (unsigned)
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-portable-unsigned
-          path: dist/hash-checker-windows-portable.zip
-      - name: Smoke test portable archive
-        shell: pwsh
-        run: |
-          Expand-Archive dist/hash-checker-windows-portable.zip -DestinationPath smoke -Force
-          .\smoke\hash-checker.exe --help | Out-Null
-          .\smoke\hash-checker-gui.exe --smoke-test
 
-
-  windows_sign:
-    name: Sign Windows artefacts
-    runs-on: ubuntu-latest
-    needs: windows
-    if: ${{ (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && needs.windows.outputs.cli_artifact_id != '' && needs.windows.outputs.gui_artifact_id != '' && needs.windows.outputs.installer_artifact_id != '' }}
-    permissions:
-      actions: read
-      contents: read
-    env:
-      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
-      SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
-      SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
-      SIGNPATH_POLICY_SLUG: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
-      SIGNPATH_ARTIFACT_CONFIG_SLUG: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
-    steps:
-      - name: Determine SignPath configuration
-        id: signpath_config
+      - name: Package portable Linux archive & desktop installers
         run: |
-          if [ -z "$SIGNPATH_API_TOKEN" ] || [ -z "$SIGNPATH_ORGANIZATION_ID" ] || [ -z "$SIGNPATH_PROJECT_SLUG" ] || [ -z "$SIGNPATH_POLICY_SLUG" ] || [ -z "$SIGNPATH_ARTIFACT_CONFIG_SLUG" ]; then
-            echo "SIGNPATH_READY=false" >> "$GITHUB_ENV"
-            echo "SignPath secrets or variables missing; skipping signing." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "SIGNPATH_READY=true" >> "$GITHUB_ENV"
-          fi
-      - name: Submit signing request (CLI)
-        if: ${{ env.SIGNPATH_READY == 'true' }}
-        uses: signpath/github-actions/actions/submit-signing-request@v0.1
-        with:
-          api-token: ${{ env.SIGNPATH_API_TOKEN }}
-          organization-id: ${{ env.SIGNPATH_ORGANIZATION_ID }}
-          project-slug: ${{ env.SIGNPATH_PROJECT_SLUG }}
-          signing-policy-slug: ${{ env.SIGNPATH_POLICY_SLUG }}
-          artifact-configuration-slug: ${{ env.SIGNPATH_ARTIFACT_CONFIG_SLUG }}
-          github-artifact-id: ${{ needs.windows.outputs.cli_artifact_id }}
-          wait-for-completion: true
-          output-artifact-directory: signed/cli
-      - name: Submit signing request (GUI)
-        if: ${{ env.SIGNPATH_READY == 'true' }}
-        uses: signpath/github-actions/actions/submit-signing-request@v0.1
-        with:
-          api-token: ${{ env.SIGNPATH_API_TOKEN }}
-          organization-id: ${{ env.SIGNPATH_ORGANIZATION_ID }}
-          project-slug: ${{ env.SIGNPATH_PROJECT_SLUG }}
-          signing-policy-slug: ${{ env.SIGNPATH_POLICY_SLUG }}
-          artifact-configuration-slug: ${{ env.SIGNPATH_ARTIFACT_CONFIG_SLUG }}
-          github-artifact-id: ${{ needs.windows.outputs.gui_artifact_id }}
-          wait-for-completion: true
-          output-artifact-directory: signed/gui
-      - name: Submit signing request (Installer)
-        if: ${{ env.SIGNPATH_READY == 'true' }}
-        uses: signpath/github-actions/actions/submit-signing-request@v0.1
-        with:
-          api-token: ${{ env.SIGNPATH_API_TOKEN }}
-          organization-id: ${{ env.SIGNPATH_ORGANIZATION_ID }}
-          project-slug: ${{ env.SIGNPATH_PROJECT_SLUG }}
-          signing-policy-slug: ${{ env.SIGNPATH_POLICY_SLUG }}
-          artifact-configuration-slug: ${{ env.SIGNPATH_ARTIFACT_CONFIG_SLUG }}
-          github-artifact-id: ${{ needs.windows.outputs.installer_artifact_id }}
-          wait-for-completion: true
-          output-artifact-directory: signed/installer
-      - name: Repackage signed portable bundle
-        if: ${{ env.SIGNPATH_READY == 'true' }}
-        run: |
-          set -euo pipefail
-          mkdir -p signed/portable
-          cp signed/cli/*.exe signed/portable/hash-checker.exe
-          cp signed/gui/*.exe signed/portable/hash-checker-gui.exe
-          pushd signed/portable
-          sha256sum hash-checker.exe hash-checker-gui.exe > SHA256SUMS
-          zip -r ../hash-checker-windows-portable-signed.zip hash-checker.exe hash-checker-gui.exe SHA256SUMS
-          popd
-      - name: Generate installer checksum
-        if: ${{ env.SIGNPATH_READY == 'true' }}
-        run: |
-          set -euo pipefail
-          sha256sum signed/installer/*.exe > signed/installer/SHA256SUMS
-      - name: Upload signed CLI binary
-        if: ${{ env.SIGNPATH_READY == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-cli-signed
-          path: signed/cli
-      - name: Upload signed GUI binary
-        if: ${{ env.SIGNPATH_READY == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-gui-signed
-          path: signed/gui
-      - name: Upload signed installer
-        if: ${{ env.SIGNPATH_READY == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer-signed
-          path: signed/installer
-      - name: Upload signed portable archive
-        if: ${{ env.SIGNPATH_READY == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-portable-signed
-          path: |
-            signed/hash-checker-windows-portable-signed.zip
-            signed/portable/SHA256SUMS
+          VER="${GITHUB_REF_NAME#v}"
+          mkdir -p dist/linux dist/linux-portable
+          cp rust/hash-checker/target/release/hash-checker dist/linux-portable/
+          cp rust/hash-checker-gui/target/release/hash-checker-gui dist/linux-portable/
+          cp LICENSE README.md dist/linux-portable/
+          tar -czf "dist/linux/hash-checker_${VER}_linux_amd64.tar.gz" -C dist/linux-portable hash-checker hash-checker-gui LICENSE README.md
 
+          cargo packager --release --formats deb,appimage --manifest-path rust/hash-checker-gui/Cargo.toml
+          for f in rust/hash-checker-gui/target/packager/*.deb rust/hash-checker-gui/target/packager/*.AppImage rust/hash-checker-gui/target/packager/*.tar.gz; do
+            [ -e "$f" ] && cp "$f" dist/linux/
+          done
+          (cd dist/linux && sha256sum * > SHA256SUMS)
 
-  publish:
-    runs-on: ubuntu-latest
-    needs: [linux, macos, windows]
-    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') }}
-    env:
-      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-installers
+          path: dist/linux/*
+
+  macos:
+    needs: verify
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - name: Download artefacts
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install cargo-packager
+        run: cargo install cargo-packager@0.11.7 --locked
+
+      - name: Build universal CLI & GUI binaries + macOS DMG
+        run: |
+          VER="${GITHUB_REF_NAME#v}"
+          chmod +x scripts/macos-universal-dmg.sh
+          ./scripts/macos-universal-dmg.sh
+          mkdir -p dist/macos
+          cp dist/macos-universal/*.dmg dist/macos/
+          cp "dist/macos-universal/hash-checker_${VER}_darwin_all.tar.gz" dist/macos/
+          (cd dist/macos && shasum -a 256 * > SHA256SUMS)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-installers
+          path: dist/macos/*
+
+  windows:
+    needs: verify
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install cargo-packager
+        run: cargo install cargo-packager@0.11.7 --locked
+
+      - name: Build CLI and GUI binaries
+        shell: bash
+        run: |
+          cargo build --release --manifest-path rust/hash-checker/Cargo.toml
+          cargo build --release --manifest-path rust/hash-checker-gui/Cargo.toml
+
+      - name: Package Windows NSIS installer and portable ZIPs
+        shell: bash
+        run: |
+          VER="${GITHUB_REF_NAME#v}"
+          cargo packager --release --formats nsis --manifest-path rust/hash-checker-gui/Cargo.toml
+          mkdir -p dist/windows
+          for f in rust/hash-checker-gui/target/packager/*-setup.exe rust/hash-checker-gui/target/packager/*.msi; do
+            [ -e "$f" ] && cp "$f" dist/windows/
+          done
+          powershell -NoProfile -Command "Compress-Archive -Path 'rust/hash-checker/target/release/hash-checker.exe','rust/hash-checker-gui/target/release/hash-checker-gui.exe','LICENSE','README.md' -DestinationPath 'dist/windows/hash-checker_${VER}_windows_amd64.zip' -Force"
+          cp "dist/windows/hash-checker_${VER}_windows_amd64.zip" "dist/windows/hash-checker-windows-portable.zip"
+          (cd dist/windows && sha256sum * > SHA256SUMS)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installers
+          path: dist/windows/*
+
+  publish:
+    needs: [verify, linux, macos, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          path: release-artifacts
-      - name: List artefacts
-        run: ls -R release-artifacts
-      - name: Prepare release payload directory
-        run: mkdir -p release-final
-      - name: Assemble release payload
+          path: dist
+
+      - name: Consolidate release assets & generate unified checksums
         run: |
-          set -euo pipefail
-          mkdir -p release-final/linux
-          if [ -d release-artifacts/linux-installers ]; then
-            cp -R release-artifacts/linux-installers/. release-final/linux/
-          fi
-          mkdir -p release-final/macos
-          if [ -d release-artifacts/macos-installers ]; then
-            cp -R release-artifacts/macos-installers/. release-final/macos/
-          fi
-          mkdir -p release-final/windows
-          if [ -d release-artifacts/windows-installer-signed ]; then
-            cp -R release-artifacts/windows-installer-signed/. release-final/windows/
-          elif [ -d release-artifacts/windows-installer-unsigned ]; then
-            cp -R release-artifacts/windows-installer-unsigned/. release-final/windows/
-          fi
-          if [ -d release-artifacts/windows-portable-signed ]; then
-            cp -R release-artifacts/windows-portable-signed/. release-final/windows/
-          elif [ -d release-artifacts/windows-portable-unsigned ]; then
-            cp -R release-artifacts/windows-portable-unsigned/. release-final/windows/
-          fi
-          if [ -d release-artifacts/windows-cli-signed ]; then
-            cp -R release-artifacts/windows-cli-signed/. release-final/windows/
-          fi
-          if [ -d release-artifacts/windows-gui-signed ]; then
-            cp -R release-artifacts/windows-gui-signed/. release-final/windows/
-          fi
-      - name: Deduplicate checksum filenames
-        run: |
-          set -euo pipefail
-          find release-final -mindepth 2 -type f -name 'SHA256SUMS' -print0 | while IFS= read -r -d '' file; do
-            dir="$(dirname "$file")"
-            suffix="$(basename "$dir" | tr -c 'A-Za-z0-9._-' '_')"
-            if [ -z "$suffix" ]; then
-              suffix="nested"
+          mkdir -p release-assets
+          for f in dist/linux-installers/* dist/macos-installers/* dist/windows-installers/*; do
+            base="$(basename "$f")"
+            if [ -f "$f" ] && [ "$base" != "SHA256SUMS" ] && [ "$base" != "checksums.txt" ]; then
+              cp "$f" release-assets/
             fi
-            mv "$file" "${dir}/SHA256SUMS-${suffix}"
           done
-      - name: Generate release SHA256SUMS
-        run: |
-          set -euo pipefail
-          cd release-final
-          mapfile -d '' files < <(find . -type f ! -name 'SHA256SUMS' ! -name 'SHA256SUMS-*' ! -name '*.sig' -print0)
-          : > SHA256SUMS
-          if [ "${#files[@]}" -gt 0 ]; then
-            printf '%s\0' "${files[@]}" | sort -z | xargs -0 sha256sum >> SHA256SUMS
-          fi
-      - name: Import GPG signing key
-        id: import_gpg
-        if: ${{ env.GPG_PRIVATE_KEY != '' && env.GPG_PASSPHRASE != '' }}
-        uses: crazy-max/ghaction-import-gpg@v6
+          (cd release-assets && sha256sum * | sort -k2 > checksums.txt && cp checksums.txt SHA256SUMS)
+          ls -lh release-assets/
+          cat release-assets/checksums.txt
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          gpg_private_key: ${{ env.GPG_PRIVATE_KEY }}
-          passphrase: ${{ env.GPG_PASSPHRASE }}
-      - name: Sign release checksums
-        if: ${{ steps.import_gpg.conclusion == 'success' }}
-        run: |
-          set -euo pipefail
-          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --output release-final/SHA256SUMS.sig --detach-sign release-final/SHA256SUMS
-        env:
-          GPG_PASSPHRASE: ${{ env.GPG_PASSPHRASE }}
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            release-final/**
-          draft: false
-          prerelease: false
+          generate_release_notes: true
+          files: release-assets/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

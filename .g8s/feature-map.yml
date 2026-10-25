@@ -104,21 +104,29 @@ features:
         - "FEAT-PACKAGING-CI-01"
 
   - id: "FEAT-PACKAGING-CI-01"
-    title: "Reproducible Packaging, Telemetry Schema & Offer Bundle CI Gates"
-    persona_story: "As a maintainer, I need reproducible universal macOS DMG packaging, GUI snapshot harness, telemetry validation, and Spec-Code/Structure/Link CI gates."
+    title: "Reproducible Packaging, Standalone Installers, SSoT Version Sync & Offer Bundle CI Gates"
+    persona_story: "As a maintainer or end-user, I need one-line SHA-256 verified standalone installers (scripts/install.sh & scripts/install.ps1), reproducible universal macOS DMG + darwin_all/linux_amd64/windows_amd64 archives, SSoT version synchronization (VERSION + manifest.json + Cargo.toml), and Spec-Code/Structure/Link CI gates."
     srs_reqs:
       - "NFR-04"
     openspec_delta: "SPEC-SRS-v0.2.0"
     code_paths:
+      - "VERSION"
+      - "manifest.json"
+      - "docs/RELEASE_SOP.md"
+      - "scripts/install.sh"
+      - "scripts/install.ps1"
       - "scripts/macos-universal-dmg.sh"
       - "scripts/gui-snapshot-harness.sh"
       - "scripts/validate_telemetry.py"
+      - "tools/ci_version_sync.sh"
       - "tools/ci_spec_code_sync.sh"
       - "tools/ci_structure_sync.sh"
       - "tools/ci_link_integrity.sh"
     invariants:
-      - "Zero-stale Spec-to-Code, Structure, and Link Integrity gates"
+      - "Zero-stale SSoT Version, Spec-to-Code, Structure, and Link Integrity gates"
+      - "Fail-closed SHA-256 checksum verification before binary extraction in standalone installers"
     visible_tests:
+      - "tools/ci_version_sync.sh"
       - "tools/ci_spec_code_sync_test.sh"
       - "tools/ci_structure_sync_test.sh"
       - "tools/ci_link_integrity_test.sh"

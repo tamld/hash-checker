@@ -43,11 +43,11 @@ fn unknown_flag_produces_error() {
 }
 
 #[test]
-fn version_flag_currently_absent() {
-    let assert = gui_binary().arg("--version").assert().failure();
-    let stderr = String::from_utf8_lossy(&assert.get_output().stderr);
+fn version_flag_prints_version() {
+    let assert = gui_binary().arg("--version").assert().success();
+    let stdout = String::from_utf8_lossy(&assert.get_output().stdout);
     assert!(
-        stderr.contains("Unrecognized argument: --version"),
-        "stderr should explain that --version is not yet supported"
+        stdout.contains("hash-checker-gui "),
+        "stdout should print binary name and version: {stdout}"
     );
 }
