@@ -8,11 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Planned
 - SignPath signing integration for Windows artefacts.
-- Light-theme palette follow-up adjustments based on tester feedback.
-### Security
-- Bumped the optional GTK4 backend to `gtk4` 0.10.1 / `glib` 0.21.3 to resolve RUSTSEC-2024-0429 (Issues #43/#47).
+
+## [0.2.0] - 2026-10-25
+### Added
+- Cooperative cancellation (`HashError::Cancelled`, `compute_hash_with_options`, `generate_manifest_with_options`, `verify_manifest_with_options`) and real-time progress callbacks across CLI and GUI (`specs/PRD.md`, `specs/SRS.md`, `specs/FSM.md`, `specs/AC.md`).
+- Live progress bars and **Cancel** buttons in `hash-checker-gui` for both Single File and Folder Manifest tabs.
+- Full 8-algorithm prefix auto-detection (`sha256`, `sha512`, `sha3-256`, `sha3-512`, `blake2b`, `blake2s`, `sha1`, `md5`) in `hash-checker-gui` on paste and before calculation.
+- Declarative `.g8s/feature-map.yml`, GUI snapshot harness (`scripts/gui-snapshot-harness.sh`, `make gui-snapshot`), and telemetry validator (`scripts/validate_telemetry.py`).
 ### Changed
+- Aligned `ThemePreset::default()` and `HashCheckerApp::default()` to `ThemePreset::SoftLight`.
+- Replaced `EitherWriter` boilerplate with `Box<dyn Write>` in CLI output handling and pre-allocated path normalisation buffers.
 - Standardised macOS DMG artefact name to `hash-checker.dmg` across local scripts and release workflow (Issue #48).
+### Security
+- Enforced strict relative path normalisation (`normalize_manifest_rel_path`) rejecting `..`, `.`, and root/prefix components during manifest verification.
+- Upgraded `rand` to `0.9.4` in `hash-checker-gui/Cargo.lock` (Dependabot alert #6) and bumped optional GTK4 backend to `gtk4` 0.10.1 / `glib` 0.21.3 (RUSTSEC-2024-0429).
 
 ## [0.1.7] - 2025-10-22
 ### Experimental

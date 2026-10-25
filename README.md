@@ -15,14 +15,13 @@
 Hash Checker delivers reproducible workflows for validating file hashes on Windows, macOS, and Linux. The project emphasises clean builds (Docker/Vagrant helpers) and an accessible GUI that mirrors the CLI feature set.
 
 ## Highlights
-- Supports SHA-2, SHA-1, MD5, and BLAKE2 families with automatic algorithm detection from hash prefixes.
-- Shared Rust core exposes both command-line and egui desktop interfaces.
-- Batch comparison reports for CI: feed JSON/CSV definitions to `hash-checker batch` and export structured results.
-- Linux builds now rely on the XDG desktop portal backend—no more GTK runtime dependency for file dialogs.
-- Experimental GTK4-native dialog mode (Linux) is available via the `gtk4-native` feature flag; see `docs/OPERATIONS.md` for prerequisites.
-- Directory manifest export/verify with JSON, CSV, and TXT outputs.
-- Container-first `make` targets keep builds reproducible across platforms, while host builds remain available.
-- Accessibility extras: keyboard shortcuts, clipboard integration, and Slate/High Contrast themes.
+- Supports 8 digest algorithms (`SHA-256`, `SHA-512`, `SHA3-256`, `SHA3-512`, `BLAKE2b`, `BLAKE2s`, `SHA-1`, `MD5`) with automatic algorithm detection from hash prefixes across CLI and GUI.
+- Shared Rust core exposes both command-line and `egui` desktop interfaces with real-time progress bars and cooperative **Cancel** controls.
+- Batch comparison reports for CI: feed JSON/CSV definitions to `hash-checker batch` and export structured results with deterministic exit codes (`0`/`1`/`2`/`3`).
+- Linux builds rely on the XDG desktop portal backend—no GTK runtime dependency for file dialogs by default, with optional `gtk4-native` support.
+- Directory manifest export/verify with JSON, CSV, and TXT outputs and strict path-traversal protection (`normalize_manifest_rel_path`).
+- Declarative SDD specifications (`specs/PRD.md`, `specs/SRS.md`, `specs/FSM.md`, `specs/AC.md`), `.g8s/feature-map.yml`, and Offer Bundle CI gates (`tools/ci_*.sh`).
+- Accessibility extras: keyboard shortcuts, clipboard integration, and Soft Light / Slate / High Contrast Dark themes.
 
 ## Getting Started
 - Clone: `git clone https://github.com/tamld/hash-checker.git && cd hash-checker` (agents may work from `local-scripts/hash-checker/` inside the workspace layout).

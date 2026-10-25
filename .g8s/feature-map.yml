@@ -1,0 +1,130 @@
+schema_version: "1.0"
+# hash-checker Declarative End-to-End Feature Map (.g8s/feature-map.yml)
+# Maps functional feature nodes to SRS requirements (specs/SRS.md),
+# code paths, invariants, visible tests, verifier classes, and acyclic blast radius graphs.
+
+features:
+  - id: "FEAT-CORE-HASH-01"
+    title: "Multi-Algorithm Streaming Hash Engine & Cooperative Cancellation"
+    persona_story: "As a security operator or desktop user, I need streaming file hashing across 8 algorithms (SHA-256, SHA-512, SHA3-256, SHA3-512, BLAKE2b, BLAKE2s, SHA-1, MD5) with cooperative cancellation and progress callbacks so large files can be verified without blocking or exhausting memory."
+    srs_reqs:
+      - "FR-01"
+      - "FR-02"
+      - "NFR-01"
+    openspec_delta: "SPEC-SRS-v0.2.0"
+    code_paths:
+      - "rust/hash-checker/src/lib.rs"
+    invariants:
+      - "64 KiB bounded streaming buffer"
+      - "Cooperative AtomicBool cancellation returns HashError::Cancelled"
+      - "Automatic prefix algorithm detection across all 8 supported digests"
+    visible_tests:
+      - "rust/hash-checker/tests/hash_tests.rs"
+    verifier_class: "test"
+    blast_radius:
+      depends_on: []
+      direct_consumers:
+        - "FEAT-MANIFEST-01"
+        - "FEAT-BATCH-CLI-01"
+        - "FEAT-DESKTOP-GUI-01"
+
+  - id: "FEAT-MANIFEST-01"
+    title: "Directory Manifest Generation, Verification & Path Traversal Firewall"
+    persona_story: "As a release engineer, I need recursive directory manifest generation and verification (JSON/CSV/TXT) with strict path-traversal rejection and live progress reporting so release trees can be audited safely."
+    srs_reqs:
+      - "FR-03"
+      - "FR-04"
+      - "NFR-02"
+    openspec_delta: "SPEC-SRS-v0.2.0"
+    code_paths:
+      - "rust/hash-checker/src/manifest.rs"
+    invariants:
+      - "normalize_manifest_rel_path rejects absolute paths, CurDir (.), and ParentDir (..)"
+      - "Format auto-detection from .json, .csv, .txt, and .sha256 extensions"
+      - "Cooperative cancellation and per-file progress callbacks"
+    visible_tests:
+      - "rust/hash-checker/tests/manifest_cli.rs"
+    verifier_class: "test"
+    blast_radius:
+      depends_on:
+        - "FEAT-CORE-HASH-01"
+      direct_consumers:
+        - "FEAT-BATCH-CLI-01"
+        - "FEAT-DESKTOP-GUI-01"
+
+  - id: "FEAT-BATCH-CLI-01"
+    title: "Batch Verification Runner & Unified CLI Surface"
+    persona_story: "As a CI pipeline author, I need a deterministic CLI and batch runner with structured exit codes (0/1/2/3) and JSON/CSV reports so automated pipelines can gate artifact integrity."
+    srs_reqs:
+      - "FR-05"
+      - "FR-06"
+    openspec_delta: "SPEC-SRS-v0.2.0"
+    code_paths:
+      - "rust/hash-checker/src/batch.rs"
+      - "rust/hash-checker/src/main.rs"
+    invariants:
+      - "Deterministic exit code precedence (IO error 3 > parse error 2 > mismatch/missing 1 > ok 0)"
+      - "Box<dyn Write> unified output sink for stdout and file targets"
+    visible_tests:
+      - "rust/hash-checker/tests/batch_reports.rs"
+      - "rust/hash-checker/tests/cli_tests.rs"
+    verifier_class: "test"
+    blast_radius:
+      depends_on:
+        - "FEAT-CORE-HASH-01"
+        - "FEAT-MANIFEST-01"
+      direct_consumers:
+        - "FEAT-PACKAGING-CI-01"
+
+  - id: "FEAT-DESKTOP-GUI-01"
+    title: "Cross-Platform egui Desktop Application & Live Progress Cancellation"
+    persona_story: "As a desktop user, I need an accessible egui GUI with SoftLight/Slate/HighContrast themes, 8-algorithm prefix auto-detection, live progress bars, and Cancel controls across File Check and Folder Manifest workflows."
+    srs_reqs:
+      - "FR-07"
+      - "FR-08"
+      - "NFR-03"
+    openspec_delta: "SPEC-SRS-v0.2.0"
+    code_paths:
+      - "rust/hash-checker-gui/src/main.rs"
+      - "rust/hash-checker-gui/src/dialog.rs"
+    invariants:
+      - "ThemePreset::SoftLight default matches initial app state"
+      - "Background worker thread communicates via bounded mpsc progress/cancel channels"
+      - "Headless --smoke-test and --snapshot-dir automation modes"
+    visible_tests:
+      - "rust/hash-checker-gui/tests/gui_smoke.rs"
+      - "rust/hash-checker-gui/tests/gui_cli_smoke.rs"
+      - "rust/hash-checker-gui/tests/deep_manifest.rs"
+    verifier_class: "test"
+    blast_radius:
+      depends_on:
+        - "FEAT-CORE-HASH-01"
+        - "FEAT-MANIFEST-01"
+      direct_consumers:
+        - "FEAT-PACKAGING-CI-01"
+
+  - id: "FEAT-PACKAGING-CI-01"
+    title: "Reproducible Packaging, Telemetry Schema & Offer Bundle CI Gates"
+    persona_story: "As a maintainer, I need reproducible universal macOS DMG packaging, GUI snapshot harness, telemetry validation, and Spec-Code/Structure/Link CI gates."
+    srs_reqs:
+      - "NFR-04"
+    openspec_delta: "SPEC-SRS-v0.2.0"
+    code_paths:
+      - "scripts/macos-universal-dmg.sh"
+      - "scripts/gui-snapshot-harness.sh"
+      - "scripts/validate_telemetry.py"
+      - "tools/ci_spec_code_sync.sh"
+      - "tools/ci_structure_sync.sh"
+      - "tools/ci_link_integrity.sh"
+    invariants:
+      - "Zero-stale Spec-to-Code, Structure, and Link Integrity gates"
+    visible_tests:
+      - "tools/ci_spec_code_sync_test.sh"
+      - "tools/ci_structure_sync_test.sh"
+      - "tools/ci_link_integrity_test.sh"
+    verifier_class: "lint"
+    blast_radius:
+      depends_on:
+        - "FEAT-BATCH-CLI-01"
+        - "FEAT-DESKTOP-GUI-01"
+      direct_consumers: []

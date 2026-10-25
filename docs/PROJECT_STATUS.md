@@ -1,19 +1,17 @@
 # Project Status Overview
 
-_Last updated: 2025-10-23_
+_Last updated: 2026-10-25_
 
 This page summarises the current state. Refer to [`docs/PLAN.md`](PLAN.md) for
 the roadmap and [`docs/TASKS.md`](TASKS.md) for near-term work; this overview
 only highlights the key signals and where to dig deeper.
 
 ## Snapshot
-- Multi-agent delivery workflow merged (PR #46); `.agents/AGENTS.yml` and supporting runbooks now reflect cross-agent guardrails.
-- GTK4-native dialog backend shipped behind the `gtk4-native` feature flag (Issue #39 / PR #40). CI evidence captured in `logs/qa/gtk4-20251022-ci.md`.
-- Release `v0.1.7` (2025-10-22) is live, superseding the earlier 0.1.5 notes. Changelog captured via PR #42.
-- Security follow-up (Issues #43/#47): branch `fix/glib-upgrade-issue47` bumps the GTK4 stack to 0.10.1 (glib 0.21.3). Validation log: `logs/qa/glib-upgrade-20251023.md`; CI run 18743487218 passed (portal + gtk4-native smoke).
-- DMG artefact rename is in progress on branch `feature/dmg-rename-issue48-a1`, targeting a unified `hash-checker.dmg` across scripts/workflows (Issue #48).
-- SignPath onboarding remains blocked on OSS subscription; track progress in `.agents/project_state.yml` and `docs/security/SIGNPATH_CHECKLIST.md`.
-- Vagrant smoke validation still requires a VMware-capable host; follow `docs/vagrant/VALIDATION_PLAYBOOK.md` when the hardware window opens.
+- Release `v0.2.0` (2026-10-25) ships the 4-phase SDD overhaul: formal `specs/` (`PRD.md`, `SRS.md`, `FSM.md`, `AC.md`), `.g8s/feature-map.yml`, cooperative hashing/manifest cancellation, real-time GUI progress bars with **Cancel**, 8-algorithm prefix auto-detection, and manifest path-traversal hardening.
+- GTK4-native dialog backend shipped behind the `gtk4-native` feature flag (Issue #39 / PR #40) with `gtk4` 0.10.1 / `glib` 0.21.3 security upgrade (Issues #43/#47) and `rand` 0.9.4 upgrade.
+- Unified `hash-checker.dmg` macOS universal DMG packaging and `scripts/gui-snapshot-harness.sh` (`make gui-snapshot`) are active on `main` (Issues #33/#48).
+- All 3 Offer Bundle CI gates (`ci_spec_code_sync.sh`, `ci_structure_sync.sh`, `ci_link_integrity.sh`) and 54/54 Rust unit/integration tests pass with zero warnings.
+- SignPath onboarding remains optional pending OSS certificate provisioning; see [`docs/security/SIGNPATH_CHECKLIST.md`](security/SIGNPATH_CHECKLIST.md).
 
 ## Maintenance cadence
 - Monthly: dependency refresh (`deps-refresh.yml`) and cargo-dist maintenance.

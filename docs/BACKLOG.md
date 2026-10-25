@@ -8,18 +8,14 @@
 
 ## Features
 - History panel for recent hashes and validation results.
-- Batch and multi-file queue support with progress reporting.
-- Directory hashing with manifest export/import (JSON/CSV).
 - Cloud integration (OneDrive, Google Drive) through the plugin architecture.
 - SDK bindings (Node/other runtimes) consuming the Rust core library.
-- Optional file/folder encryption module built atop the existing hash workflows (scope to be clarified post v0.1.7).
+- Optional file/folder encryption module built atop the existing hash workflows.
 
 ## Improvements
-- Performance tuning for large files (async IO, multi-thread hashing).
-- Structured logging/telemetry (opt-in) for troubleshooting.
+- Multi-threaded directory hashing across large file trees.
 - Internationalisation support for GUI text.
 - Enhanced accessibility (screen reader labels, focus management).
-- Export results as JSON/CSV reports.
 
 ## CI & Release Automation
 - Extend CI to include GUI regression tests.
