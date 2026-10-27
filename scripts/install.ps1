@@ -4,7 +4,7 @@
 #
 # Usage:
 #   irm https://raw.githubusercontent.com/tamld/hash-checker/main/scripts/install.ps1 | iex
-#   $env:HASH_CHECKER_VERSION="v0.2.0"; .\scripts\install.ps1
+#   $env:HASH_CHECKER_VERSION="v0.2.1"; .\scripts\install.ps1
 # ==============================================================================
 $ErrorActionPreference = "Stop"
 

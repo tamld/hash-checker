@@ -5,7 +5,7 @@
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/tamld/hash-checker/main/scripts/install.sh | bash
-#   HASH_CHECKER_VERSION=v0.2.0 INSTALL_DIR=/usr/local/bin ./scripts/install.sh
+#   HASH_CHECKER_VERSION=v0.2.1 INSTALL_DIR=/usr/local/bin ./scripts/install.sh
 # ==============================================================================
 set -euo pipefail
 

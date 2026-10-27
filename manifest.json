@@ -3,10 +3,10 @@
   "name": "hash-checker",
   "display_name": "Hash Checker (Rust CLI + Desktop GUI)",
   "tagline": "Fast, deterministic file & directory cryptographic integrity verifier in Rust (CLI + egui/eframe GUI)",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "rust_edition": "2021",
   "latest_release": {
-    "tag": "v0.2.0",
+    "tag": "v0.2.1",
     "date": "2026-10-25"
   },
   "license": "MIT",

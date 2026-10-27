@@ -411,7 +411,7 @@ dependencies = [
 
 [[package]]
 name = "hash-checker"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "assert_cmd",
  "blake2",

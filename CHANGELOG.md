@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 - SignPath signing integration for Windows artefacts.
 
+## [0.2.1] - 2026-10-28
+
+### Added & Changed
+- Upgrade `.g8s/feature-map.yml` to Spec-Kit v2.0 with `inherits_spec_kit: g8s/offer/profiles/utility@v0.21`.
+- Add 3-attempt retry to `cargo audit` in CI and scaffold `AGENTS.md`.
+
 ## [0.2.0] - 2026-10-25
 ### Added
 - Cooperative cancellation (`HashError::Cancelled`, `compute_hash_with_options`, `generate_manifest_with_options`, `verify_manifest_with_options`) and real-time progress callbacks across CLI and GUI (`specs/PRD.md`, `specs/SRS.md`, `specs/FSM.md`, `specs/AC.md`).
