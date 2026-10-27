@@ -107,10 +107,30 @@ jobs:
           cargo install cargo-deny --locked
       - name: Cargo audit (hash-checker)
         working-directory: rust/hash-checker
-        run: cargo audit
+        run: |
+          for attempt in 1 2 3; do
+            if cargo audit; then
+              break
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep 5
+            else
+              exit 1
+            fi
+          done
       - name: Cargo audit (hash-checker-gui)
         working-directory: rust/hash-checker-gui
-        run: cargo audit
+        run: |
+          for attempt in 1 2 3; do
+            if cargo audit; then
+              break
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep 5
+            else
+              exit 1
+            fi
+          done
       - name: Cargo deny (advisories)
         working-directory: rust/hash-checker
         run: cargo deny check advisories
