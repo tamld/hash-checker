@@ -1,10 +1,14 @@
-schema_version: "1.0"
+schema_version: "2.0"
+inherits_spec_kit: "g8s/offer/profiles/utility@v0.21"
 # hash-checker Declarative End-to-End Feature Map (.g8s/feature-map.yml)
 # Maps functional feature nodes to SRS requirements (specs/SRS.md),
 # code paths, invariants, visible tests, verifier classes, and acyclic blast radius graphs.
 
 features:
   - id: "FEAT-CORE-HASH-01"
+    collision_domain: "CD-FEAT-CORE-HASH-01-1"
+    owned_paths:
+      - "docs/feature-1/**"
     title: "Multi-Algorithm Streaming Hash Engine & Cooperative Cancellation"
     persona_story: "As a security operator or desktop user, I need streaming file hashing across 8 algorithms (SHA-256, SHA-512, SHA3-256, SHA3-512, BLAKE2b, BLAKE2s, SHA-1, MD5) with cooperative cancellation and progress callbacks so large files can be verified without blocking or exhausting memory."
     srs_reqs:
@@ -29,6 +33,9 @@ features:
         - "FEAT-DESKTOP-GUI-01"
 
   - id: "FEAT-MANIFEST-01"
+    collision_domain: "CD-FEAT-MANIFEST-01-2"
+    owned_paths:
+      - "docs/feature-2/**"
     title: "Directory Manifest Generation, Verification & Path Traversal Firewall"
     persona_story: "As a release engineer, I need recursive directory manifest generation and verification (JSON/CSV/TXT) with strict path-traversal rejection and live progress reporting so release trees can be audited safely."
     srs_reqs:
@@ -53,6 +60,9 @@ features:
         - "FEAT-DESKTOP-GUI-01"
 
   - id: "FEAT-BATCH-CLI-01"
+    collision_domain: "CD-FEAT-BATCH-CLI-01-3"
+    owned_paths:
+      - "docs/feature-3/**"
     title: "Batch Verification Runner & Unified CLI Surface"
     persona_story: "As a CI pipeline author, I need a deterministic CLI and batch runner with structured exit codes (0/1/2/3) and JSON/CSV reports so automated pipelines can gate artifact integrity."
     srs_reqs:
@@ -77,6 +87,9 @@ features:
         - "FEAT-PACKAGING-CI-01"
 
   - id: "FEAT-DESKTOP-GUI-01"
+    collision_domain: "CD-FEAT-DESKTOP-GUI-01-4"
+    owned_paths:
+      - "docs/feature-4/**"
     title: "Cross-Platform egui Desktop Application & Live Progress Cancellation"
     persona_story: "As a desktop user, I need an accessible egui GUI with SoftLight/Slate/HighContrast themes, 8-algorithm prefix auto-detection, live progress bars, and Cancel controls across File Check and Folder Manifest workflows."
     srs_reqs:
@@ -104,6 +117,9 @@ features:
         - "FEAT-PACKAGING-CI-01"
 
   - id: "FEAT-PACKAGING-CI-01"
+    collision_domain: "CD-FEAT-PACKAGING-CI-01-5"
+    owned_paths:
+      - "docs/feature-5/**"
     title: "Reproducible Packaging, Standalone Installers, SSoT Version Sync & Offer Bundle CI Gates"
     persona_story: "As a maintainer or end-user, I need one-line SHA-256 verified standalone installers (scripts/install.sh & scripts/install.ps1), reproducible universal macOS DMG + darwin_all/linux_amd64/windows_amd64 archives, SSoT version synchronization (VERSION + manifest.json + Cargo.toml), and Spec-Code/Structure/Link CI gates."
     srs_reqs:
